@@ -1,9 +1,12 @@
 import pandas as pd
 from datetime import datetime
 import numpy as np
+import os
 
 
 class Table:
+    data_path = os.path.join(os.path.split(os.path.dirname(__file__))[0], "project_data\\")
+
     def __init__(self, tableName, csvFileName, pks=None, fks=None, ref_tables=None, refs=None):
         if refs is None:
             refs = []
@@ -14,7 +17,7 @@ class Table:
         if pks is None:
             pks = []
         self.headers = []
-        self.csvFileName = csvFileName
+        self.csvFileName = self.data_path + csvFileName + '.csv'
         self.tableName = tableName
         self.data = pd.DataFrame()
         self.pks = pks
@@ -38,7 +41,7 @@ class Table:
                     print(self.data.loc[i, "DateTime"])
                     self.data.loc[i, "DateTime"] = datetime.strptime(self.data.loc[i, "DateTime"], '%m/%d/%Y %H:%M')
             for i in self.data.columns:
-                if 'Date' in i:
+                if i in ['DOB', 'Date']:
                     for j in range(self.data.shape[0]):
                         if isinstance(self.data.loc[j, i], str):
                             self.data.loc[j, i] = datetime.strptime(self.data.loc[j, i], '%m/%d/%Y').strftime(
