@@ -1,7 +1,5 @@
-from table_obj import Table
 from sqlalchemy import create_engine
 import mysql.connector
-import os
 
 user = 'root'
 password = 'St240342'
@@ -12,7 +10,6 @@ db = "his_project"
 tables = []
 cursor = ''
 con = ''
-fpath = os.path.join(os.path.split(os.path.dirname(__file__))[0], "project_data\\")
 
 
 def connect2server(usr=user, passwd=password, hst=host, prt=port):
@@ -44,7 +41,6 @@ def initDB(dbname):
 
 
 def connect2serverDB(database=db):
-    # this function assumes existing connection to server
     global user, password, host, port, cursor, db, con
     db = database
     con = mysql.connector.connect(host=host, user=user, passwd=password, database=db)
