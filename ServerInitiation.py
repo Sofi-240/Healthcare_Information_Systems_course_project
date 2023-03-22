@@ -1,18 +1,18 @@
 from sqlalchemy import create_engine
 import mysql.connector
 
-user = 'root'
-password = 'St240342'
-ip = '127.0.0.1'
-port = 3306
-host = 'localhost'
+user = ''
+password = ''
+ip = ''
+port = 0
+host = ''
 db = "his_project"
 tables = []
 cursor = ''
 con = ''
 
 
-def connect2server(usr=user, passwd=password, hst=host, prt=port):
+def connect2server(usr=user, hst=host, prt=port, passwd=password):
     global user, password, host, port, cursor, con
     user, password, host, port = usr, passwd, hst, prt
     con = mysql.connector.connect(host=host, user=user, passwd=password)
@@ -138,4 +138,3 @@ def addFKs(table):
             print(alter_table_com)
             cursor.execute(alter_table_com)
     return
-

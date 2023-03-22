@@ -115,7 +115,6 @@ def patient_table(N):
     return data
 
 
-
 patient_df = patient_table(1000)
 # patient_df.to_csv(data_path + 'patient.csv', index=False)
 # cursor, con = server.connect2serverDB()
@@ -124,8 +123,8 @@ patient_df = patient_table(1000)
 # server.addPKs(patient_df)
 
 
-age = patient_df['DOB'].apply(age)
-patient_diagnosis = pd.DataFrame(patient_df['ID'].copy(deep=True))
-mask = (patient_df['gender'] == 'M') & (age >= 70)
-r_mask = random_NP_mask(mask.sum(), 0.3)
-patient_diagnosis.loc[r_mask[:, 0], 'disease'] = random_item(r_mask[:, 0].sum(), 'Alzheimer', 'Parkinson')
+# age = patient_df['DOB'].apply(age)
+# patient_diagnosis = pd.DataFrame(patient_df['ID'].copy(deep=True))
+# mask = (patient_df['gender'] == 'M') & (age >= 70)
+# r_mask = random_NP_mask(mask.sum(), 0.3)
+# patient_diagnosis.loc[r_mask[:, 0], 'disease'] = random_item(r_mask[:, 0].sum(), 'Alzheimer', 'Parkinson')
