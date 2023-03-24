@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
-from table_obj import Table
-import ServerInitiation as SERV
 import datetime
-import os
 
 random_dict = {
     'Fname': {'M': ['David', 'Yosef', 'Moshe', 'Avraham', 'Yaakov', 'Isaac', 'Samuel', 'Daniel', 'Benjamin', 'Jonathan',
@@ -40,18 +37,10 @@ random_dict = {
     'city': {'N': ['Haifa', 'Nazareth', 'Tiberias', 'Akko', 'Zichron-Yaakov'],
              'S': ['Eilat', 'Beer-Sheva', 'Ashkelon', 'Ashdod'],
              'C': ['Jerusalem', 'Tel-Aviv', 'Netanya', 'Bat-Yam', 'Rishon-LeZion', 'Petah-Tikva', 'Holon', 'Ramat-Gan',
-                                                 'Herzliya', 'Givatayim', 'Rehovot', 'Yavne']},
+                   'Herzliya', 'Givatayim', 'Rehovot', 'Yavne']},
     'country': {'N': ['Russia', 'Poland', 'England', 'Ukraine', 'Slovakia', 'Czech Republic'],
                 'S': ['Argentina', 'Morocco', 'Yemen', 'Tripoli', 'Brazil', 'Italy', 'France']}
 }
-
-data_path = os.path.join(os.path.split(os.path.dirname(__file__))[0], "project_data\\")
-
-
-def age(born):
-    # born = datetime.datetime.strptime(born, "%d/%m/%Y").date()
-    today = datetime.date.today()
-    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
 
 def random_binary(n, p_true=0.5):
@@ -123,110 +112,110 @@ def diseases_table():
     return data
 
 
+def patient_table(N, des_df):
+    def age(born):
+        today = datetime.date.today()
+        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+    data = pd.DataFrame(random_item(N, *list(range(1, 4))), columns=['ID'])
+    data['ID'] = data['ID'].astype(str)
+    data['ID'] += random_rnf_uni(10000001, 99999999, N)
+
+    mask = random_NP_mask(N, 0.6)
+    data['gender'] = 'M'
+    data.loc[mask[:, 0], 'gender'] = 'F'
+    data.loc[mask[:, 0], 'name'] = random_item(mask[:, 0].sum(), *random_dict['Fname']['F'])
+    data.loc[mask[:, 1], 'name'] = random_item(mask[:, 1].sum(), *random_dict['Fname']['M'])
+
+    stack = np.vstack((np.zeros((N,)), random_item(N, *list(range(1, 13))), random_item(N, *list(range(1, 31))))).T
+    stack[np.where((stack[:, 2] >= 29) & (stack[:, 1] == 2))[0], 2] -= 4
+    mask = random_NP_mask(N, 0.2, 0.3, 0.5)
+    stack[mask[:, 0], 0] = random_item(mask[:, 0].sum(), *list(range(1985, 1997)))
+    stack[mask[:, 1], 0] = random_item(mask[:, 1].sum(), *list(range(1975, 1985)))
+    stack[mask[:, 2], 0] = random_item(mask[:, 2].sum(), *list(range(1950, 1975)))
+    stack = stack.astype(int)
+    stack = pd.DataFrame(stack, columns=['year', 'month', 'day'])
+    stack = pd.to_datetime(stack, unit='D')
+    data['DOB'] = stack
+
+    mask = random_NP_mask(N, 0.3, 0.2)
+    data['area'] = 'C'
+    data.loc[mask[:, 0], 'area'] = 'N'
+    data.loc[mask[:, 1], 'area'] = 'S'
+    data.loc[mask[:, 0], 'city'] = random_item(mask[:, 0].sum(), *random_dict['city']['N'])
+    data.loc[mask[:, 1], 'city'] = random_item(mask[:, 1].sum(), *random_dict['city']['S'])
+    data.loc[mask[:, 2], 'city'] = random_item(mask[:, 2].sum(), *random_dict['city']['C'])
+
+    data['phone'] = random_item(N, '050', '054', '052')
+    data['phone'] += random_rnf_uni(1000001, 9999999, N)
+    data['HMO'] = random_item(N, 'Clalit', 'Maccabi', 'Meuhedet', 'Leumit')
+
+    mask = random_NP_mask(N, 0.3, 0.3)
+    data['COB'] = 'Israel'
+    data.loc[mask[:, 0], 'COB'] = random_item(mask[:, 0].sum(), *random_dict['country']['N'])
+    data.loc[mask[:, 1], 'COB'] = random_item(mask[:, 1].sum(), *random_dict['country']['S'])
+
+    gender_mask = data['gender'] == 'M'
+    mask = random_NP_mask(gender_mask.sum(), 0.3, 0.1)
+    slc = gender_mask.loc[gender_mask == True]
+    data.loc[slc.loc[mask[:, 0]].index, 'height'] = random_item(mask[:, 0].sum(),
+                                                                *np.arange(1.50, 1.70, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 0]].index, 'weight'] = random_item(mask[:, 0].sum(), *np.arange(44, 80).tolist())
+
+    data.loc[slc.loc[mask[:, 1]].index, 'height'] = random_item(mask[:, 1].sum(),
+                                                                *np.arange(1.90, 2.10, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 1]].index, 'weight'] = random_item(mask[:, 1].sum(), *np.arange(90, 120).tolist())
+
+    data.loc[slc.loc[mask[:, 2]].index, 'height'] = random_item(mask[:, 2].sum(),
+                                                                *np.arange(1.70, 1.90, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 2]].index, 'weight'] = random_item(mask[:, 2].sum(), *np.arange(60, 100).tolist())
+
+    gender_mask = data['gender'] == 'F'
+    mask = random_NP_mask(gender_mask.sum(), 0.4, 0.1)
+    slc = gender_mask.loc[gender_mask == True]
+    data.loc[slc.loc[mask[:, 0]].index, 'height'] = random_item(mask[:, 0].sum(),
+                                                                *np.arange(1.50, 1.70, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 0]].index, 'weight'] = random_item(mask[:, 0].sum(), *np.arange(44, 80).tolist())
+
+    data.loc[slc.loc[mask[:, 1]].index, 'height'] = random_item(mask[:, 1].sum(),
+                                                                *np.arange(1.90, 2.10, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 1]].index, 'weight'] = random_item(mask[:, 1].sum(), *np.arange(90, 120).tolist())
+
+    data.loc[slc.loc[mask[:, 2]].index, 'height'] = random_item(mask[:, 2].sum(),
+                                                                *np.arange(1.70, 1.90, 0.02).tolist())
+    data.loc[slc.loc[mask[:, 2]].index, 'weight'] = random_item(mask[:, 2].sum(), *np.arange(60, 100).tolist())
+
+    data.loc[:, 'support'] = random_binary(N, p_true=0.7)
+    age = data['DOB'].apply(age)
+
+    uni_id = (des_df['DESN'] == 'Alzheimer') | (des_df['DESN'] == 'Parkinson') | (des_df['DESN'] == 'Dementia')
+    age_mask = (age >= 55) & (data['gender'] == 'M')
+    mask = random_NP_mask(age_mask.sum(), 0.4)
+    slc = age_mask.loc[age_mask == True]
+
+    data.loc[slc.loc[mask[:, 0]].index, 'DID'] = random_item(mask[:, 0].sum(),
+                                                             *list(des_df.loc[uni_id == True, 'DESID'].unique()))
+    data.loc[slc.loc[mask[:, 1]].index, 'DID'] = random_item(mask[:, 1].sum(),
+                                                             *list(des_df.loc[uni_id == False, 'DESID'].unique()))
+
+    age_mask = (age >= 55) & (data['gender'] == 'F')
+    mask = random_NP_mask(age_mask.sum(), 0.4)
+    slc = age_mask.loc[age_mask == True]
+
+    data.loc[slc.loc[mask[:, 0]].index, 'DID'] = random_item(mask[:, 0].sum(),
+                                                             *list(des_df.loc[uni_id == True, 'DESID'].unique()))
+    data.loc[slc.loc[mask[:, 1]].index, 'DID'] = random_item(mask[:, 1].sum(),
+                                                             *list(des_df.loc[uni_id == False, 'DESID'].unique()))
+
+    age_mask = age < 55
+    data.loc[age_mask == True, 'DID'] = random_item(age_mask.sum(),
+                                                    *list(des_df.loc[uni_id == False, 'DESID'].unique()))
+    return data
+
+
 diseases_df = diseases_table()
-N = 1000
-patient_df = pd.DataFrame(random_item(N, *list(range(1, 4))), columns=['ID'])
-patient_df['ID'] = patient_df['ID'].astype(str)
-patient_df['ID'] += random_rnf_uni(10000001, 99999999, N)
+patient_df = patient_table(1000, diseases_df)
 
-mask = random_NP_mask(N, 0.6)
-patient_df['gender'] = 'M'
-patient_df.loc[mask[:, 0], 'gender'] = 'F'
-patient_df.loc[mask[:, 0], 'name'] = random_item(mask[:, 0].sum(), *random_dict['Fname']['F'])
-patient_df.loc[mask[:, 1], 'name'] = random_item(mask[:, 1].sum(), *random_dict['Fname']['M'])
-
-stack = np.vstack((np.zeros((N,)), random_item(N, *list(range(1, 13))), random_item(N, *list(range(1, 31))))).T
-stack[np.where((stack[:, 2] >= 29) & (stack[:, 1] == 2))[0], 2] -= 4
-mask = random_NP_mask(N, 0.2, 0.3, 0.5)
-stack[mask[:, 0], 0] = random_item(mask[:, 0].sum(), *list(range(1985, 1997)))
-stack[mask[:, 1], 0] = random_item(mask[:, 1].sum(), *list(range(1975, 1985)))
-stack[mask[:, 2], 0] = random_item(mask[:, 2].sum(), *list(range(1950, 1975)))
-stack = stack.astype(int)
-stack = pd.DataFrame(stack, columns=['year', 'month', 'day'])
-stack = pd.to_datetime(stack, unit='D')
-patient_df['DOB'] = stack
-
-mask = random_NP_mask(N, 0.3, 0.2)
-patient_df['area'] = 'C'
-patient_df.loc[mask[:, 0], 'area'] = 'N'
-patient_df.loc[mask[:, 1], 'area'] = 'S'
-patient_df.loc[mask[:, 0], 'city'] = random_item(mask[:, 0].sum(), *random_dict['city']['N'])
-patient_df.loc[mask[:, 1], 'city'] = random_item(mask[:, 1].sum(), *random_dict['city']['S'])
-patient_df.loc[mask[:, 2], 'city'] = random_item(mask[:, 2].sum(), *random_dict['city']['C'])
-
-patient_df['phone'] = random_item(N, '050', '054', '052')
-patient_df['phone'] += random_rnf_uni(1000001, 9999999, N)
-patient_df['HMO'] = random_item(N, 'Clalit', 'Maccabi', 'Meuhedet', 'Leumit')
-
-mask = random_NP_mask(N, 0.3, 0.3)
-patient_df['COB'] = 'Israel'
-patient_df.loc[mask[:, 0], 'COB'] = random_item(mask[:, 0].sum(), *random_dict['country']['N'])
-patient_df.loc[mask[:, 1], 'COB'] = random_item(mask[:, 1].sum(), *random_dict['country']['S'])
-
-
-gender_mask = patient_df['gender'] == 'M'
-mask = random_NP_mask(gender_mask.sum(), 0.3, 0.1)
-slc = gender_mask.loc[gender_mask == True]
-patient_df.loc[slc.loc[mask[:, 0]].index, 'height'] = random_item(mask[:, 0].sum(),
-                                                                  *np.arange(1.50, 1.70, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 0]].index, 'weight'] = random_item(mask[:, 0].sum(), *np.arange(44, 80).tolist())
-
-patient_df.loc[slc.loc[mask[:, 1]].index, 'height'] = random_item(mask[:, 1].sum(),
-                                                                  *np.arange(1.90, 2.10, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 1]].index, 'weight'] = random_item(mask[:, 1].sum(), *np.arange(90, 120).tolist())
-
-patient_df.loc[slc.loc[mask[:, 2]].index, 'height'] = random_item(mask[:, 2].sum(),
-                                                                  *np.arange(1.70, 1.90, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 2]].index, 'weight'] = random_item(mask[:, 2].sum(), *np.arange(60, 100).tolist())
-
-gender_mask = patient_df['gender'] == 'F'
-mask = random_NP_mask(gender_mask.sum(), 0.4, 0.1)
-slc = gender_mask.loc[gender_mask == True]
-patient_df.loc[slc.loc[mask[:, 0]].index, 'height'] = random_item(mask[:, 0].sum(),
-                                                                  *np.arange(1.50, 1.70, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 0]].index, 'weight'] = random_item(mask[:, 0].sum(), *np.arange(44, 80).tolist())
-
-patient_df.loc[slc.loc[mask[:, 1]].index, 'height'] = random_item(mask[:, 1].sum(),
-                                                                  *np.arange(1.90, 2.10, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 1]].index, 'weight'] = random_item(mask[:, 1].sum(), *np.arange(90, 120).tolist())
-
-patient_df.loc[slc.loc[mask[:, 2]].index, 'height'] = random_item(mask[:, 2].sum(),
-                                                                  *np.arange(1.70, 1.90, 0.02).tolist())
-patient_df.loc[slc.loc[mask[:, 2]].index, 'weight'] = random_item(mask[:, 2].sum(), *np.arange(60, 100).tolist())
-
-patient_df.loc[:, 'support'] = random_binary(N, p_true=0.7)
-age = patient_df['DOB'].apply(age)
-
-patient_diagnosis = pd.DataFrame(np.zeros((1000, 2)), columns=['PID', 'DID'])
-patient_diagnosis['PID'] = patient_df['ID']
-
-uni_id = (diseases_df['DESN'] == 'Alzheimer') | (diseases_df['DESN'] == 'Parkinson') | (diseases_df['DESN'] == 'Dementia')
-age_mask = (age >= 55) & (patient_df['gender'] == 'M')
-mask = random_NP_mask(age_mask.sum(), 0.4)
-slc = age_mask.loc[age_mask == True]
-
-patient_diagnosis.loc[slc.loc[mask[:, 0]].index, 'DID'] = random_item(mask[:, 0].sum(), *list(
-    diseases_df.loc[uni_id == True, 'DESID'].unique()))
-patient_diagnosis.loc[slc.loc[mask[:, 1]].index, 'DID'] = random_item(mask[:, 1].sum(), *list(
-    diseases_df.loc[uni_id == False, 'DESID'].unique()))
-
-age_mask = (age >= 55) & (patient_df['gender'] == 'F')
-mask = random_NP_mask(age_mask.sum(), 0.4)
-slc = age_mask.loc[age_mask == True]
-
-patient_diagnosis.loc[slc.loc[mask[:, 0]].index, 'DID'] = random_item(mask[:, 0].sum(), *list(
-    diseases_df.loc[uni_id == True, 'DESID'].unique()))
-patient_diagnosis.loc[slc.loc[mask[:, 1]].index, 'DID'] = random_item(mask[:, 1].sum(), *list(
-    diseases_df.loc[uni_id == False, 'DESID'].unique()))
-
-age_mask = age < 55
-patient_diagnosis.loc[age_mask == True, 'DID'] = random_item(age_mask.sum(),
-                                                             *list(diseases_df.loc[
-                                                                       uni_id == False, 'DESID'].unique()))
-
-# patient_df.to_csv(data_path + 'patient.csv', index=False)
-# cursor, con = SERV.connect2serverDB()
-# patient_df = Table('patient', 'patient', ['ID'])
-# SERV.createNewTable(patient_df)
-# SERV.addPKs(patient_df)
+# patient_df.to_csv('app\\initialization\\patient.csv', index=False)
+# diseases_df.to_csv('app\\initialization\\diseases.csv', index=False)
 

@@ -5,8 +5,6 @@ import os
 
 
 class Table:
-    data_path = os.path.join(os.path.split(os.path.dirname(__file__))[0], "project_data\\")
-
     def __init__(self, tableName, csvFileName, pks=None, fks=None, ref_tables=None, refs=None):
         if refs is None:
             refs = []
@@ -17,7 +15,7 @@ class Table:
         if pks is None:
             pks = []
         self.headers = []
-        self.csvFileName = self.data_path + csvFileName + '.csv'
+        self.csvFileName = csvFileName + '.csv'
         self.tableName = tableName
         self.data = pd.DataFrame()
         self.pks = pks
