@@ -164,7 +164,8 @@ def addFKs(table):
 def main():
     connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
     initDB("his_project")
-    DS = [Table('diseases', 'diseases', ['DESID']), Table('patient', 'patient', ['ID'], ['DESID'])]
+    DS = [Table('diseases', 'diseases', ['DESID'], ['DEPID']),
+          Table('patient', 'patient', ['ID'], ['DESID'], ['diseases'])]
     for t in DS:
         createNewTable(t, dbname="his_project")
         insertData2Table(t)
