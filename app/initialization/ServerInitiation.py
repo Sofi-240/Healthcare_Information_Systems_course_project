@@ -1,8 +1,6 @@
 from sqlalchemy import create_engine
 import mysql.connector
-import os
-import json
-
+from app.initialization.table_obj import Table
 
 user = ''
 password = ''
@@ -17,12 +15,12 @@ con = ''
 
 # Create Connection, save user, password into privates
 def connect2server(usr="root", passwd="St240342", hst="localhost", prt=3306):
-    global user, passward, host, port, cursor, con
+    global user, password, host, port, cursor, con
     user = usr
-    passward = passwd
+    password = passwd
     host = hst
     port = prt
-    con = mysql.connector.connect(host=host, user=user, passwd=passward)
+    con = mysql.connector.connect(host=host, user=user, passwd=password)
     cursor = con.cursor()
     return cursor
 
@@ -57,12 +55,12 @@ def connect2serverDB(database=db):
     # and an existing DB.
     # it outputs the connection cursor to the db
     connect2server()
-    global user, passward, host, port, cursor, db, con
+    global user, password, host, port, cursor, db, con
     db = database
     # reconnect to database from SERV
     con = mysql.connector.connect(host=host,
                                   user=user,
-                                  passwd=passward,
+                                  passwd=password,
                                   database=db.upper())
     cursor = con.cursor()
     return cursor, con
@@ -111,8 +109,8 @@ def createNewTable(table, headers=[], dbname=db):
 
 
 def insertData2Table(table):
-    global user, passward, ip, port, db
-    con = create_engine('mysql+pymysql://' + user + ':' + passward + '@' + ip + ':' + str(port) + '/' + db)
+    global user, password, ip, port, db
+    con = create_engine('mysql+pymysql://' + user + ':' + password + '@' + ip + ':' + str(port) + '/' + db)
     table.data.to_sql(name=table.tableName.lower(), con=con, index=False, if_exists="append")
     return
 
@@ -163,11 +161,15 @@ def addFKs(table):
     return
 
 
-# main execution from here:
-# form a connection to SERV
 def main():
     connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
     initDB("his_project")
+    DS = [Table('diseases', 'diseases', ['DESID']), Table('patient', 'patient', ['ID'], ['DESID'])]
+    for t in DS:
+        createNewTable(t, dbname="his_project")
+        insertData2Table(t)
+        addPKs(t)
+        addFKs(t)
 
 
 if __name__ == "__main__":

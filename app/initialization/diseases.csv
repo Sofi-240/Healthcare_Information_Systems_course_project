@@ -1,0 +1,51 @@
+DESID,DESN,DEPID,DEPN
+1070593,Breast cancer,10,Oncology
+1086260,Lung cancer,10,Oncology
+1032160,Prostate cancer,10,Oncology
+1079801,Colorectal cancer,10,Oncology
+1031102,Skin cancer,10,Oncology
+1031200,Bladder cancer,10,Oncology
+1015226,Kidney cancer,10,Oncology
+1051450,Pancreatic cancer,10,Oncology
+1033976,Ovarian cancer,10,Oncology
+1083167,Leukemia,10,Oncology
+1027786,Lymphoma,10,Oncology
+1048656,Liver cancer,10,Oncology
+1019665,Bone cancer,10,Oncology
+1075933,Thyroid cancer,10,Oncology
+1054638,Esophageal cancer,10,Oncology
+1012720,Stomach cancer,10,Oncology
+1060043,Cervical cancer,10,Oncology
+1098736,Uterine cancer,10,Oncology
+1043114,Testicular cancer,10,Oncology
+2083248,Multiple sclerosis,20,neurological
+2017195,Epilepsy,20,neurological
+2088916,Migraines,20,neurological
+2059468,ALS,20,neurological
+2088034,Huntington disease,20,neurological
+2095541,Stroke,20,neurological
+2064044,Traumatic brain injury,20,neurological
+2012171,Cerebral palsy,20,neurological
+2099616,Tourette syndrome,20,neurological
+2058683,Autism spectrum disorder,20,neurological
+2054454,Schizophrenia,20,neurological
+2023395,CTE,20,neurological
+2022402,Neuropathy,20,neurological
+1089607,Alzheimer,10,old_disease_neurological
+1042730,Parkinson,10,old_disease_neurological
+1027947,Dementia,10,old_disease_neurological
+4040206,Atherosclerosis,40,vascular
+4050215,Coronary artery disease,40,vascular
+4088364,Peripheral artery disease,40,vascular
+4049324,Stroke,40,vascular
+4061905,Aortic aneurysm,40,vascular
+4034746,Raynaud disease,40,vascular
+4027556,Deep vein thrombosis,40,vascular
+4080643,Pulmonary embolism,40,vascular
+4074835,Varicose veins,40,vascular
+4089869,Arteriovenous malformation,40,vascular
+4064810,Thromboangiitis obliterans (Buerger disease),40,vascular
+4023111,Hypertensive heart disease,40,vascular
+4071914,Aortic dissection,40,vascular
+4055579,Carotid artery disease,40,vascular
+4073642,Takayasu arteritis,40,vascular
