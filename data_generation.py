@@ -3,6 +3,7 @@ import numpy as np
 import random
 import datetime
 import json
+from app.initialization.table_obj import Table
 
 random_dict = json.loads(open('random_dict.txt', 'r').read())
 
@@ -103,9 +104,9 @@ def patient_table(N):
     stack[mask[:, 1], 0] = random_item(mask[:, 1].sum(), *list(range(1975, 1985)))
     stack[mask[:, 2], 0] = random_item(mask[:, 2].sum(), *list(range(1950, 1975)))
     stack = stack.astype(int)
-    stack = pd.DataFrame(stack, columns=['year', 'month', 'day'])
-    stack = pd.to_datetime(stack, unit='D')
-    data['DOB'] = stack
+    for i in range(N):
+        y, m, d = stack[i, :]
+        data.loc[i, 'DOB'] = datetime.date(y, m, d)
 
     mask = random_NP_mask(N, 0.3, 0.2)
     data['area'] = 'C'
@@ -185,10 +186,7 @@ def patient_table(N):
 diseases_df = diseases_table()
 patient_df = patient_table(1000)
 
-diseases_symptoms_df = None
-
-# patient_df.to_csv('app\\initialization\\patient.csv', index=False)
-# diseases_df.to_csv('app\\initialization\\diseases.csv', index=False)
+temp = Table('patient', data=patient_df)
 
 
 """
@@ -393,38 +391,24 @@ Testicular cancer:[ A lump or swelling in the testicle,
 
 vascular:
 
-Atherosclerosis: [Chest pain or discomfort (angina), 
-shortness of breath, pain or numbness in the legs or arms, 
-fatigue, 
-weakness.]
+{'Atherosclerosis': ['Chest pain or discomfort (angina)', 'shortness of breath, pain or numbness in the legs or arms', 
+                    'fatigue', 'weakness']
 
-Coronary artery disease: [Chest pain or discomfort (angina), 
-shortness of breath, 
-fatigue, 
-dizziness or lightheadedness, 
-nausea or vomiting.]
+'Coronary artery disease': ['Chest pain or discomfort (angina)', 'shortness of breath', 'fatigue', 'dizziness',
+                            'lightheadedness', 'nausea', 'vomiting']
 
-Peripheral artery disease: [Pain or cramping in the legs or arms during activity, 
-slow healing wounds or sores on the legs or feet, 
-discoloration or coolness of the skin on the legs or feet.
-]
-Stroke: [Sudden numbness or weakness in the face,
- arm, 
- or leg (especially on one side of the body), 
- sudden confusion, 
- trouble speaking or understanding speech, 
- sudden trouble seeing in one or both eyes, 
- sudden trouble walking, 
- dizziness, or loss of balance or coordination, 
- sudden severe headache with no known cause.
-]
-Aortic aneurysm: [Pain in the chest,
- back, 
- or abdomen, 
- difficulty breathing or swallowing, 
- hoarseness, coughing or wheezing,
-  rapid heart rate.
-]
+'Peripheral artery disease': ['Pain or cramping in the legs or arms during activity', 
+                              'slow healing wounds or sores on the legs or feet', 
+                             'discoloration or coolness of the skin on the legs or feet']
+                            
+'Stroke': ['weakness in the face', 'weakness in the arm', 'weakness in the leg', 'sudden confusion', 
+            'trouble speaking or understanding speech', 'sudden trouble seeing in one or both eyes', 
+            'sudden trouble walking', 'dizziness, or loss of balance or coordination', 
+            'sudden severe headache with no known cause']
+'Aortic aneurysm': ['Pain in the chest', 'Pain in the back', 'difficulty breathing or swallowing',
+                    'hoarseness, coughing or wheezing', 'rapid heart rate']
+                    
+                    
 Raynaud disease: [Numbness, 
 tingling, 
 or pain in the fingers or toes, 
@@ -476,7 +460,7 @@ joint pain or stiffness,
 unexplained weight loss, 
 fever, 
 muscle pain or weakness, 
-skin rash or redness.]
+skin rash or redness.]}
 
 
 

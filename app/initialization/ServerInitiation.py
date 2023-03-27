@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
@@ -13,8 +15,24 @@ cursor = ''
 con = ''
 
 
-# Create Connection, save user, password into privates
-def connect2server(usr="root", passwd="St240342", hst="localhost", prt=3306):
+def main():
+    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
+    initDB("his_project")
+    # DS = [Table('diseases', 'diseases', ['DESID'], ['DEPID']),
+    #       Table('patient', 'patient', ['ID'], ['DESID'], ['diseases'])]
+    # for t in DS:
+    #     createNewTable(t, dbname="his_project")
+    #     insertData2Table(t)
+    #     addPKs(t)
+    #     addFKs(t)
+    return
+
+
+if __name__ == "__main__":
+    main()
+
+
+def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
     global user, password, host, port, cursor, con
     user = usr
     password = passwd
@@ -35,44 +53,32 @@ def showDBs():
 
 
 def initDB(dbname):
-    # this function enables communication with existing SERV
-    # and initiation of a new DB
     global db, cursor
     db = dbname
     print(db)
     print(f"drop database if exists {db.lower()}")
     cursor.execute(f"drop database if exists {db.lower()}")
-    # create a new database
     cursor.execute(f"CREATE DATABASE {db.upper()}")
-    # showing that the database has been created
     showDBs()
     return
 
 
 def connect2serverDB(database=db):
-    # this function assumes existing connection to SERV
-    # provided global connection specifications
-    # and an existing DB.
-    # it outputs the connection cursor to the db
     connect2server()
     global user, password, host, port, cursor, db, con
     db = database
-    # reconnect to database from SERV
-    con = mysql.connector.connect(host=host,
-                                  user=user,
-                                  passwd=password,
-                                  database=db.upper())
+    con = mysql.connector.connect(host=host, user=user, passwd=password, database=db.upper())
     cursor = con.cursor()
     return cursor, con
 
 
 def showTables():
-    # this function assumes existing connection cursor to SERV DB
     global cursor
     cursor.execute("show tables")
     print(f"Tables in DB:")
     for i in cursor:
         print(i)
+    return
 
 
 def createNewTable(table, headers=[], dbname=db):
@@ -84,27 +90,19 @@ def createNewTable(table, headers=[], dbname=db):
     print(table.tableName.lower())
     cursor.execute(f"use {db}")
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
-    tbl_ftrs = f"CREATE TABLE {table.tableName.lower()} ("
-    for i, k in enumerate(headers):  # [1:]:
-        if i == 0:
-            if "Timestamp" in k:
-                tbl_ftrs += f"{k} TIMESTAMP"
-            elif "DateTime" in k:
-                tbl_ftrs += f"{k} DATETIME"
-            elif "Date" in k:
-                tbl_ftrs += f"{k} DATE"
-            else:
-                tbl_ftrs += f"{k} VARCHAR(255)"
+    tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
+    for i, k, t in zip(range(len(headers)), headers, table.headers_type):
+        if t == datetime.timedelta:
+            tbl_sqlStr += f"{k} TIMESTAMP"
+        elif t == datetime.datetime:
+            tbl_sqlStr += f"{k} DATETIME"
+        elif t == datetime.date:
+            tbl_sqlStr += f"{k} DATE"
         else:
-            if "Timestamp" in k:
-                tbl_ftrs += f", {k} TIMESTAMP"
-            elif "Date" in k:
-                tbl_ftrs += f", {k} DATE"
-            else:
-                tbl_ftrs += f", {k} VARCHAR(255)"
-    tbl_ftrs += f")"
-    print(tbl_ftrs)
-    cursor.execute(tbl_ftrs)
+            tbl_sqlStr += f"{k} VARCHAR(255)"
+    tbl_sqlStr += f")"
+    print(tbl_sqlStr)
+    cursor.execute(tbl_sqlStr)
     return
 
 
@@ -117,10 +115,8 @@ def insertData2Table(table):
 
 def addPKs(table):
     global cursor, db
-    # re-initiate cursor
     connect2serverDB(database=db)
     lst = table.pks
-    # lst=list(getattr(table,'pks'))
     if len(lst) == 1:
         alter_table_com = f"ALTER TABLE {table.tableName.lower()} " \
                           f"ADD PRIMARY KEY ({lst[0]})"
@@ -138,7 +134,6 @@ def addPKs(table):
 
 def addFKs(table):
     global cursor, db
-    # re-initiate cursor
     connect2serverDB(database=db)
     for i, t in enumerate(table.ref_tables):
         if len(table.fks[i]) == 1:
@@ -159,19 +154,3 @@ def addFKs(table):
             print(alter_table_com)
             cursor.execute(alter_table_com)
     return
-
-
-def main():
-    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
-    initDB("his_project")
-    DS = [Table('diseases', 'diseases', ['DESID'], ['DEPID']),
-          Table('patient', 'patient', ['ID'], ['DESID'], ['diseases'])]
-    for t in DS:
-        createNewTable(t, dbname="his_project")
-        insertData2Table(t)
-        addPKs(t)
-        addFKs(t)
-
-
-if __name__ == "__main__":
-    main()
