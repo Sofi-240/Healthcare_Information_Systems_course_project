@@ -13,11 +13,11 @@ class Table:
             self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + kwargs.get(
                 'csvFileName') + '.csv'
         self.tableName = tableName
-        self.data = pd.DataFrame()
         self.pks = kwargs.get('pks')
         self.fks = kwargs.get('fks')
         self.ref_tables = kwargs.get('ref_tables')
         self.refs = kwargs.get('refs')
+        self.data = kwargs.get('data')
         if self.pks is None:
             self.pks = []
         if self.fks is None:
@@ -27,9 +27,13 @@ class Table:
         if self.refs is None:
             self.refs = []
         try:
-            self.data = kwargs.get('data')
             if self.data is None:
                 self.data = pd.read_csv(self.csvFileName)
+        except FileNotFoundError:
+            print("Error: Incorrect File Name")
+        except:
+            print("Error: Table Importing Went Wrong")
+        finally:
             self.headers = self.data.columns.values
             for h in self.headers:
                 catch = type(self.data[h].iloc[0])
@@ -39,11 +43,6 @@ class Table:
                 if type(catch) != str and self.headers_type[-1] == str:
                     self.transform_datetime(h, catch)
                     self.headers_type.append(catch)
-        except FileNotFoundError:
-            print("Error: Incorrect File Name")
-        except:
-            print("Error: Table Importing Went Wrong")
-        finally:
             self.data = self.data.where(pd.notnull(self.data), None)
 
     @staticmethod
@@ -65,7 +64,7 @@ class Table:
                 t = datetime.datetime.strptime(str_val, fmt)
                 dataformat = type(t)
                 break
-            except ValueError as err:
+            except ValueError:
                 pass
         if not dataformat:
             return str

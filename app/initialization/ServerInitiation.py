@@ -1,5 +1,4 @@
 import datetime
-
 from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
@@ -13,23 +12,6 @@ db = ''
 tables = []
 cursor = ''
 con = ''
-
-
-def main():
-    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
-    initDB("his_project")
-    # DS = [Table('diseases', 'diseases', ['DESID'], ['DEPID']),
-    #       Table('patient', 'patient', ['ID'], ['DESID'], ['diseases'])]
-    # for t in DS:
-    #     createNewTable(t, dbname="his_project")
-    #     insertData2Table(t)
-    #     addPKs(t)
-    #     addFKs(t)
-    return
-
-
-if __name__ == "__main__":
-    main()
 
 
 def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
@@ -154,3 +136,20 @@ def addFKs(table):
             print(alter_table_com)
             cursor.execute(alter_table_com)
     return
+
+
+def main():
+    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
+    initDB("his_project")
+    # DS = [Table('diseases', 'diseases', ['DESID'], ['DEPID']),
+    #       Table('patient', 'patient', ['ID'], ['DESID'], ['diseases'])]
+    # for t in DS:
+    #     createNewTable(t, dbname="his_project")
+    #     insertData2Table(t)
+    #     addPKs(t)
+    #     addFKs(t)
+    return
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,411 @@
+Breast cancer:
+Lump or thickening in the breast
+Lump or thickening in the underarm area
+Changes in breast size or shape
+Nipple discharge
+Nipple inversion
+Skin changes on the breast
+Skin changes on the nipple
+Breast pain
+Lung cancer:
+Persistent cough
+Chest pain
+Shortness of breath
+Fatigue
+Unexplained weight loss
+Prostate cancer:
+Difficulty urinating
+Weak or interrupted urine flow
+Blood in the urine or semen
+Erectile dysfunction
+Pain or discomfort in the pelvic area
+Colorectal cancer:
+Blood in the stool
+Rectal bleeding
+Changes in bowel habits
+Abdominal pain or cramping
+Weakness or fatigue
+Unexplained weight loss
+Skin cancer:
+Changes in the size of a mole or other skin lesion
+Changes in the shape of a mole or other skin lesion
+Changes in the color of a mole or other skin lesion
+A sore that does not heal
+Redness around a skin lesion
+Swelling around a skin lesion
+Itching in the affected area
+Tenderness in the affected area
+Pain in the affected area
+Changes in sensation such as tingling or numbness
+Bladder cancer:
+Blood in urine
+Painful urination
+Frequent urination
+Lower back pain
+Fatigue
+Kidney cancer:
+Blood in urine
+Flank pain
+Abdominal mass or swelling
+Fatigue
+Unexplained weight loss
+Pancreatic cancer:
+Abdominal pain or discomfort
+Jaundice
+Unexplained weight loss
+Fatigue
+Loss of appetite
+Ovarian cancer:
+Abdominal bloating
+Abdominal swelling
+Pelvic pain
+Pelvic pressure
+Feeling full quickly
+Difficulty eating
+Changes in bowel habits
+Urinary frequency
+Urinary urgency
+Leukemia:
+Fatigue
+Weakness
+Pale skin
+Frequent infections
+Unexplained weight loss
+Easy bruising
+Easy bleeding
+Lymphoma:
+Swollen lymph nodes in the neck
+Swollen lymph nodes in the armpit
+Swollen lymph nodes in the groin
+Fatigue
+Weakness
+Weight loss
+Night sweats
+Itching
+Liver cancer:
+Abdominal pain
+Abdominal discomfort
+Jaundice
+Weight loss
+Fatigue
+Loss of appetite
+Bone cancer:
+Bone pain
+Bone tenderness
+Swelling in the affected area
+Lump in the affected area
+Fractures
+Fatigue
+Weight loss
+Thyroid cancer:
+Lump in the neck
+Swelling in the neck
+Hoarseness
+Difficulty speaking
+Neck pain
+Discomfort in the neck
+Difficulty swallowing
+Changes in voice
+Changes in breathing
+Esophageal cancer:
+Difficulty swallowing
+Chest pain
+Discomfort in the chest
+Acid reflux
+Heartburn
+Weight loss
+Hoarseness
+Coughing
+Stomach cancer:
+Abdominal pain
+Nausea and vomiting
+Loss of appetite
+Feeling full quickly
+Weight loss
+Fatigue
+Cervical cancer:
+Abnormal vaginal bleeding
+Pain during sex
+Unusual vaginal discharge
+Pelvic pain
+Pelvic discomfort
+Fatigue
+Multiple sclerosis:
+Numbness in the limbs
+Tingling in the limbs
+Muscle weakness
+Muscle spasms
+Vision problems
+Fatigue
+Difficulty with balance
+Difficulty with coordination
+Epilepsy:
+Seizures
+Confusion
+Loss of consciousness
+Unexplained staring
+Muscle twitching
+Jerking
+Nausea
+BVomiting
+Migraines:
+Intense headache pain
+Pain on one side of the head
+Sensitivity to light
+Sensitivity to sound
+Sensitivity to smells
+Nausea
+Vomiting
+Visual disturbances
+Flashing lights
+Blind spots
+Tingling
+Numbness in the face
+Numbness in the limbs
+ALS:
+Muscle weakness
+Atrophy
+Difficulty with speech
+Difficulty with swallowing
+Muscle cramps
+Twitching
+Fatigue
+Difficulty with motor tasks
+Huntington disease:
+Involuntary movements
+Difficulty with balance
+Difficulty with balance coordination
+Cognitive decline
+Memory loss
+Difficulty with decision making
+Mood changes
+Speech difficulties
+Cerebral palsy:
+Muscle stiffness
+Muscle spasticity
+Difficulty with coordination
+Difficulty with balance
+Difficulty with fine motor tasks
+Speech difficulties
+Intellectual disability
+Tourette syndrome:
+Involuntary movements
+Vocalizations
+Repetitive behaviors
+Difficulty with impulse control
+Difficulty with social interactions
+Autism spectrum disorder:
+Difficulty with social interactions
+Difficulty with communication
+Repetitive behaviors
+Repetitive routines
+Sensory sensitivities
+Difficulty with changes
+Difficulty with imaginative play
+Difficulty with creativity
+Schizophrenia:
+Hallucinations
+Delusions
+Disorganized speech
+Disorganized behavior
+Reduced emotional expression
+Reduced of motivation
+Social withdrawal
+Difficulty with concentration
+Difficulty with memory
+CTE:
+Memory loss
+Difficulty with impulse control
+Difficulty with decision making
+Mood changes
+Difficulty with balance
+Difficulty with coordination
+Cognitive decline
+Neuropathy:
+Tingling in the limbs
+Numbness in the limbs
+Muscle weakness
+Atrophy
+Pain in the affected area
+Burning sensations in the affected area
+Difficulty with balance
+Difficulty with coordination
+Digestive issues
+Alzheimer:
+Memory loss of recent events
+Difficulty with problem-solving
+Difficulty with reasoning
+Difficulty with language
+Difficulty with communication
+Confusion
+Disorientation
+Mood changes
+Parkinson:
+Tremors in the hands
+Tremors in the arms
+Shaking in the hands
+Shaking in the arms
+Muscle stiffness
+Muscle rigidity
+Difficulty with balance
+Difficulty with coordination
+Slow movement
+Difficulty with initiating movement
+Dementia:
+Memory loss
+Forgetting recent events
+Forgetting important dates
+Forgetting information that was once well-known
+Difficulty with language
+Struggling to find the right words
+Repeating oneself
+Having trouble following a conversation
+Impaired judgement
+Impaired decision-making
+Losing the ability to reason
+Losing the ability problem-solve
+Showing a lack of judgement
+Confusion
+Disorientation
+Changes in mood
+Changes in behavior
+Stroke:
+Sudden weakness
+Numbness in the face
+Numbness in the arm
+Numbness in the leg
+Difficulty to speak
+Difficulty to understanding speech
+Trouble seeing
+Severe headache
+Dizziness
+Loss of balance
+Loss of coordination
+Atherosclerosis:
+Chest pain
+Angina
+Shortness of breath
+Weakness in limbs
+Numbness in limbs
+Erectile dysfunction
+Coldness in extremities
+Numbness in extremities
+Coronary artery disease:
+Chest pain
+Angina
+Shortness of breath
+Weakness in limbs
+Numbness in limbs
+Nausea
+Vomiting
+Peripheral artery disease:
+Pain in legs
+Pain in arms
+Cramping in legs
+Cramping in arms
+Numbness in legs
+Numbness in arms
+Weakness in limbs
+Sores that wont heal
+Wounds that wont heal
+Coldness in extremities
+Numbness in extremities
+Change in skin color
+Aortic aneurysm:
+Constant pain in the abdomen
+Constant pain in the chest
+Constant pain in the back
+Constant pain in the pelvis
+Shortness of breath
+Hoarseness
+Cough
+Swelling in legs
+Swelling in arms
+Raynaud disease:
+Numbness in the fingers
+Numbness in the toes
+Tingling in the fingers
+Tingling in the toes
+Coldness in the affected areas
+Color changes in the skin
+Pain in the affected areas
+Throbbing in the affected areas
+Difficulty with fine motor tasks in the affected area
+Deep vein thrombosis:
+Swelling in the affected limb
+Pain in the affected limb
+Tenderness in the affected limb
+Warmth in the affected limb
+Redness in the affected limb
+Skin discoloration
+Skin peeling
+Visible veins
+Pulmonary embolism:
+Shortness of breath
+Chest pain
+Discomfort with deep breathing
+Discomfort with coughing
+Cough
+Cough with bloody sputum
+Rapid heartbeat
+Irregular heartbeat
+Lightheadedness
+Fainting
+Varicose veins:
+Swollen veins
+Twisted veins
+Enlarged veins
+Veins are visible through the skin
+Heavy feeling in the legs
+Throbbing in the legs
+Burning in the legs
+Cramping in the legs
+Itching around the affected veins
+Skin discoloration around the affected veins
+Dryness around the affected veins
+Arteriovenous malformation:
+Headache
+Seizures
+Weakness in the limbs
+Numbness in the limbs
+Problems with vision
+Problems with vision speech
+Difficulty with fine motor tasks
+Buerger disease:
+Pain in the feet
+Tenderness in the feet
+Pain in the hands
+Tenderness in the hands
+Coldness in the affected areas
+Sores that won't heal
+Swelling in the affected areas
+Changes in skin color in the affected areas
+Hypertensive heart disease:
+Chest pain
+Chest discomfort
+Shortness of breath
+Fatigue
+Irregular heartbeat
+Swelling in legs
+Swelling in ankles
+Swelling in feet
+Aortic dissection:
+Severe pain in the chest
+Severe pain in the upper back
+Shortness of breath
+Sweating
+Weakness on one side of the body
+paralysis on one side of the body
+Hoarseness
+trouble speaking
+Carotid artery disease:
+Weakness in the face
+Weakness in the arm on one side of the body
+Weakness in the leg on one side of the body
+Numbness in the face on one side of the body
+Numbness in the arm on one side of the body
+Numbness in the leg on one side of the body
+Difficulty speaking
+Difficulty understanding speech
+Severe headache
+Dizziness
