@@ -1,7 +1,10 @@
 Breast cancer:
-Lump or thickening in the breast
-Lump or thickening in the underarm area
-Changes in breast size or shape
+Lump in the breast
+Thickening in the breast
+Lump in the underarm area
+Thickening in the underarm area
+Changes in breast size
+Changes in breast shape
 Nipple discharge
 Nipple inversion
 Skin changes on the breast
@@ -16,7 +19,8 @@ Unexplained weight loss
 Prostate cancer:
 Difficulty urinating
 Weak or interrupted urine flow
-Blood in the urine or semen
+Blood in the urine
+Blood in the semen
 Erectile dysfunction
 Pain or discomfort in the pelvic area
 Colorectal cancer:
@@ -27,9 +31,12 @@ Abdominal pain or cramping
 Weakness or fatigue
 Unexplained weight loss
 Skin cancer:
-Changes in the size of a mole or other skin lesion
-Changes in the shape of a mole or other skin lesion
-Changes in the color of a mole or other skin lesion
+Changes in the size of a mole
+Changes in the size of a skin lesion
+Changes in the shape of a mole
+Changes in the shape of a skin lesion
+Changes in the color of a mole
+Changes in the color of a skin lesion
 A sore that does not heal
 Redness around a skin lesion
 Swelling around a skin lesion

@@ -31,8 +31,10 @@ class Table:
                 self.data = pd.read_csv(self.csvFileName)
         except FileNotFoundError:
             print("Error: Incorrect File Name")
+            self.data = pd.DataFrame()
         except:
             print("Error: Table Importing Went Wrong")
+            self.data = pd.DataFrame()
         finally:
             self.headers = self.data.columns.values
             for h in self.headers:
@@ -40,10 +42,14 @@ class Table:
                 self.headers_type.append(catch)
                 if catch == str:
                     catch = self.catch_data(self.data[h].iloc[0])
-                if type(catch) != str and self.headers_type[-1] == str:
+                if catch != str and self.headers_type[-1] == str:
                     self.transform_datetime(h, catch)
                     self.headers_type.append(catch)
             self.data = self.data.where(pd.notnull(self.data), None)
+
+    @property
+    def shape(self):
+        return self.data.shape
 
     @staticmethod
     def datetime_format(val, dataformat):
@@ -53,16 +59,15 @@ class Table:
             return datetime.datetime.strptime(val, '%m/%d/%Y %H:%M')
         elif dataformat == 'Date':
             return datetime.datetime.strptime(val, "%Y-%m-%d")
-        return
+        return val
 
-    @staticmethod
-    def catch_data(str_val):
-        fmts = ('%Y', '%b %d, %Y', '%b %d, %Y', '%B %d, %Y', '%B %d %Y', '%m/%d/%Y', '%m/%d/%y', '%b %Y', '%B%Y', '%b %d,%Y')
+    def catch_data(self, str_val):
+        fmts = ('Timestamp', 'DateTime', 'Date')
         dataformat = None
         for fmt in fmts:
             try:
-                t = datetime.datetime.strptime(str_val, fmt)
-                dataformat = type(t)
+                self.datetime_format(str_val, fmt)
+                dataformat = fmt
                 break
             except ValueError:
                 pass
@@ -75,7 +80,7 @@ class Table:
             os.remove(self.csvFileName)
         self.data.to_csv(self.csvFileName, index=False)
         print('Save Data in: ', self.csvFileName)
-        return
+        return self
 
     def transform_datetime(self, col, dataformat):
         for i in self.data.index:
