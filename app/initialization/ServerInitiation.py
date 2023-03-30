@@ -272,9 +272,7 @@ def updateTableCarry(tableName, val):
 
 def main():
     connect2serverDB(database='his_project')
-    tablesNames = ['department', 'diseases', 'symptomsDiseases',
-                   'patient', 'symptomsPatient', 'researcher',
-                   'activeresearch', 'patientdiagnosis']
+    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch', 'patientdiagnosis']
     for tbl in tablesNames:
         createFullTable(Table(tbl))
     return

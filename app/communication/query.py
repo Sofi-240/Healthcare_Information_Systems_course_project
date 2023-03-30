@@ -104,10 +104,11 @@ class DataQueries:
         self.addItem(tableName, table)
         return table
 
-    def queryPatientResearch(self, order=0, *patientIDs):
+    def queryPatientResearch(self, order=1, *patientIDs):
         cols = []
         slc = None
         queryStr = f"SELECT "
+        order = 1
         if order == 1:
             slc = 3
 
@@ -122,9 +123,13 @@ class DataQueries:
             queryStr += f"t2.{c}, "
             cols.append(c)
         queryStr = queryStr[:-2]
-        queryStr += f" FROM patient AS t1 " \
-                    f"INNER JOIN patientdiagnosis AS t2 " \
+        queryStr += f", t2.disName FROM patient AS t1 " \
+                    f"INNER JOIN (SELECT d1.*, d2.disName FROM " \
+                    f"patientdiagnosis AS d1 " \
+                    f"INNER JOIN  diseases AS d2 " \
+                    f"ON d1.FdisID = d2.disID) AS t2 " \
                     f"ON t1.ID = t2.ID"
+        cols += ['disName']
         if not patientIDs:
             queryStr += f";"
         elif len(patientIDs) == 1:
@@ -183,10 +188,15 @@ class DataQueries:
             limits[key] = temp
 
         queryStr = f"SELECT "
-        for col in colsName:
+        ret_cols = []
+        while colsName:
+            col = colsName.pop(0)
             queryStr += f"t.{col} AS {col}, "
+            ret_cols.append(col)
             if col == 'DOB' and limits.get('age'):
                 queryStr += "TIMESTAMPDIFF(YEAR, DOB, CURDATE()) AS age, "
+                ret_cols.append('age')
+        colsName, ret_cols = ret_cols, colsName
         queryStr = queryStr[:-2] + " FROM patient as t"
         stack = ['AND'] * (len(limits) - 1) + [' WHERE']
         for val in limits.values():
@@ -194,7 +204,7 @@ class DataQueries:
         queryStr = queryStr[:-1]
         queryStr += ";"
         print(queryStr)
-        table = pd.DataFrame(executedQuery(queryStr))
+        table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return table
 
 
@@ -212,7 +222,7 @@ def main():
 if __name__ == "__main__":
     Queries = main()
 
-# PatientWith_weak = Queries.queryPatientSymptoms('fatigue')
-# PatientDiagnosis = Queries.queryPatientResearch(1, *list(PatientWith_weak['ID'].unique()))
+PatientWith_weak = Queries.queryPatientSymptoms('weak')
+PatientDiagnosis = Queries.queryPatientResearch(1, *list(PatientWith_weak['ID'].unique()))
 
 Qpi = Queries.queryPatientIndices(gender='M', age=(50, 70), weight=[70, 90], symptom=None)

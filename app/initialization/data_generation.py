@@ -56,19 +56,23 @@ def diseases_table(department_data):
     DES_N = []
     DEP_ID = []
     DES_ID = []
+    DEP_nameLst = []
     for idx in list(department_data.index):
         dep_name = department_data.loc[idx, 'depName']
         dep_Id = department_data.loc[idx, 'depID']
         if dep_name == 'Neurological':
             DES_N += random_dict['old_disease_neurological']
             DEP_ID += [dep_Id] * len(random_dict['old_disease_neurological'])
+            DEP_nameLst += [dep_name] * len(random_dict['old_disease_neurological'])
         DES_N += random_dict[dep_name]
         DEP_ID += [dep_Id] * len(random_dict[dep_name])
+        DEP_nameLst += [dep_name] * len(random_dict[dep_name])
 
     data = pd.DataFrame(np.zeros((len(DES_N), 3)), columns=['disID', 'disName', 'depID'])
     data['depID'] = DEP_ID
     data['depID'] = data['depID'].astype(str)
     data['disID'] = data['depID']
+    data['depName'] = DEP_nameLst
     data['disName'] = DES_N
     for dep_name in dep_names:
         curr_lst = random_dict[dep_name]
@@ -317,16 +321,9 @@ def main():
           refs=[['ID'], ['disID'], ['disID']],
           ref_tables=['patient', 'diseases', 'diseases']).save()
 
-    Table('department',
-          data=department,
-          pks=['depID']).save()
-
     Table('diseases',
           data=diseases,
-          pks=['disID', 'disName'],
-          fks=[['depID']],
-          refs=[['depID']],
-          ref_tables=['department']).save()
+          pks=['disID', 'disName']).save()
 
     Table('symptomsDiseases',
           data=diseases_symptoms,
