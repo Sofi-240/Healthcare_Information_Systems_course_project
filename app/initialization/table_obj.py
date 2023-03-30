@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
 import os
+import json
 
 
 class Table:
@@ -26,26 +27,9 @@ class Table:
             self.ref_tables = []
         if self.refs is None:
             self.refs = []
-        try:
-            if self.data is None:
-                self.data = pd.read_csv(self.csvFileName)
-        except FileNotFoundError:
-            print("Error: Incorrect File Name")
+        if self.data is None:
             self.data = pd.DataFrame()
-        except:
-            print("Error: Table Importing Went Wrong")
-            self.data = pd.DataFrame()
-        finally:
-            self.headers = self.data.columns.values
-            for h in self.headers:
-                catch = type(self.data[h].iloc[0])
-                self.headers_type.append(catch)
-                if catch == str:
-                    catch = self.catch_data(self.data[h].iloc[0])
-                if catch != str and self.headers_type[-1] == str:
-                    self.transform_datetime(h, catch)
-                    self.headers_type.append(catch)
-            self.data = self.data.where(pd.notnull(self.data), None)
+        self.load_self()
 
     @property
     def shape(self):
@@ -53,16 +37,55 @@ class Table:
 
     @staticmethod
     def datetime_format(val, dataformat):
-        if dataformat == 'Timestamp':
+        if dataformat == 'TIMESTAMP':
             return datetime.datetime.strptime(val[:-6], '%Y/%m/%d %I:%M:%S %phone_ptr')
-        elif dataformat == 'DateTime':
+        elif dataformat == 'DATETIME':
             return datetime.datetime.strptime(val, '%m/%d/%Y %H:%M')
-        elif dataformat == 'Date':
-            return datetime.datetime.strptime(val, "%Y-%m-%d")
+        elif dataformat == 'DATE':
+            return datetime.datetime.strptime(val[:10], "%Y-%m-%d")
         return val
 
+    def load_self(self):
+        newData = False
+        try:
+            if self.data.empty:
+                self.data = pd.read_csv(self.csvFileName)
+            else:
+                newData = True
+        except FileNotFoundError:
+            print("Error: Incorrect File Name")
+            self.data = pd.DataFrame()
+        except:
+            print("Error: Table Importing Went Wrong")
+            self.data = pd.DataFrame()
+        finally:
+            if newData:
+                self.headers = list(self.data.columns.values)
+                for h in self.headers:
+                    catch = type(self.data[h].iloc[0])
+                    if catch == str:
+                        catch = self.catch_data(self.data[h].iloc[0])
+                    else:
+                        catch = 'VARCHAR(255)'
+                    if catch != 'VARCHAR(255)':
+                        self.transform_datetime(h, catch)
+                    self.headers_type.append(catch)
+                self.data = self.data.where(pd.notnull(self.data), None)
+            else:
+                temp_carry = json.loads(
+                    open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+                         'r').read())
+                for key, val in temp_carry[self.tableName.lower()].items():
+                    self.__dict__[key] = val
+
+                for col, typ in zip(self.headers, self.headers_type):
+                    if typ in ['Timestamp', 'DateTime', 'Date']:
+                        self.transform_datetime(col, typ)
+
+        return
+
     def catch_data(self, str_val):
-        fmts = ('Timestamp', 'DateTime', 'Date')
+        fmts = ('TIMESTAMP', 'DATETIME', 'DATE')
         dataformat = None
         for fmt in fmts:
             try:
@@ -72,7 +95,7 @@ class Table:
             except ValueError:
                 pass
         if not dataformat:
-            return str
+            return 'VARCHAR(255)'
         return dataformat
 
     def save(self):
@@ -80,7 +103,15 @@ class Table:
             os.remove(self.csvFileName)
         self.data.to_csv(self.csvFileName, index=False)
         print('Save Data in: ', self.csvFileName)
-        return self
+        temp_carry = json.loads(
+            open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+                 'r').read())
+        for key in temp_carry[self.tableName.lower()].keys():
+            temp_carry[self.tableName.lower()][key] = self.__dict__.get(key)
+        param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+        param_file.write(json.dumps(temp_carry))
+        param_file.close()
+        return
 
     def transform_datetime(self, col, dataformat):
         for i in self.data.index:

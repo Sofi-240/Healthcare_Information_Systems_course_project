@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 from app.initialization.table_obj import Table
+from app.communication.strNode import node
 
 
 def random_binary(n, p_true=0.5):
@@ -75,7 +76,7 @@ def diseases_table(department_data):
         counter = 89998
         while len(stack) < len(curr_lst) and counter > 0:
             temp = np.random.randint(10001, 99999, (len(curr_lst) - len(stack),), dtype=np.int_).astype(str).tolist()
-            stack += list(set(stack + temp))
+            stack = list(set(stack + temp))
             counter -= 1
         DES_ID += stack
     data['disID'] += DES_ID
@@ -247,40 +248,111 @@ def patient_symptoms_table(symptoms_data, patient_data, department_data):
     return data
 
 
+def researcher_table(N):
+    data = pd.DataFrame(random_item(N, *list(range(1, 4))), columns=['ID'])
+    data['ID'] = data['ID'].astype(str)
+    data['ID'] += random_rnf_uni(100000001, 999999999, N)
+
+    mask = random_NP_mask(N, 0.7)
+    data['gender'] = 'M'
+    data.loc[mask[:, 0], 'gender'] = 'F'
+    data.loc[mask[:, 0], 'Fname'] = random_item(mask[:, 0].sum(), *random_dict['Fname']['F'])
+    data.loc[mask[:, 1], 'Fname'] = random_item(mask[:, 1].sum(), *random_dict['Fname']['M'])
+    data.loc[:, 'Lname'] = random_item(N, *random_dict['LNames'])
+    data.loc[:, 'USRname'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname']
+    data['phone'] = random_item(N, '050', '054', '052')
+    data['phone'] += random_rnf_uni(1000001, 9999999, N)
+    data.loc[:, 'Mail'] = data.loc[:, 'USRname'] + pd.Series(random_rnf_uni(1000, 9999, N)).astype(str)
+    data.loc[:, 'Mail'] += '@LUKA.com'
+    return data
+
+
+def initActiveR(diseases_data, researcher_data, patient_data):
+    rid = random.choices(list(researcher_data['ID']), k=10)
+    des = random.choices(list(diseases_data['disID']), k=10)
+    data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
+    res_id = random_rnf_uni(1001, 9999, 10)
+    stack = []
+    counter = 1000
+    while len(stack) < 60 and counter > 0:
+        temp = random.choices(list(patient_data['ID']), k=(60 - len(stack)))
+        stack = list(set(stack + temp))
+        counter -= 1
+    data['pID'] = stack
+    i = 0
+    for d in des:
+        data.loc[i:i + 6, ['ID', 'disID', 'rID']] = [res_id.pop(), d, rid.pop()]
+        i += 6
+    return data
+
+
+def Trigger_table(patient_data):
+    data = pd.DataFrame(patient_data['ID'], columns=['ID'])
+    data['FdisID'] = None
+    data['Fconf'] = 0
+    data['SdisID'] = None
+    data['Sconf'] = 0
+    return data
+
+
 def main():
     patient = patient_table(1000)
     department = department_table()
     diseases, diseases_symptoms = diseases_symptoms_table(diseases_table(department))
     patient_symptoms = patient_symptoms_table(diseases_symptoms, patient, department)
     diseases_symptoms.drop(columns='disName', inplace=True)
+    researcher = researcher_table(50)
+    ActiveResearch = initActiveR(diseases, researcher, patient)
+    patient['DOB'] = patient['DOB'].astype(str)
+    PatientDiagnosis = Trigger_table(patient)
 
-    patient = Table('patient',
-                    data=patient,
-                    pks=['ID']).save()
+    Table('patient',
+          data=patient,
+          pks=['ID'],
+          fks=[['disID']],
+          refs=[['disID']],
+          ref_tables=['diseases']).save()
 
-    department = Table('department',
-                       data=department,
-                       pks=['depID']).save()
+    Table('patientdiagnosis',
+          data=PatientDiagnosis,
+          pks=['ID'],
+          fks=[['ID'], ['FdisID'], ['SdisID']],
+          refs=[['ID'], ['disID'], ['disID']],
+          ref_tables=['patient', 'diseases', 'diseases']).save()
 
-    diseases = Table('diseases',
-                     data=diseases,
-                     pks=['disID'],
-                     fks=[['depID']],
-                     refs=[['depID']],
-                     ref_tables=['department']).save()
+    Table('department',
+          data=department,
+          pks=['depID']).save()
 
-    diseases_symptoms = Table('symptomsDiseases',
-                              data=diseases_symptoms,
-                              fks=[['disID']],
-                              refs=[['disID']],
-                              ref_tables=['diseases']).save()
+    Table('diseases',
+          data=diseases,
+          pks=['disID', 'disName'],
+          fks=[['depID']],
+          refs=[['depID']],
+          ref_tables=['department']).save()
 
-    patient_symptoms = Table('symptomsPatient',
-                             data=patient_symptoms,
-                             fks=[['ID']],
-                             refs=[['ID']],
-                             ref_tables=['patient']).save()
-    return patient, department, diseases, diseases_symptoms, patient_symptoms
+    Table('symptomsDiseases',
+          data=diseases_symptoms,
+          fks=[['disID']],
+          refs=[['disID']],
+          ref_tables=['diseases']).save()
+
+    Table('symptomsPatient',
+          data=patient_symptoms,
+          fks=[['ID']],
+          refs=[['ID']],
+          ref_tables=['patient']).save()
+
+    Table('researcher',
+          data=researcher,
+          pks=['ID']).save()
+
+    Table('activeresearch',
+          data=ActiveResearch,
+          fks=[['disID'], ['rID'], ['pID']],
+          refs=[['disID'], ['ID'], ['ID']],
+          ref_tables=['diseases', 'researcher', 'patient']).save()
+    return
 
 
 if __name__ == "__main__":
@@ -288,5 +360,4 @@ if __name__ == "__main__":
         open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'random_dict.txt', 'r').read())
     symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'symptoms.txt',
                         'r').readlines()
-    patient_df, department_df, diseases_df, diseases_symptoms_df, patient_symptoms_df = main()
-
+    main()

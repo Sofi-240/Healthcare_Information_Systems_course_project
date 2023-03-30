@@ -1,16 +1,11 @@
 from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
+import os
+import json
 
-user = ''
-password = ''
-ip = '127.0.0.1'
-port = 3306
-host = "localhost"
-db = 'his_project'
-tables = []
-cursor = ''
-con = ''
+user, password, cursor, con = '', '', '', ''
+ip, port, host, db = '127.0.0.1', 3306, 'localhost', 'his_project'
 
 
 def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
@@ -44,7 +39,7 @@ def initDB(dbname):
     return
 
 
-def connect2serverDB(database=db):
+def connect2serverDB(database='his_project'):
     connect2server()
     global user, password, host, port, cursor, db, con
     db = database
@@ -82,17 +77,9 @@ def createNewTable(table, headers=[], dbname=db):
     dropRefFKs(table)
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
     tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
-    for i, k, t in zip(range(len(headers)), headers, table.headers_type):
-        if i != 0:
-            tbl_sqlStr += f", "
-        if t == 'TIMESTAMP':
-            tbl_sqlStr += f"{k} TIMESTAMP"
-        elif t == 'DATETIME':
-            tbl_sqlStr += f"{k} DATETIME"
-        elif t == 'DATE':
-            tbl_sqlStr += f"{k} DATE"
-        else:
-            tbl_sqlStr += f"{k} VARCHAR(255)"
+    for k, t in zip(table.headers, table.headers_type):
+        tbl_sqlStr += f"{k} {t}, "
+    tbl_sqlStr = tbl_sqlStr[:-2]
     tbl_sqlStr += f")"
     print(tbl_sqlStr)
     cursor.execute(tbl_sqlStr)
@@ -206,17 +193,9 @@ def createFullTable(table, dbname=db):
     dropRefFKs(table.tableName.lower())
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
     tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
-    for i, k, t in zip(range(len(table.headers)), table.headers, table.headers_type):
-        if i != 0:
-            tbl_sqlStr += f", "
-        if t == 'TIMESTAMP':
-            tbl_sqlStr += f"{k} TIMESTAMP"
-        elif t == 'DATETIME':
-            tbl_sqlStr += f"{k} DATETIME"
-        elif t == 'DATE':
-            tbl_sqlStr += f"{k} DATE"
-        else:
-            tbl_sqlStr += f"{k} VARCHAR(255)"
+    for k, t in zip(table.headers, table.headers_type):
+        tbl_sqlStr += f"{k} {t}, "
+    tbl_sqlStr = tbl_sqlStr[:-2]
     if table.pks:
         tbl_sqlStr += f",  PRIMARY KEY ("
         for pk in table.pks:
@@ -241,17 +220,72 @@ def createFullTable(table, dbname=db):
     return
 
 
+def executedQuery(queryStr, dbname=db):
+    global db, cursor
+    if dbname != db:
+        connect2serverDB(dbname)
+    cursor.execute(queryStr)
+    return cursor.fetchall()
+
+
+def insert2Table(tableName, values, columns=None, dbname=db):
+    if columns is None:
+        columns = []
+    global cursor, db, con
+    if db != dbname:
+        connect2serverDB(database=dbname)
+    if not hasTable(tableName.lower()):
+        print('Table not EXIST!')
+        return
+    queryStr = f"INSERT INTO {tableName.lower()} "
+    if columns:
+        queryStr += "("
+        for col in columns:
+            queryStr += f"{col}, "
+        queryStr = queryStr[:-2] + f") "
+    queryStr += f"VALUES("
+    for val in values:
+        queryStr += f"{val}, "
+    queryStr = queryStr[:-2] + f");"
+    cursor.execute(queryStr)
+    con.commit()
+    return
+
+
+def getTableCarry(tableName):
+    temp_carry = json.loads(
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+             'r').read())
+    return temp_carry.get(tableName)
+
+
+def updateTableCarry(tableName, val):
+    temp_carry = json.loads(
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+             'r').read())
+    temp_carry[tableName] = val
+    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+    param_file.write(json.dumps(temp_carry))
+    param_file.close()
+    return
+
+
 def main():
-    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
-    table_lst = [Table('department', pks=['depID'])]
-    table_lst += [Table('diseases', pks=['disID'], fks=[['depID']], refs=[['depID']], ref_tables=['department'])]
-    table_lst += [Table('symptomsDiseases', fks=[['disID']], refs=[['disID']], ref_tables=['diseases'])]
-    table_lst += [Table('patient', pks=['ID'])]
-    table_lst += [Table('symptomsPatient', fks=[['ID']], refs=[['ID']], ref_tables=['patient'])]
-    for tbl in table_lst:
-        createFullTable(tbl)
+    tablesNames = ['department', 'diseases', 'symptomsDiseases',
+                   'patient', 'symptomsPatient', 'researcher',
+                   'activeresearch', 'patientdiagnosis']
+    i = 0
+    for tbl in tablesNames:
+        if not hasTable(tbl):
+            break
+        i += 1
+    if i == len(tablesNames) - 1:
+        return
+    for tbl in tablesNames:
+        createFullTable(Table(tbl))
     return
 
 
 if __name__ == "__main__":
+    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
     main()
