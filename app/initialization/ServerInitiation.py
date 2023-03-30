@@ -271,21 +271,14 @@ def updateTableCarry(tableName, val):
 
 
 def main():
+    connect2serverDB(database='his_project')
     tablesNames = ['department', 'diseases', 'symptomsDiseases',
                    'patient', 'symptomsPatient', 'researcher',
                    'activeresearch', 'patientdiagnosis']
-    i = 0
-    for tbl in tablesNames:
-        if not hasTable(tbl):
-            break
-        i += 1
-    if i == len(tablesNames) - 1:
-        return
     for tbl in tablesNames:
         createFullTable(Table(tbl))
     return
 
 
 if __name__ == "__main__":
-    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
     main()

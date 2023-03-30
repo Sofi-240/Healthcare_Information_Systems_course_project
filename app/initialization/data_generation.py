@@ -308,10 +308,7 @@ def main():
 
     Table('patient',
           data=patient,
-          pks=['ID'],
-          fks=[['disID']],
-          refs=[['disID']],
-          ref_tables=['diseases']).save()
+          pks=['ID']).save()
 
     Table('patientdiagnosis',
           data=PatientDiagnosis,

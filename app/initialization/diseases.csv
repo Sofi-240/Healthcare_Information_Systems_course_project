@@ -1,0 +1,46 @@
+disID,disName,depID
+1038640,Breast cancer,10
+1066247,Lung cancer,10
+1087711,Prostate cancer,10
+1052247,Colorectal cancer,10
+1026629,Skin cancer,10
+1028125,Bladder cancer,10
+1079750,Kidney cancer,10
+1032410,Pancreatic cancer,10
+1058549,Ovarian cancer,10
+1042906,Leukemia,10
+1092338,Lymphoma,10
+1048617,Liver cancer,10
+1051159,Bone cancer,10
+1013399,Thyroid cancer,10
+1059386,Esophageal cancer,10
+1034515,Stomach cancer,10
+1091024,Cervical cancer,10
+2046031,Alzheimer,20
+2024244,Parkinson,20
+2043881,Dementia,20
+2054400,Multiple sclerosis,20
+2015777,Epilepsy,20
+2046399,Migraines,20
+2038215,ALS,20
+2081063,Huntington disease,20
+2074181,Cerebral palsy,20
+2061121,Tourette syndrome,20
+2053628,Autism spectrum disorder,20
+2083506,Schizophrenia,20
+2043833,CTE,20
+2062218,Neuropathy,20
+4018870,Atherosclerosis,40
+4028384,Coronary artery disease,40
+4085687,Peripheral artery disease,40
+4099891,Stroke,40
+4070791,Aortic aneurysm,40
+4087242,Raynaud disease,40
+4087747,Deep vein thrombosis,40
+4080879,Pulmonary embolism,40
+4085853,Varicose veins,40
+4055788,Arteriovenous malformation,40
+4043205,Buerger disease,40
+4062232,Hypertensive heart disease,40
+4093199,Aortic dissection,40
+4056884,Carotid artery disease,40

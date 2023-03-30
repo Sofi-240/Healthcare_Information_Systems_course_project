@@ -57,60 +57,39 @@ class DataQueries:
         return dig
 
     def queryTrigger(self):
-        return
-
-    def queryPatientResearch(self, order=2, *patientIDs):
-        def DiagnosisDecision(data, n=order):
-            index = data.loc[:, ['disID']].value_counts()
-            index = index.index[:min([n, index.shape[0]])].values.tolist()
-            data = data.groupby(['disID'])
-            curr_ord = 1
-            dec = []
-            while index:
-                dec += [[curr_ord] + list(data.get_group(index.pop(0)[0]).iloc[0, :][['disID', 'disName', 'depID']])]
-                curr_ord += 1
+        def DiagnosisDecision(dataList):
+            dataList = pd.DataFrame(dataList, columns=['disID'])
+            index = dataList.loc[:, ['disID']].value_counts()
+            data = dataList.groupby(['disID'])
+            dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
+            if index.shape[0] == 1:
+                return dec + [None, 0]
+            dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
         queryStr = f"SELECT t1.* FROM symptomspatient t1 " \
                    f"INNER JOIN patient t2 " \
-                   f"ON t1.ID = t2.ID"
-        if not patientIDs:
-            queryStr += f";"
-        elif len(patientIDs) == 1:
-            queryStr += f" WHERE t2.ID = {patientIDs[0]};"
-        else:
-            queryStr += f" WHERE t2.ID IN {patientIDs};"
+                   f"ON t1.ID = t2.ID;"
         print('queryPatientDiagnosis:\n', queryStr)
-        SymptomsPatient_table = pd.DataFrame(executedQuery(queryStr), columns=['ID', 'symptom'])
-        ret_table = pd.DataFrame(columns=['ID', 'order', 'disID', 'disName', 'depID'])
-        p, r, prevID = 0, 0, ''
-        diseases_table = Queries.queryTable('diseases').groupby(['disID'])
-        stack = pd.DataFrame(columns=['symptom', 'disID', 'disName', 'depID'])
-        for i in SymptomsPatient_table.index:
-            curr_ID = SymptomsPatient_table.loc[i, 'ID']
-            if not prevID:
-                prevID = curr_ID
-            if prevID and curr_ID != prevID:
-                temp = DiagnosisDecision(stack)
-                while temp:
-                    ret_table.loc[p, :] = [prevID] + temp.pop(0)
-                    p += 1
-                stack = pd.DataFrame(columns=['symptom', 'disID', 'disName', 'depID'])
-                r = 0
-                prevID = curr_ID
-
-            full_dig = Queries.getDiagnosis(SymptomsPatient_table.loc[i, 'symptom'])
-            for d in full_dig:
-                stack.loc[r, 'symptom'] = SymptomsPatient_table.loc[i, 'symptom']
-                stack.loc[r, 'disID'] = d
-                stack.loc[r, ['disName', 'depID']] = diseases_table.get_group(d).iloc[0][['disName', 'depID']]
-                r += 1
-        temp = DiagnosisDecision(stack)
-        while temp:
-            ret_table.loc[p, :] = [prevID] + temp.pop(0)
-            p += 1
-        self.addItem('PatientResearch', ret_table)
-        return ret_table
+        trigger_table = []
+        SymptomsPatient_table = pd.DataFrame(executedQuery(queryStr), columns=['ID', 'symptom']).groupby(['ID'])
+        for key, df in SymptomsPatient_table:
+            stack = []
+            for i in df.index:
+                stack += self.getDiagnosis(df.loc[i, 'symptom'])
+            trigger_table.append([df.loc[i, 'ID']] + DiagnosisDecision(stack))
+            trigger_table[-1][2] /= df.shape[0]
+            trigger_table[-1][-1] /= df.shape[0]
+        trigger_table = pd.DataFrame(trigger_table,
+                                     columns=["ID", "FdisID", "Fconf", "SdisID", "Sconf"])
+        trigger_table = Table('patientdiagnosis', data=trigger_table,
+                              pks=['ID'],
+                              fks=[['ID'], ['FdisID'], ['SdisID']],
+                              refs=[['ID'], ['disID'], ['disID']],
+                              ref_tables=['patient', 'diseases', 'diseases'])
+        trigger_table.save()
+        createFullTable(trigger_table)
+        return
 
     def queryTable(self, tableName):
         queryStr = f"SELECT * FROM {tableName.lower()};"
@@ -123,6 +102,39 @@ class DataQueries:
             colsName = list(range(len(res[0])))
         table = pd.DataFrame(res, columns=colsName)
         self.addItem(tableName, table)
+        return table
+
+    def queryPatientResearch(self, order=0, *patientIDs):
+        cols = []
+        slc = None
+        queryStr = f"SELECT "
+        if order == 1:
+            slc = 3
+
+        for c in getTableCarry('patient').get('headers'):
+            cols.append(c)
+            queryStr += f"t1.{c}, "
+            if c == 'DOB':
+                queryStr += 'TIMESTAMPDIFF(YEAR, t1.DOB, CURDATE()), '
+                cols.append('age')
+
+        for c in getTableCarry('patientdiagnosis').get('headers')[1:slc]:
+            queryStr += f"t2.{c}, "
+            cols.append(c)
+        queryStr = queryStr[:-2]
+        queryStr += f" FROM patient AS t1 " \
+                    f"INNER JOIN patientdiagnosis AS t2 " \
+                    f"ON t1.ID = t2.ID"
+        if not patientIDs:
+            queryStr += f";"
+        elif len(patientIDs) == 1:
+            queryStr += f" WHERE t2.ID = {patientIDs[0]};"
+        else:
+            queryStr += f" WHERE t2.ID IN {patientIDs};"
+        print('queryPatientResearch:\n', queryStr)
+        table = pd.DataFrame(executedQuery(queryStr), columns=cols)
+
+        self.addItem('PatientResearch', table)
         return table
 
     def queryPatientSymptoms(self, symptom):
@@ -164,6 +176,10 @@ class DataQueries:
                     temp = f" {tempKey} {eq[0]} {val[1]} "
                 else:
                     temp = f" {tempKey} {eq[1]} {val[0]} "
+            if key == 'symptom':
+                pass
+            if key == 'diseases':
+                pass
             limits[key] = temp
 
         queryStr = f"SELECT "
@@ -175,7 +191,8 @@ class DataQueries:
         stack = ['AND'] * (len(limits) - 1) + [' WHERE']
         for val in limits.values():
             queryStr += stack.pop() + val
-        queryStr = queryStr[:-1] + ";"
+        queryStr = queryStr[:-1]
+        queryStr += ";"
         print(queryStr)
         table = pd.DataFrame(executedQuery(queryStr))
         return table
@@ -184,8 +201,11 @@ class DataQueries:
 def main():
     q = DataQueries("his_project")
     q.enqueueSymptomsTree()
+    print(q.LastUpdate)
     if q.LastUpdate.days >= 1:
-        pass
+        q.queryTrigger()
+        updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
+
     return q
 
 
@@ -195,4 +215,4 @@ if __name__ == "__main__":
 # PatientWith_weak = Queries.queryPatientSymptoms('fatigue')
 # PatientDiagnosis = Queries.queryPatientResearch(1, *list(PatientWith_weak['ID'].unique()))
 
-Qpi = Queries.queryPatientIndices(gender='M', age=(50, 70), weight=[70, 90])
+Qpi = Queries.queryPatientIndices(gender='M', age=(50, 70), weight=[70, 90], symptom=None)
