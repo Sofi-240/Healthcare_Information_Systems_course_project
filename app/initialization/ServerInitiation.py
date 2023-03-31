@@ -1,26 +1,20 @@
 from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
+import os
+import json
 
-user = ''
-password = ''
-ip = '127.0.0.1'
-port = 3306
-host = "localhost"
-db = ''
-tables = []
-cursor = ''
-con = ''
+user, password, cursor, con = '', '', '', ''
+ip, port, host, db = '127.0.0.1', 3306, 'localhost', 'his_project'
 
 
-# Create Connection, save user, password into privates
-def connect2server(usr="root", passwd="St240342", hst="localhost", prt=3306):
+def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
     global user, password, host, port, cursor, con
     user = usr
     password = passwd
     host = hst
     port = prt
-    con = mysql.connector.connect(host=host, user=user, passwd=password)
+    con = mysql.connector.connect(host=host, user=user, passwd=password, buffered=True)
     cursor = con.cursor()
     return cursor
 
@@ -35,44 +29,41 @@ def showDBs():
 
 
 def initDB(dbname):
-    # this function enables communication with existing SERV
-    # and initiation of a new DB
     global db, cursor
     db = dbname
     print(db)
     print(f"drop database if exists {db.lower()}")
     cursor.execute(f"drop database if exists {db.lower()}")
-    # create a new database
     cursor.execute(f"CREATE DATABASE {db.upper()}")
-    # showing that the database has been created
     showDBs()
     return
 
 
-def connect2serverDB(database=db):
-    # this function assumes existing connection to SERV
-    # provided global connection specifications
-    # and an existing DB.
-    # it outputs the connection cursor to the db
+def connect2serverDB(database='his_project'):
     connect2server()
     global user, password, host, port, cursor, db, con
     db = database
-    # reconnect to database from SERV
-    con = mysql.connector.connect(host=host,
-                                  user=user,
-                                  passwd=password,
-                                  database=db.upper())
+    con = mysql.connector.connect(host=host, user=user, passwd=password, database=db, buffered=True)
     cursor = con.cursor()
     return cursor, con
 
 
 def showTables():
-    # this function assumes existing connection cursor to SERV DB
     global cursor
     cursor.execute("show tables")
     print(f"Tables in DB:")
     for i in cursor:
         print(i)
+    return
+
+
+def hasTable(name):
+    global cursor
+    cursor.execute("show tables")
+    for x in cursor:
+        if x[0] == name:
+            return True
+    return False
 
 
 def createNewTable(table, headers=[], dbname=db):
@@ -83,28 +74,15 @@ def createNewTable(table, headers=[], dbname=db):
         headers = table.headers
     print(table.tableName.lower())
     cursor.execute(f"use {db}")
+    dropRefFKs(table)
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
-    tbl_ftrs = f"CREATE TABLE {table.tableName.lower()} ("
-    for i, k in enumerate(headers):  # [1:]:
-        if i == 0:
-            if "Timestamp" in k:
-                tbl_ftrs += f"{k} TIMESTAMP"
-            elif "DateTime" in k:
-                tbl_ftrs += f"{k} DATETIME"
-            elif "Date" in k:
-                tbl_ftrs += f"{k} DATE"
-            else:
-                tbl_ftrs += f"{k} VARCHAR(255)"
-        else:
-            if "Timestamp" in k:
-                tbl_ftrs += f", {k} TIMESTAMP"
-            elif "Date" in k:
-                tbl_ftrs += f", {k} DATE"
-            else:
-                tbl_ftrs += f", {k} VARCHAR(255)"
-    tbl_ftrs += f")"
-    print(tbl_ftrs)
-    cursor.execute(tbl_ftrs)
+    tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
+    for k, t in zip(table.headers, table.headers_type):
+        tbl_sqlStr += f"{k} {t}, "
+    tbl_sqlStr = tbl_sqlStr[:-2]
+    tbl_sqlStr += f")"
+    print(tbl_sqlStr)
+    cursor.execute(tbl_sqlStr)
     return
 
 
@@ -115,12 +93,21 @@ def insertData2Table(table):
     return
 
 
+def dropTable(table, dbname=db):
+    global db, cursor
+    if dbname != db:
+        connect2serverDB(dbname)
+    print(table.tableName.lower())
+    dropRefFKs(table.tableName.lower())
+    cursor.execute(f"use {db}")
+    cursor.execute(f"drop table if exists {table.tableName.lower()}")
+    return
+
+
 def addPKs(table):
     global cursor, db
-    # re-initiate cursor
     connect2serverDB(database=db)
     lst = table.pks
-    # lst=list(getattr(table,'pks'))
     if len(lst) == 1:
         alter_table_com = f"ALTER TABLE {table.tableName.lower()} " \
                           f"ADD PRIMARY KEY ({lst[0]})"
@@ -138,7 +125,6 @@ def addPKs(table):
 
 def addFKs(table):
     global cursor, db
-    # re-initiate cursor
     connect2serverDB(database=db)
     for i, t in enumerate(table.ref_tables):
         if len(table.fks[i]) == 1:
@@ -161,15 +147,135 @@ def addFKs(table):
     return
 
 
+def hasFKs(tableName, dbname=db):
+    global db, cursor
+    if dbname != db:
+        connect2serverDB(dbname)
+    has_sqlStr = f"SELECT " \
+                 f"TABLE_NAME, " \
+                 f"CONSTRAINT_NAME " \
+                 f"FROM " \
+                 f"INFORMATION_SCHEMA.KEY_COLUMN_USAGE " \
+                 f"WHERE " \
+                 f"REFERENCED_TABLE_SCHEMA = '{dbname}'" \
+                 f"AND REFERENCED_TABLE_NAME = '{tableName}';"
+    cursor.execute(has_sqlStr)
+    return cursor.fetchall()
+
+
+def dropRefFKs(tableName, dbname=db):
+    dep = hasFKs(tableName, dbname=dbname)
+    if not dep:
+        return
+    print(dep)
+    for t, c in dep:
+        dropFk(t, c, dbname=dbname)
+    return
+
+
+def dropFk(tableName, fpk, dbname=db):
+    global cursor, db
+    if db != dbname:
+        connect2serverDB(database=dbname)
+    alter_table_com = f"ALTER TABLE {tableName} " \
+                      f"DROP FOREIGN KEY {fpk};"
+    cursor.execute(alter_table_com)
+    print(alter_table_com)
+    return
+
+
+def createFullTable(table, dbname=db):
+    global db, cursor
+    if dbname != db:
+        connect2serverDB(dbname)
+    print(table.tableName.lower())
+    cursor.execute(f"use {db}")
+    dropRefFKs(table.tableName.lower())
+    cursor.execute(f"drop table if exists {table.tableName.lower()}")
+    tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
+    for k, t in zip(table.headers, table.headers_type):
+        tbl_sqlStr += f"{k} {t}, "
+    tbl_sqlStr = tbl_sqlStr[:-2]
+    if table.pks:
+        tbl_sqlStr += f",  PRIMARY KEY ("
+        for pk in table.pks:
+            tbl_sqlStr += f"{pk},"
+        tbl_sqlStr = tbl_sqlStr[:-1] + f")"
+    tbl_fkStr = ""
+    if table.fks:
+        for fk, ref, refT in zip(table.fks, table.refs, table.ref_tables):
+            if not hasTable(refT):
+                continue
+            for i, j in zip(fk, ref):
+                tbl_fkStr += f" CONSTRAINT FK_{i + table.tableName.lower() + '_' + j + refT} FOREIGN KEY(" \
+                             f"{i}) REFERENCES {refT}(" \
+                             f"{j}) ON DELETE NO ACTION ON UPDATE NO ACTION,"
+        if tbl_fkStr:
+            tbl_fkStr = "," + tbl_fkStr[:-1]
+    tbl_sqlStr += tbl_fkStr + f")"
+    print(tbl_sqlStr)
+    cursor.execute(tbl_sqlStr)
+    if table.shape[0] != 0:
+        insertData2Table(table)
+    return
+
+
+def executedQuery(queryStr, dbname=db):
+    global db, cursor
+    if dbname != db:
+        connect2serverDB(dbname)
+    cursor.execute(queryStr)
+    return cursor.fetchall()
+
+
+def insert2Table(tableName, values, columns=None, dbname=db):
+    if columns is None:
+        columns = []
+    global cursor, db, con
+    if db != dbname:
+        connect2serverDB(database=dbname)
+    if not hasTable(tableName.lower()):
+        print('Table not EXIST!')
+        return
+    queryStr = f"INSERT INTO {tableName.lower()} "
+    if columns:
+        queryStr += "("
+        for col in columns:
+            queryStr += f"{col}, "
+        queryStr = queryStr[:-2] + f") "
+    queryStr += f"VALUES("
+    for val in values:
+        queryStr += f"{val}, "
+    queryStr = queryStr[:-2] + f");"
+    cursor.execute(queryStr)
+    con.commit()
+    return
+
+
+def getTableCarry(tableName):
+    temp_carry = json.loads(
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+             'r').read())
+    return temp_carry.get(tableName)
+
+
+def updateTableCarry(tableName, val):
+    temp_carry = json.loads(
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+             'r').read())
+    temp_carry[tableName] = val
+    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+    param_file.write(json.dumps(temp_carry))
+    param_file.close()
+    return
+
+
 def main():
-    connect2server(usr='root', passwd='St240342', hst="localhost", prt=3306)
-    initDB("his_project")
-    DS = [Table('diseases', 'diseases', ['DESID']), Table('patient', 'patient', ['ID'], ['DESID'])]
-    for t in DS:
-        createNewTable(t, dbname="his_project")
-        insertData2Table(t)
-        addPKs(t)
-        addFKs(t)
+    connect2serverDB(database='his_project')
+    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch', 'patientdiagnosis']
+    for tbl in tablesNames:
+        createFullTable(Table(tbl))
+    return
 
 
 if __name__ == "__main__":
