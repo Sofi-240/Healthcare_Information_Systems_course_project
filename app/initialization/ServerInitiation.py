@@ -229,13 +229,16 @@ def executedQuery(queryStr, dbname=db):
 
 
 def insert2Table(tableName, values, columns=None, dbname=db):
-    if columns is None:
-        columns = []
     global cursor, db, con
     if db != dbname:
         connect2serverDB(database=dbname)
     if not hasTable(tableName.lower()):
         print('Table not EXIST!')
+        return
+    if not columns:
+        columns = getTableCarry(tableName.lower())['headers']
+    if len(columns) != len(values):
+        print('Values number != Columns number')
         return
     queryStr = f"INSERT INTO {tableName.lower()} "
     if columns:
@@ -245,8 +248,9 @@ def insert2Table(tableName, values, columns=None, dbname=db):
         queryStr = queryStr[:-2] + f") "
     queryStr += f"VALUES("
     for val in values:
-        queryStr += f"{val}, "
+        queryStr += f"'{val}', "
     queryStr = queryStr[:-2] + f");"
+    print(queryStr)
     cursor.execute(queryStr)
     con.commit()
     return
@@ -270,9 +274,24 @@ def updateTableCarry(tableName, val):
     return
 
 
+def DeleteRow(tableName, val, eq, dbname=db):
+    global cursor, db, con
+    if db != dbname:
+        connect2serverDB(database=dbname)
+    if not hasTable(tableName.lower()):
+        print('Table not EXIST!')
+        return
+    queryStr = f"DELETE FROM {tableName.lower()} WHERE {val} = '{eq}';"
+    print(queryStr)
+    cursor.execute(queryStr)
+    con.commit()
+    return
+
+
 def main():
     connect2serverDB(database='his_project')
-    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch', 'patientdiagnosis']
+    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch',
+                   'patientdiagnosis']
     for tbl in tablesNames:
         createFullTable(Table(tbl))
     return

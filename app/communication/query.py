@@ -15,6 +15,19 @@ class DataQueries:
     def LastUpdate(self):
         return datetime.datetime.now() - datetime.datetime.strptime(getTableCarry('trigger'), '%m/%d/%Y %H:%M')
 
+    @staticmethod
+    def queryTable(tableName):
+        queryStr = f"SELECT * FROM {tableName.lower()};"
+        res = executedQuery(queryStr)
+        print('getTable:\n', queryStr)
+        colsName = getTableCarry(tableName.lower())
+        if colsName:
+            colsName = colsName.get('headers')
+        else:
+            colsName = list(range(len(res[0])))
+        table = pd.DataFrame(res, columns=colsName)
+        return table
+
     def addItem(self, key, itm):
         self.__dict__[key] = itm
         return itm
@@ -71,95 +84,28 @@ class DataQueries:
                    f"INNER JOIN patient t2 " \
                    f"ON t1.ID = t2.ID;"
         print('queryPatientDiagnosis:\n', queryStr)
-        trigger_table = []
+        trigger_table_stack = []
         SymptomsPatient_table = pd.DataFrame(executedQuery(queryStr), columns=['ID', 'symptom']).groupby(['ID'])
         for key, df in SymptomsPatient_table:
             stack = []
             for i in df.index:
                 stack += self.getDiagnosis(df.loc[i, 'symptom'])
-            trigger_table.append([df.loc[i, 'ID']] + DiagnosisDecision(stack))
-            trigger_table[-1][2] /= df.shape[0]
-            trigger_table[-1][-1] /= df.shape[0]
-        trigger_table = pd.DataFrame(trigger_table,
+            trigger_table_stack.append([df.loc[0, 'ID']] + DiagnosisDecision(stack))
+            trigger_table_stack[-1][2] /= df.shape[0]
+            trigger_table_stack[-1][-1] /= df.shape[0]
+        trigger_table = pd.DataFrame(trigger_table_stack,
                                      columns=["ID", "FdisID", "Fconf", "SdisID", "Sconf"])
-        trigger_table = Table('patientdiagnosis', data=trigger_table,
+        createFullTable(Table('patientdiagnosis', data=trigger_table,
                               pks=['ID'],
                               fks=[['ID'], ['FdisID'], ['SdisID']],
                               refs=[['ID'], ['disID'], ['disID']],
-                              ref_tables=['patient', 'diseases', 'diseases'])
-        trigger_table.save()
-        createFullTable(trigger_table)
+                              ref_tables=['patient', 'diseases', 'diseases']).save())
+        self.addItem('patientdiagnosis', trigger_table)
         return
 
-    def queryTable(self, tableName):
-        queryStr = f"SELECT * FROM {tableName.lower()};"
-        res = executedQuery(queryStr)
-        print('getTable:\n', queryStr)
-        colsName = getTableCarry(tableName.lower())
-        if colsName:
-            colsName = colsName.get('headers')
-        else:
-            colsName = list(range(len(res[0])))
-        table = pd.DataFrame(res, columns=colsName)
-        self.addItem(tableName, table)
-        return table
-
-    def queryPatientResearch(self, order=1, *patientIDs):
-        cols = []
-        slc = None
-        queryStr = f"SELECT "
-        order = 1
-        if order == 1:
-            slc = 3
-
-        for c in getTableCarry('patient').get('headers'):
-            cols.append(c)
-            queryStr += f"t1.{c}, "
-            if c == 'DOB':
-                queryStr += 'TIMESTAMPDIFF(YEAR, t1.DOB, CURDATE()), '
-                cols.append('age')
-
-        for c in getTableCarry('patientdiagnosis').get('headers')[1:slc]:
-            queryStr += f"t2.{c}, "
-            cols.append(c)
-        queryStr = queryStr[:-2]
-        queryStr += f", t2.disName FROM patient AS t1 " \
-                    f"INNER JOIN (SELECT d1.*, d2.disName FROM " \
-                    f"patientdiagnosis AS d1 " \
-                    f"INNER JOIN  diseases AS d2 " \
-                    f"ON d1.FdisID = d2.disID) AS t2 " \
-                    f"ON t1.ID = t2.ID"
-        cols += ['disName']
-        if not patientIDs:
-            queryStr += f";"
-        elif len(patientIDs) == 1:
-            queryStr += f" WHERE t2.ID = {patientIDs[0]};"
-        else:
-            queryStr += f" WHERE t2.ID IN {patientIDs};"
-        print('queryPatientResearch:\n', queryStr)
-        table = pd.DataFrame(executedQuery(queryStr), columns=cols)
-
-        self.addItem('PatientResearch', table)
-        return table
-
-    def queryPatientSymptoms(self, symptom):
-        colsName = getTableCarry('patient').get('headers')
-        queryStr = f"SELECT "
-        for col in colsName:
-            queryStr += f"t1.{col}, "
-        queryStr += f"t2.Symptom " \
-                    f"FROM patient as t1 " \
-                    f"INNER JOIN " \
-                    f"symptomspatient as t2 " \
-                    f"WHERE t1.ID = t2.ID " \
-                    f"AND t2.Symptom LIKE '%{symptom}%';"
-        print('queryPatientSymptoms:\n', queryStr)
-        table = pd.DataFrame(executedQuery(queryStr), columns=colsName + ['symptom'])
-        self.addItem('PatientSymptoms', table)
-        return table
-
     def queryPatientIndices(self, **kwargs):
-        limits = {}
+        where_limits = {}
+        join = []
         colsName = getTableCarry('patient').get('headers')
         for key, val in kwargs.items():
             if key in ['ID', 'gender', 'support', 'phone', 'area', 'city', 'HMO', 'COB']:
@@ -167,25 +113,85 @@ class DataQueries:
                     temp = f" {key} IN {val} "
                 else:
                     temp = f" {key} = '{val}' "
+                where_limits[key] = temp
             if key in ['height', 'weight', 'age']:
                 tempKey = key
                 if key == 'age':
                     tempKey = 'TIMESTAMPDIFF(YEAR, DOB, CURDATE())'
                 if type(val) == list:
                     eq = ('>=', '<=')
-                else:
+                elif type(val) == tuple:
                     eq = ('>', '<')
-                if val[0] is not None and val[1] is not None:
-                    temp = f" {tempKey} {eq[0]} {val[0]} AND {tempKey} {eq[1]} {val[1]} "
-                elif val[0] is None:
-                    temp = f" {tempKey} {eq[0]} {val[1]} "
                 else:
-                    temp = f" {tempKey} {eq[1]} {val[0]} "
+                    if val < 0:
+                        eq = '<>'
+                        val = abs(val)
+                    else:
+                        eq = '='
+                if type(eq) == tuple:
+                    if val[0] is not None and val[1] is not None:
+                        temp = f" {tempKey} {eq[0]} {val[0]} AND {tempKey} {eq[1]} {val[1]} "
+                    elif val[0] is None:
+                        temp = f" {tempKey} {eq[1]} {val[1]} "
+                    else:
+                        temp = f" {tempKey} {eq[0]} {val[0]} "
+                else:
+                    temp = f" {tempKey} {eq} {val} "
+                where_limits[key] = temp
             if key == 'symptom':
+                colName = ['symptom']
+                joinCol = f"t1.Symptom AS symptom, "
+                joinStr = f"INNER JOIN (SELECT d1.Symptom, d1.ID FROM symptomspatient as d1 "
+                if type(val) == set or type(val) == tuple or type(val) == list:
+                    joinStr += f"WHERE d1.Symptom LIKE '%{val[0]}%' "
+                    for v in val[1:]:
+                        joinStr += f"OR d1.Symptom LIKE '%{v}%' "
+                    joinStr = joinStr[:-1] + ") "
+                else:
+                    joinStr += f"WHERE d1.Symptom LIKE '%{val}%') "
                 pass
+                joinStr += f"AS t1 " \
+                           f"ON t.ID = t1.ID "
+                join.append([colName, joinCol, joinStr])
             if key == 'diseases':
-                pass
-            limits[key] = temp
+                colName = ['disName', 'conf']
+                joinCol = f"t2.disName AS disName, t2.conf AS conf, "
+                joinStr = f"INNER JOIN (SELECT d1.disName, d2.ID, " \
+                          f"CASE WHEN d2.FdisID = d1.disID THEN d2.Fconf " \
+                          f"ELSE d2.Sconf END AS conf " \
+                          f"FROM diseases AS d1 " \
+                          f"INNER JOIN patientdiagnosis AS d2 ON d1.disID = d2.FdisID " \
+                          f"OR d1.disID = d2.SdisID " \
+                          f"WHERE d1.disName "
+                if type(val) == set or type(val) == tuple or type(val) == list:
+                    joinStr += f"IN {val}) "
+                else:
+                    joinStr += f"= '{val}') "
+                joinStr += f"AS t2 " \
+                           f"ON t.ID = t2.ID "
+                join.append([colName, joinCol, joinStr])
+                if kwargs.get('conf'):
+                    conf = kwargs.get('conf')
+                    if type(conf) == list:
+                        eq = ('>=', '<=')
+                    elif type(conf) == tuple:
+                        eq = ('>', '<')
+                    else:
+                        if conf < 0:
+                            eq = '<>'
+                            conf = abs(conf)
+                        else:
+                            eq = '='
+                    if type(eq) == tuple:
+                        if conf[0] is not None and conf[1] is not None:
+                            temp = f" conf {eq[0]} {conf[0]} AND conf {eq[1]} {conf[1]} "
+                        elif val[0] is None:
+                            temp = f" conf {eq[1]} {conf[1]} "
+                        else:
+                            temp = f" conf {eq[0]} {conf[0]} "
+                    else:
+                        temp = f" conf {eq} {conf} "
+                    where_limits['conf'] = temp
 
         queryStr = f"SELECT "
         ret_cols = []
@@ -193,25 +199,46 @@ class DataQueries:
             col = colsName.pop(0)
             queryStr += f"t.{col} AS {col}, "
             ret_cols.append(col)
-            if col == 'DOB' and limits.get('age'):
+            if col == 'DOB' and where_limits.get('age'):
                 queryStr += "TIMESTAMPDIFF(YEAR, DOB, CURDATE()) AS age, "
                 ret_cols.append('age')
+        for curr_join in join:
+            for col in curr_join[0]:
+                ret_cols.append(col)
+            queryStr += curr_join[1]
         colsName, ret_cols = ret_cols, colsName
-        queryStr = queryStr[:-2] + " FROM patient as t"
-        stack = ['AND'] * (len(limits) - 1) + [' WHERE']
-        for val in limits.values():
+        queryStr = queryStr[:-2] + " FROM patient as t "
+        for curr_join in join:
+            queryStr += curr_join[2]
+        stack = ['AND'] * (len(where_limits) - 1) + ['WHERE']
+        for val in where_limits.values():
             queryStr += stack.pop() + val
         queryStr = queryStr[:-1]
         queryStr += ";"
         print(queryStr)
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
-        return table
+        return self.addItem('patientIndices', table)
 
+    def insertNewPatienSymptoms(self, ID, symptoms):
+        for syp in symptoms:
+            insert2Table('symptomsPatient', [ID, syp])
+        return
+
+    def insertNewPatient(self, ID, gender, name, dob, area, city, phone, hmo, cob, height, weight, support, symptoms):
+        values = [ID, gender, name, dob, area, city, phone, hmo, cob, height, weight, support]
+        insert2Table('patient', values)
+        self.insertNewPatienSymptoms(ID, symptoms)
+        return
+
+    def DeletePatient(self, ID):
+        for t, v in [('symptomsPatient', 'ID'), ('patientdiagnosis', 'ID'), ('activeresearch', 'pID'), ('patient', 'ID')]:
+            DeleteRow(t, v, ID)
+        return
 
 def main():
     q = DataQueries("his_project")
     q.enqueueSymptomsTree()
-    print(q.LastUpdate)
+    print(f"Last update for patient diagnosis Table: {q.LastUpdate}")
     if q.LastUpdate.days >= 1:
         q.queryTrigger()
         updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
@@ -222,7 +249,14 @@ def main():
 if __name__ == "__main__":
     Queries = main()
 
-PatientWith_weak = Queries.queryPatientSymptoms('weak')
-PatientDiagnosis = Queries.queryPatientResearch(1, *list(PatientWith_weak['ID'].unique()))
+# Qpi = Queries.queryPatientIndices(gender='F',
+#                                   symptom='pain',
+#                                   diseases=('Bone cancer', 'Skin cancer'),
+#                                   conf=[0.3, None],
+#                                   age=[42, None])
 
-Qpi = Queries.queryPatientIndices(gender='M', age=(50, 70), weight=[70, 90], symptom=None)
+
+# Queries.DeletePatient('320465461')
+# Queries.insertNewPatient('320465461', 'M', 'Nicki', datetime.date(1999, 5, 20), 'C',
+#                          'Yavne', '0502226474', 'Clalit', 'Israel', 2.1, 90, 1, ['lower back pain'])
+# Qpi = Queries.queryPatientIndices(ID=320465461)

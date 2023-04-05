@@ -111,7 +111,7 @@ class Table:
         param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
         param_file.write(json.dumps(temp_carry))
         param_file.close()
-        return
+        return self
 
     def transform_datetime(self, col, dataformat):
         for i in self.data.index:
