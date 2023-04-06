@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
 import os
+import pandas as pd
 import json
 
 user, password, cursor, con = '', '', '', ''
@@ -228,6 +229,15 @@ def executedQuery(queryStr, dbname=db):
     return cursor.fetchall()
 
 
+def executedQueryCommit(queryStr, dbname=db):
+    global db, cursor, con
+    if dbname != db:
+        connect2serverDB(dbname)
+    cursor.execute(queryStr)
+    con.commit()
+    return
+
+
 def insert2Table(tableName, values, columns=None, dbname=db):
     global cursor, db, con
     if db != dbname:
@@ -274,17 +284,14 @@ def updateTableCarry(tableName, val):
     return
 
 
-def DeleteRow(tableName, val, eq, dbname=db):
-    global cursor, db, con
-    if db != dbname:
-        connect2serverDB(database=dbname)
-    if not hasTable(tableName.lower()):
-        print('Table not EXIST!')
-        return
-    queryStr = f"DELETE FROM {tableName.lower()} WHERE {val} = '{eq}';"
-    print(queryStr)
-    cursor.execute(queryStr)
-    con.commit()
+def updateTable(tableName):
+    queryStr = f"SELECT * FROM {tableName.lower()};"
+    res = executedQuery(queryStr)
+    print('updateTable:\n', queryStr)
+    table = Table(tableName.lower())
+    colsName = table.headers
+    table.data = pd.DataFrame(res, columns=colsName)
+    table.save()
     return
 
 

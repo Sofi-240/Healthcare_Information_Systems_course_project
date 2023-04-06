@@ -5,7 +5,6 @@ import datetime
 import json
 import os
 from app.initialization.table_obj import Table
-from app.communication.strNode import node
 
 
 def random_binary(n, p_true=0.5):

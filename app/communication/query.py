@@ -2,7 +2,6 @@ from app.initialization.ServerInitiation import *
 import pandas as pd
 import datetime
 from app.communication.strNode import node
-from app.initialization.table_obj import Table
 
 
 class DataQueries:
@@ -15,26 +14,14 @@ class DataQueries:
     def LastUpdate(self):
         return datetime.datetime.now() - datetime.datetime.strptime(getTableCarry('trigger'), '%m/%d/%Y %H:%M')
 
-    @staticmethod
-    def queryTable(tableName):
-        queryStr = f"SELECT * FROM {tableName.lower()};"
-        res = executedQuery(queryStr)
-        print('getTable:\n', queryStr)
-        colsName = getTableCarry(tableName.lower())
-        if colsName:
-            colsName = colsName.get('headers')
-        else:
-            colsName = list(range(len(res[0])))
-        table = pd.DataFrame(res, columns=colsName)
-        return table
-
     def addItem(self, key, itm):
         self.__dict__[key] = itm
         return itm
 
     def enqueueSymptomsTree(self):
-        table = self.queryTable('symptomsDiseases')
-        for tip, txt in table[['disID', 'Symptom']].values:
+        queryStr = f"SELECT * FROM symptomsDiseases;"
+        id_Sym = executedQuery(queryStr)
+        for tip, txt in id_Sym:
             currTxt = txt + ' ' + str(tip)
             splitTxt = currTxt.split()
             splitTxt.reverse()
@@ -69,38 +56,55 @@ class DataQueries:
                 dig.append(key)
         return dig
 
-    def queryTrigger(self):
+    def queryUpdateTrigger(self, *IDs):
         def DiagnosisDecision(dataList):
             dataList = pd.DataFrame(dataList, columns=['disID'])
             index = dataList.loc[:, ['disID']].value_counts()
             data = dataList.groupby(['disID'])
             dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             if index.shape[0] == 1:
-                return dec + [None, 0]
+                return dec + ['', 0]
             dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
-        queryStr = f"SELECT t1.* FROM symptomspatient t1 " \
-                   f"INNER JOIN patient t2 " \
-                   f"ON t1.ID = t2.ID;"
-        print('queryPatientDiagnosis:\n', queryStr)
-        trigger_table_stack = []
-        SymptomsPatient_table = pd.DataFrame(executedQuery(queryStr), columns=['ID', 'symptom']).groupby(['ID'])
-        for key, df in SymptomsPatient_table:
-            stack = []
-            for i in df.index:
-                stack += self.getDiagnosis(df.loc[i, 'symptom'])
-            trigger_table_stack.append([df.loc[0, 'ID']] + DiagnosisDecision(stack))
-            trigger_table_stack[-1][2] /= df.shape[0]
-            trigger_table_stack[-1][-1] /= df.shape[0]
-        trigger_table = pd.DataFrame(trigger_table_stack,
-                                     columns=["ID", "FdisID", "Fconf", "SdisID", "Sconf"])
-        createFullTable(Table('patientdiagnosis', data=trigger_table,
-                              pks=['ID'],
-                              fks=[['ID'], ['FdisID'], ['SdisID']],
-                              refs=[['ID'], ['disID'], ['disID']],
-                              ref_tables=['patient', 'diseases', 'diseases']).save())
-        self.addItem('patientdiagnosis', trigger_table)
+        print('UPDATE Trigger table')
+        queryStr = f"SELECT * FROM symptomspatient"
+        if IDs:
+            if len(IDs) == 1:
+                queryStr += f" WHERE ID = {IDs[0]}"
+            else:
+                queryStr += f" WHERE ID IN {IDs}"
+        queryStr += " ORDER BY ID;"
+        print(queryStr)
+        id_Sym = executedQuery(queryStr)
+        prev_id = ''
+        stack = []
+        counter = 0
+        queryStr = f"INSERT INTO patientdiagnosis (ID, FdisID, Fconf, SdisID, Sconf) VALUES "
+        for ID, sym in id_Sym:
+            counter += 1
+            if ID != prev_id or counter == len(id_Sym):
+                if counter == len(id_Sym):
+                    stack += self.getDiagnosis(sym)
+                if stack:
+                    curr_dec = [ID] + DiagnosisDecision(stack)
+                    curr_dec[2] /= len(stack)
+                    curr_dec[-1] /= len(stack)
+                    queryStr += f"{tuple(curr_dec)}, "
+                    stack = []
+                prev_id = ID
+            if ID == prev_id:
+                stack += self.getDiagnosis(sym)
+        queryStr = queryStr[:-2] + f" ON DUPLICATE KEY UPDATE " \
+                                   f" FdisID = FdisID, " \
+                                   f"Fconf = Fconf, " \
+                                   f"SdisID = SdisID, " \
+                                   f"Sconf = Sconf;"
+        print(queryStr)
+        executedQueryCommit(queryStr)
+        updateTable('patientdiagnosis')
+        if not IDs:
+            updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
         return
 
     def queryPatientIndices(self, **kwargs):
@@ -219,35 +223,122 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return self.addItem('patientIndices', table)
 
-    def insertNewPatienSymptoms(self, ID, symptoms):
-        for syp in symptoms:
-            insert2Table('symptomsPatient', [ID, syp])
+    def insertNewSymptom(self, symptomPath, **kwargs):
+        if symptomPath == 'patient' or symptomPath == 'p':
+            ID, symptoms = kwargs.get('ID'), kwargs.get('symptom')
+            if ID:
+                print("Missing ID column")
+                return
+            if not symptoms:
+                print("No symptoms where given")
+                return
+            for syp in symptoms:
+                insert2Table('symptomsPatient', [ID, syp])
+            self.queryUpdateTrigger(ID)
+            return
+        if symptomPath == 'diseases' or symptomPath == 'd':
+            disID, symptoms = kwargs.get('disID'), kwargs.get('symptom')
+            if symptoms:
+                print("No symptoms where given")
+                return
+            if not disID:
+                disName = kwargs.get('disName')
+                if not disName:
+                    print('No disease ID entered')
+                    return
+                disID = executedQuery(f"SELECT disID FROM diseases WHERE disName = '{disName}';")
+                if disID:
+                    disID = disID[0]
+                else:
+                    print(f'The {disName} disease is not registered in the database')
+                    return
+            for syp in symptoms:
+                insert2Table('symptomsdiseases', [disID, syp])
+        self.enqueueSymptomsTree()
         return
 
-    def insertNewPatient(self, ID, gender, name, dob, area, city, phone, hmo, cob, height, weight, support, symptoms):
-        values = [ID, gender, name, dob, area, city, phone, hmo, cob, height, weight, support]
-        insert2Table('patient', values)
-        self.insertNewPatienSymptoms(ID, symptoms)
+    def insertNewUser(self, userPath, **kwargs):
+        if userPath == 'patient' or userPath == 'p':
+            cols = getTableCarry('patient').get('headers')
+            tableName = 'patient'
+        elif userPath == 'researcher' or userPath == 'r':
+            cols = getTableCarry('researcher').get('headers')
+            tableName = 'researcher'
+        else:
+            print(f"User Path {userPath} is not valid")
+            return
+        values = []
+        for col in cols:
+            val = kwargs.get(col)
+            if val is None and val != 'support':
+                print(f"column named {col} is missing")
+                return
+            if col == 'support' and val is None:
+                val = 0
+            if col == 'ID':
+                if executedQuery(f"SELECT * FROM {tableName} WHERE ID = '{val}';"):
+                    print(f"The user with {val} ID exists in the system")
+                    return
+            if col == 'USRname':
+                if executedQuery(f"SELECT * FROM {tableName} WHERE USRname = '{val}';"):
+                    print(f"The username {val} exists in the system")
+                    return
+            values.append(val)
+        insert2Table(tableName, values)
+        if tableName == 'patient' and kwargs.get('symptoms'):
+            self.insertNewPatienSymptoms('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
         return
 
-    def DeletePatient(self, ID):
-        for t, v in [('symptomsPatient', 'ID'), ('patientdiagnosis', 'ID'), ('activeresearch', 'pID'), ('patient', 'ID')]:
-            DeleteRow(t, v, ID)
+    def DeleteUser(self, userPath, ID):
+        if userPath == 'patient' or userPath == 'p':
+            tables = [('symptomsPatient', 'ID'),
+                      ('patientdiagnosis', 'ID'),
+                      ('activeresearch', 'pID'),
+                      ('patient', 'ID')]
+        elif userPath == 'researcher' or userPath == 'r':
+            tables = [('activeresearch', 'rID'),
+                      ('researcher', 'ID')]
+        else:
+            print(f"User Path {userPath} is not valid")
+            return
+        for t, v in tables:
+            queryStr = f"DELETE FROM {t} WHERE {v} = '{ID}';"
+            print(queryStr)
+            executedQueryCommit(queryStr)
         return
+
+    def insertNewDisease(self, depName, disName, disSymptoms=None):
+        if disSymptoms is None:
+            disSymptoms = []
+        depID = executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}' LIMIT 1;")
+        if not depID:
+            depID = str(int(executedQuery(f"SELECT depID FROM diseases ORDER BY depID;")[-1][0]) + 10)
+            disID = depID + '00001'
+            insert2Table('diseases', [disID, disName, depID, depName])
+        else:
+            depID = depID[0]
+            disID = str(int(executedQuery(f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]) + 1)
+            insert2Table('diseases', [disID, disName, depID, depName])
+        for syp in disSymptoms:
+            self.insertNewSymptom('d', disID=disID, symptom=syp)
+        return
+
 
 def main():
     q = DataQueries("his_project")
     q.enqueueSymptomsTree()
-    print(f"Last update for patient diagnosis Table: {q.LastUpdate}")
+    print(f"Last update for patient diagnosis (trigger) Table: {q.LastUpdate}")
     if q.LastUpdate.days >= 1:
-        q.queryTrigger()
-        updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
-
+        q.queryUpdateTrigger()
     return q
 
 
 if __name__ == "__main__":
     Queries = main()
+
+
+# Queries.insertNewDisease('dd', 'e', [])
+
 
 # Qpi = Queries.queryPatientIndices(gender='F',
 #                                   symptom='pain',
@@ -255,8 +346,11 @@ if __name__ == "__main__":
 #                                   conf=[0.3, None],
 #                                   age=[42, None])
 
+# Queries.getDiagnosis('in')
+# Queries.queryUpdateTrigger()
 
 # Queries.DeletePatient('320465461')
-# Queries.insertNewPatient('320465461', 'M', 'Nicki', datetime.date(1999, 5, 20), 'C',
+# ret = Queries.insertNewPatient('320465461', 'M', 'Nicki', datetime.date(1999, 5, 20), 'C',
 #                          'Yavne', '0502226474', 'Clalit', 'Israel', 2.1, 90, 1, ['lower back pain'])
-# Qpi = Queries.queryPatientIndices(ID=320465461)
+# Qpi = Queries.queryPatientIndices(ID=113910790)
+# ret = Queries.insertNewUser('p', ID='113910790')
