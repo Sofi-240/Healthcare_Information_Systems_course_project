@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 import mysql.connector
 from app.initialization.table_obj import Table
 import os
+import pandas as pd
 import json
 
 user, password, cursor, con = '', '', '', ''
@@ -16,7 +17,7 @@ def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
     port = prt
     con = mysql.connector.connect(host=host, user=user, passwd=password, buffered=True)
     cursor = con.cursor()
-    return cursor
+    return cursor, con
 
 
 def showDBs():
@@ -228,14 +229,26 @@ def executedQuery(queryStr, dbname=db):
     return cursor.fetchall()
 
 
+def executedQueryCommit(queryStr, dbname=db):
+    global db, cursor, con
+    if dbname != db:
+        connect2serverDB(dbname)
+    cursor.execute(queryStr)
+    con.commit()
+    return
+
+
 def insert2Table(tableName, values, columns=None, dbname=db):
-    if columns is None:
-        columns = []
     global cursor, db, con
     if db != dbname:
         connect2serverDB(database=dbname)
     if not hasTable(tableName.lower()):
         print('Table not EXIST!')
+        return
+    if not columns:
+        columns = getTableCarry(tableName.lower())['headers']
+    if len(columns) != len(values):
+        print('Values number != Columns number')
         return
     queryStr = f"INSERT INTO {tableName.lower()} "
     if columns:
@@ -245,8 +258,9 @@ def insert2Table(tableName, values, columns=None, dbname=db):
         queryStr = queryStr[:-2] + f") "
     queryStr += f"VALUES("
     for val in values:
-        queryStr += f"{val}, "
+        queryStr += f"'{val}', "
     queryStr = queryStr[:-2] + f");"
+    print(queryStr)
     cursor.execute(queryStr)
     con.commit()
     return
@@ -270,9 +284,23 @@ def updateTableCarry(tableName, val):
     return
 
 
+def updateTable(tableName):
+    queryStr = f"SELECT * FROM {tableName.lower()};"
+    res = executedQuery(queryStr)
+    print('updateTable:\n', queryStr)
+    table = Table(tableName.lower())
+    colsName = table.headers
+    table.data = pd.DataFrame(res, columns=colsName)
+    table.save()
+    return
+
+
 def main():
+    connect2server()
+    initDB('his_project')
     connect2serverDB(database='his_project')
-    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch', 'patientdiagnosis']
+    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch',
+                   'patientdiagnosis']
     for tbl in tablesNames:
         createFullTable(Table(tbl))
     return

@@ -5,7 +5,6 @@ import datetime
 import json
 import os
 from app.initialization.table_obj import Table
-from app.communication.strNode import node
 
 
 def random_binary(n, p_true=0.5):
@@ -37,25 +36,20 @@ def random_item(n, *P_args):
 
 def random_rnf_uni(start, stop, N):
     stack = []
-    counter = stop - start
-    if N // counter > 0.5:
-        return
-    while len(stack) < N and counter > 0:
-        temp = np.random.randint(10000001, 99999999, (N - len(stack),), dtype=np.int_).astype(str).tolist()
-        stack = list(set(stack + temp))
-        counter -= 1
+    try:
+        stack = np.array(random.sample(range(start, stop), N))
+    except ValueError:
+        print('Sample size exceeded population size.')
     return stack
 
 
 def department_table():
-    return pd.DataFrame([[10, 'Oncology'], [20, 'Neurological'], [40, 'Vascular']], columns=['depID', 'depName'])
+    return pd.DataFrame([[10, 'Oncology'], [20, 'Neurological'], [30, 'Vascular']], columns=['depID', 'depName'])
 
 
 def diseases_table(department_data):
-    dep_names = ['old_disease_neurological'] + [val for val in department_data['depName'].values]
     DES_N = []
     DEP_ID = []
-    DES_ID = []
     DEP_nameLst = []
     for idx in list(department_data.index):
         dep_name = department_data.loc[idx, 'depName']
@@ -74,16 +68,7 @@ def diseases_table(department_data):
     data['disID'] = data['depID']
     data['depName'] = DEP_nameLst
     data['disName'] = DES_N
-    for dep_name in dep_names:
-        curr_lst = random_dict[dep_name]
-        stack = []
-        counter = 89998
-        while len(stack) < len(curr_lst) and counter > 0:
-            temp = np.random.randint(10001, 99999, (len(curr_lst) - len(stack),), dtype=np.int_).astype(str).tolist()
-            stack = list(set(stack + temp))
-            counter -= 1
-        DES_ID += stack
-    data['disID'] += DES_ID
+    data['disID'] = random_rnf_uni(100001, 999999, len(DES_N)).astype(str)
     return data
 
 
@@ -123,11 +108,9 @@ def diseases_symptoms_table(diseases_data):
     return diseases_data, data
 
 
-def patient_table(N):
-    data = pd.DataFrame(random_item(N, *list(range(1, 4))), columns=['ID'])
-    data['ID'] = data['ID'].astype(str)
-    data['ID'] += random_rnf_uni(10000001, 99999999, N)
-
+def patient_table(IDlist):
+    N = len(IDlist)
+    data = pd.DataFrame(IDlist, columns=['ID'])
     mask = random_NP_mask(N, 0.6)
     data['gender'] = 'M'
     data.loc[mask[:, 0], 'gender'] = 'F'
@@ -154,7 +137,7 @@ def patient_table(N):
     data.loc[mask[:, 2], 'city'] = random_item(mask[:, 2].sum(), *random_dict['city']['C'])
 
     data['phone'] = random_item(N, '050', '054', '052')
-    data['phone'] += random_rnf_uni(1000001, 9999999, N)
+    data['phone'] += random_rnf_uni(1000001, 9999999, N).astype(str)
     data['HMO'] = random_item(N, 'Clalit', 'Maccabi', 'Meuhedet', 'Leumit')
 
     mask = random_NP_mask(N, 0.3, 0.3)
@@ -252,10 +235,9 @@ def patient_symptoms_table(symptoms_data, patient_data, department_data):
     return data
 
 
-def researcher_table(N):
-    data = pd.DataFrame(random_item(N, *list(range(1, 4))), columns=['ID'])
-    data['ID'] = data['ID'].astype(str)
-    data['ID'] += random_rnf_uni(100000001, 999999999, N)
+def researcher_table(IDlist):
+    N = len(IDlist)
+    data = pd.DataFrame(IDlist, columns=['ID'])
 
     mask = random_NP_mask(N, 0.7)
     data['gender'] = 'M'
@@ -265,7 +247,7 @@ def researcher_table(N):
     data.loc[:, 'Lname'] = random_item(N, *random_dict['LNames'])
     data.loc[:, 'USRname'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname']
     data['phone'] = random_item(N, '050', '054', '052')
-    data['phone'] += random_rnf_uni(1000001, 9999999, N)
+    data['phone'] += random_rnf_uni(1000001, 9999999, N).astype(str)
     data.loc[:, 'Mail'] = data.loc[:, 'USRname'] + pd.Series(random_rnf_uni(1000, 9999, N)).astype(str)
     data.loc[:, 'Mail'] += '@LUKA.com'
     return data
@@ -275,14 +257,9 @@ def initActiveR(diseases_data, researcher_data, patient_data):
     rid = random.choices(list(researcher_data['ID']), k=10)
     des = random.choices(list(diseases_data['disID']), k=10)
     data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
-    res_id = random_rnf_uni(1001, 9999, 10)
-    stack = []
-    counter = 1000
-    while len(stack) < 60 and counter > 0:
-        temp = random.choices(list(patient_data['ID']), k=(60 - len(stack)))
-        stack = list(set(stack + temp))
-        counter -= 1
-    data['pID'] = stack
+    res_id = random_rnf_uni(1001, 9999, 10).tolist()
+    stack = random_rnf_uni(0, patient_data.index[-1], 60).tolist()
+    data['pID'] = patient_data.loc[stack, 'ID'].values
     i = 0
     for d in des:
         data.loc[i:i + 6, ['ID', 'disID', 'rID']] = [res_id.pop(), d, rid.pop()]
@@ -300,12 +277,16 @@ def Trigger_table(patient_data):
 
 
 def main():
-    patient = patient_table(1000)
+    ids_uni = pd.DataFrame(random_item(1050, *list(range(1, 4))), columns=['ID'])
+    ids_uni['ID'] = ids_uni['ID'].astype(str)
+    ids_uni['ID'] += random_rnf_uni(10000001, 99999999, 1050).astype(str)
+    ids_uni = list(ids_uni['ID'])
+    patient = patient_table(ids_uni[:1000])
     department = department_table()
     diseases, diseases_symptoms = diseases_symptoms_table(diseases_table(department))
     patient_symptoms = patient_symptoms_table(diseases_symptoms, patient, department)
     diseases_symptoms.drop(columns='disName', inplace=True)
-    researcher = researcher_table(50)
+    researcher = researcher_table(ids_uni[1000:])
     ActiveResearch = initActiveR(diseases, researcher, patient)
     patient['DOB'] = patient['DOB'].astype(str)
     PatientDiagnosis = Trigger_table(patient)
@@ -355,3 +336,4 @@ if __name__ == "__main__":
     symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'symptoms.txt',
                         'r').readlines()
     main()
+
