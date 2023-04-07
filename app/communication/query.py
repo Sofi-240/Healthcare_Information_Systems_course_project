@@ -1,69 +1,73 @@
 from app.initialization.ServerInitiation import *
 import pandas as pd
 import datetime
-from app.communication.strNode import node
+from app.communication.TrieStruct import Trie
 
 
 class DataQueries:
     def __init__(self, dbName):
         self.dbName = dbName
         self.cursor, self.con = connect2serverDB(database=dbName)
-        self.SymptomsRoot = {}
+        self.SymptomsTrie = Trie()
+        self._enqueueSymptomsTrie()
 
-    @property
-    def LastUpdate(self):
-        return datetime.datetime.now() - datetime.datetime.strptime(getTableCarry('trigger'), '%m/%d/%Y %H:%M')
-
-    def addItem(self, key, itm):
-        self.__dict__[key] = itm
-        return itm
-
-    def enqueueSymptomsTree(self):
-        queryStr = f"SELECT * FROM symptomsDiseases;"
-        id_Sym = executedQuery(queryStr)
-        for tip, txt in id_Sym:
-            currTxt = txt + ' ' + str(tip)
-            splitTxt = currTxt.split()
-            splitTxt.reverse()
-            headName = splitTxt.pop()
-            head_node = self.SymptomsRoot.get(headName)
-            if not head_node:
-                head_node = node(headName)
-                self.SymptomsRoot[headName] = head_node
-            curr_node = head_node
-            while splitTxt:
-                curr_node = curr_node.append(node(splitTxt.pop()))
+    def _enqueueSymptomsTrie(self):
+        """
+            Builds and enqueues a tree of symptoms and diseases.
+        """
+        queryStr = f"SELECT * FROM symptomsDiseases ORDER BY Symptom;"
+        diss_symptoms = executedQuery(queryStr)
+        self.SymptomsTrie.build_trie(diss_symptoms)
         print('LOAD Symptoms Tree')
         return
 
-    def getDiagnosis(self, symTxt):
-        if type(symTxt) is not str:
-            print(f"symTxt need to by of type srt not {type(symTxt)}")
-            return
-        if not self.SymptomsRoot:
-            self.enqueueSymptomsTree()
-        splitTxt = symTxt.split()
-        splitTxt.reverse()
-        curr_node = self.SymptomsRoot.get(splitTxt.pop())
-        while splitTxt and curr_node:
-            curr_node = curr_node.getChild(splitTxt.pop())
-        if not curr_node:
-            print(f"{symTxt} is not found")
-            return
-        dig = []
-        for key, child in curr_node.children.items():
-            if not child.children:
-                dig.append(key)
-        return dig
+    @property
+    def LastUpdate(self):
+        """
+        Calc. the difference between the current time and the last update of the patient diagnosis table.
+        Returns:
+            datetime.timedelta
+        """
+        return datetime.datetime.now() - datetime.datetime.strptime(getTableCarry('trigger'), '%m/%d/%Y %H:%M')
+
+    @staticmethod
+    def get_table(tableName):
+        table = pd.DataFrame(executedQuery(f"SELECT * FROM {tableName.lower()};"))
+        table.columns = getTableCarry(tableName.lower()).get('headers')
+        return table
+
+    def addItem(self, key, itm):
+        """
+        Args:
+            key (str): The key to use when adding the item to the dictionary.
+            itm (Any): The item to add to the dictionary.
+
+        Returns:
+            Any: The added item.
+        """
+        self.__dict__[key] = itm
+        return itm
 
     def queryUpdateTrigger(self, *IDs):
+        """
+        update the patient-diagnosis table based on symptom data.
+        If given any IDs as arguments, only update rows with those IDs.
+        Otherwise, update all rows.
+        Args:
+            *IDs (str): Patients IDs.
+
+        Returns:
+            None
+        """
+
         def DiagnosisDecision(dataList):
             dataList = pd.DataFrame(dataList, columns=['disID'])
             index = dataList.loc[:, ['disID']].value_counts()
             data = dataList.groupby(['disID'])
             dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             if index.shape[0] == 1:
-                return dec + ['', 0]
+                # Temporary solution for a bug --- > need to check the fks construction
+                return dec + [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
@@ -85,29 +89,61 @@ class DataQueries:
             counter += 1
             if ID != prev_id or counter == len(id_Sym):
                 if counter == len(id_Sym):
-                    stack += self.getDiagnosis(sym)
+                    stack += self.SymptomsTrie.get_disID(sym.split())
                 if stack:
-                    curr_dec = [ID] + DiagnosisDecision(stack)
+                    curr_dec = [prev_id] + DiagnosisDecision(stack)
                     curr_dec[2] /= len(stack)
                     curr_dec[-1] /= len(stack)
                     queryStr += f"{tuple(curr_dec)}, "
                     stack = []
                 prev_id = ID
-            if ID == prev_id:
-                stack += self.getDiagnosis(sym)
-        queryStr = queryStr[:-2] + f" ON DUPLICATE KEY UPDATE " \
-                                   f" FdisID = FdisID, " \
-                                   f"Fconf = Fconf, " \
-                                   f"SdisID = SdisID, " \
-                                   f"Sconf = Sconf;"
-        print(queryStr)
+            if prev_id == ID:
+                stack += self.SymptomsTrie.get_disID(sym.split())
+        queryStr = queryStr[:-2] + f" AS new(i, f, fc, s, sc) " \
+                                   f"ON DUPLICATE KEY UPDATE " \
+                                   f"FdisID = f, " \
+                                   f"Fconf = fc, " \
+                                   f"SdisID = s, " \
+                                   f"Sconf = sc;"
         executedQueryCommit(queryStr)
         updateTable('patientdiagnosis')
+        print(queryStr)
         if not IDs:
             updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
         return
 
     def queryPatientIndices(self, **kwargs):
+        """
+        Queries the patient table with given conditions and returns the selected columns.
+
+        Args:
+            **kwargs: A variable-length keyword argument list, where each argument corresponds to
+            a search criterion. The following search criteria are supported:
+            - ID: The patient's ID
+            - gender: The patient's gender
+            - support: The patient's support status
+            - phone: The patient's phone number
+            - area: The patient's area
+            - city: The patient's city
+            - HMO: The patient's HMO
+            - COB: The patient's country of birth
+            - height: The patient's height
+            - weight: The patient's weight
+            - age: The patient's age (calc. from DOB)
+            - symptom: The patient's symptom
+            - diseases: The patient's disease
+            - conf: The confidence level associated with the patient's disease diagnosis
+
+            The values of the search criteria can be:
+            - including strings (=)
+            - integers (=)
+            - list (>=, <=) or [iter]
+            - tuple (>, <) or [iter]
+            - set [iter]
+
+        Returns:
+            table (pd.DataFrame): patient table. .
+        """
         where_limits = {}
         join = []
         colsName = getTableCarry('patient').get('headers')
@@ -223,10 +259,27 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return self.addItem('patientIndices', table)
 
+    def queryAvailableResearch(self, ID):
+        return
+
+    def InsertNewResearch(self):
+        return
+
     def insertNewSymptom(self, symptomPath, **kwargs):
+        """
+        Inserts a new symptom into the database.
+
+        Args:
+            symptomPath (str): A string indicating the path where the symptom should be inserted.
+                Valid values are 'patient' or 'p' to insert symptom to the symptoms-patient table.,
+                and 'diseases' or 'd' to insert symptom to the diseases-symptoms table.
+            **kwargs:
+        Returns:
+            None.
+        """
         if symptomPath == 'patient' or symptomPath == 'p':
             ID, symptoms = kwargs.get('ID'), kwargs.get('symptom')
-            if ID:
+            if not ID:
                 print("Missing ID column")
                 return
             if not symptoms:
@@ -254,10 +307,22 @@ class DataQueries:
                     return
             for syp in symptoms:
                 insert2Table('symptomsdiseases', [disID, syp])
-        self.enqueueSymptomsTree()
+        self._enqueueSymptomsTrie()
         return
 
     def insertNewUser(self, userPath, **kwargs):
+        """
+        Inserts a new user into the database.
+
+        Args:
+            userPath (str): The type of user to add.
+                    Valid values are 'patient' or 'p' for patient,
+                    and 'researcher' or 'r' for researchers.
+            **kwargs: A dictionary containing the column names and values for the new user record.
+
+        Returns:
+            None.
+        """
         if userPath == 'patient' or userPath == 'p':
             cols = getTableCarry('patient').get('headers')
             tableName = 'patient'
@@ -286,10 +351,49 @@ class DataQueries:
             values.append(val)
         insert2Table(tableName, values)
         if tableName == 'patient' and kwargs.get('symptoms'):
-            self.insertNewPatienSymptoms('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
+            self.insertNewSymptom('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
+        return
+
+    def insertNewDisease(self, depName, disName, disSymptoms=None):
+        """
+            Inserts a new diseases into the database.
+
+            Args:
+                depName (str): The diseases department name.
+                disName (str): The diseases name.
+                disSymptoms (optional[list]): The diseases symptom list.
+            Returns:
+                None.
+            """
+        if disSymptoms is None:
+            disSymptoms = []
+        depID = executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}' LIMIT 1;")
+        if not depID:
+            depID = str(int(executedQuery(f"SELECT depID FROM diseases ORDER BY depID;")[-1][0]) + 10)
+            disID = depID + '00001'
+            insert2Table('diseases', [disID, disName, depID, depName])
+        else:
+            depID = depID[0]
+            disID = str(int(
+                executedQuery(f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]) + 1)
+            insert2Table('diseases', [disID, disName, depID, depName])
+        for syp in disSymptoms:
+            self.insertNewSymptom('d', disID=disID, symptom=syp)
         return
 
     def DeleteUser(self, userPath, ID):
+        """
+        Delete a new from the database.
+
+        Args:
+            userPath (str): The type of user.
+                    Valid values are 'patient' or 'p' for patient,
+                    and 'researcher' or 'r' for researchers.
+            ID (str): User ID.
+
+        Returns:
+            None.
+        """
         if userPath == 'patient' or userPath == 'p':
             tables = [('symptomsPatient', 'ID'),
                       ('patientdiagnosis', 'ID'),
@@ -307,50 +411,29 @@ class DataQueries:
             executedQueryCommit(queryStr)
         return
 
-    def insertNewDisease(self, depName, disName, disSymptoms=None):
-        if disSymptoms is None:
-            disSymptoms = []
-        depID = executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}' LIMIT 1;")
-        if not depID:
-            depID = str(int(executedQuery(f"SELECT depID FROM diseases ORDER BY depID;")[-1][0]) + 10)
-            disID = depID + '00001'
-            insert2Table('diseases', [disID, disName, depID, depName])
-        else:
-            depID = depID[0]
-            disID = str(int(executedQuery(f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]) + 1)
-            insert2Table('diseases', [disID, disName, depID, depName])
-        for syp in disSymptoms:
-            self.insertNewSymptom('d', disID=disID, symptom=syp)
-        return
-
 
 def main():
     q = DataQueries("his_project")
-    q.enqueueSymptomsTree()
     print(f"Last update for patient diagnosis (trigger) Table: {q.LastUpdate}")
-    if q.LastUpdate.days >= 1:
+    checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
+    if q.LastUpdate.days >= 1 or not checkNan:
         q.queryUpdateTrigger()
     return q
 
 
 if __name__ == "__main__":
     Queries = main()
+    patient_diagnosis = Queries.get_table('patientdiagnosis')
+    Qpi1 = Queries.queryPatientIndices(symptom='pain',
+                                       diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
+                                       conf=[0.3, None],
+                                       age=(37, None),
+                                       weight=[60, 100])
 
-
-# Queries.insertNewDisease('dd', 'e', [])
-
-
-# Qpi = Queries.queryPatientIndices(gender='F',
-#                                   symptom='pain',
-#                                   diseases=('Bone cancer', 'Skin cancer'),
-#                                   conf=[0.3, None],
-#                                   age=[42, None])
-
-# Queries.getDiagnosis('in')
-# Queries.queryUpdateTrigger()
-
-# Queries.DeletePatient('320465461')
-# ret = Queries.insertNewPatient('320465461', 'M', 'Nicki', datetime.date(1999, 5, 20), 'C',
-#                          'Yavne', '0502226474', 'Clalit', 'Israel', 2.1, 90, 1, ['lower back pain'])
-# Qpi = Queries.queryPatientIndices(ID=113910790)
-# ret = Queries.insertNewUser('p', ID='113910790')
+    Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
+                          DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
+                          phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
+                          weight=90, support=1, symptoms=['Abdominal mass or swelling',
+                                                          'Fatigue', 'Weight loss'])
+    Qpi2 = Queries.queryPatientIndices(ID=320468461)
+    Queries.DeleteUser('p', '320468461')

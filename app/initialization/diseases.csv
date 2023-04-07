@@ -1,46 +1,46 @@
 disID,disName,depID,depName
-1088238,Breast cancer,10,Oncology
-1042049,Lung cancer,10,Oncology
-1020825,Prostate cancer,10,Oncology
-1051329,Colorectal cancer,10,Oncology
-1020355,Skin cancer,10,Oncology
-1094649,Bladder cancer,10,Oncology
-1079351,Kidney cancer,10,Oncology
-1019703,Pancreatic cancer,10,Oncology
-1052181,Ovarian cancer,10,Oncology
-1096444,Leukemia,10,Oncology
-1031394,Lymphoma,10,Oncology
-1089923,Liver cancer,10,Oncology
-1012024,Bone cancer,10,Oncology
-1047205,Thyroid cancer,10,Oncology
-1072760,Esophageal cancer,10,Oncology
-1067829,Stomach cancer,10,Oncology
-1028395,Cervical cancer,10,Oncology
-2091469,Alzheimer,20,Neurological
-2082108,Parkinson,20,Neurological
-2096541,Dementia,20,Neurological
-2017793,Multiple sclerosis,20,Neurological
-2099873,Epilepsy,20,Neurological
-2083476,Migraines,20,Neurological
-2082805,ALS,20,Neurological
-2017980,Huntington disease,20,Neurological
-2057179,Cerebral palsy,20,Neurological
-2076662,Tourette syndrome,20,Neurological
-2067246,Autism spectrum disorder,20,Neurological
-2093097,Schizophrenia,20,Neurological
-2033330,CTE,20,Neurological
-2030576,Neuropathy,20,Neurological
-4074419,Atherosclerosis,40,Vascular
-4052929,Coronary artery disease,40,Vascular
-4023055,Peripheral artery disease,40,Vascular
-4052788,Stroke,40,Vascular
-4021471,Aortic aneurysm,40,Vascular
-4029300,Raynaud disease,40,Vascular
-4010826,Deep vein thrombosis,40,Vascular
-4017286,Pulmonary embolism,40,Vascular
-4045560,Varicose veins,40,Vascular
-4045031,Arteriovenous malformation,40,Vascular
-4040621,Buerger disease,40,Vascular
-4094273,Hypertensive heart disease,40,Vascular
-4043897,Aortic dissection,40,Vascular
-4048284,Carotid artery disease,40,Vascular
+725205,Breast cancer,10,Oncology
+776832,Lung cancer,10,Oncology
+552508,Prostate cancer,10,Oncology
+436225,Colorectal cancer,10,Oncology
+918630,Skin cancer,10,Oncology
+100735,Bladder cancer,10,Oncology
+319984,Kidney cancer,10,Oncology
+104425,Pancreatic cancer,10,Oncology
+466601,Ovarian cancer,10,Oncology
+798351,Leukemia,10,Oncology
+529236,Lymphoma,10,Oncology
+413432,Liver cancer,10,Oncology
+966671,Bone cancer,10,Oncology
+108177,Thyroid cancer,10,Oncology
+767947,Esophageal cancer,10,Oncology
+851702,Stomach cancer,10,Oncology
+333168,Cervical cancer,10,Oncology
+897302,Alzheimer,20,Neurological
+492355,Parkinson,20,Neurological
+528760,Dementia,20,Neurological
+429647,Multiple sclerosis,20,Neurological
+294734,Epilepsy,20,Neurological
+357775,Migraines,20,Neurological
+198337,ALS,20,Neurological
+401937,Huntington disease,20,Neurological
+826478,Cerebral palsy,20,Neurological
+802896,Tourette syndrome,20,Neurological
+216044,Autism spectrum disorder,20,Neurological
+459114,Schizophrenia,20,Neurological
+746534,CTE,20,Neurological
+956319,Neuropathy,20,Neurological
+525607,Atherosclerosis,30,Vascular
+707975,Coronary artery disease,30,Vascular
+603311,Peripheral artery disease,30,Vascular
+742568,Stroke,30,Vascular
+847413,Aortic aneurysm,30,Vascular
+555055,Raynaud disease,30,Vascular
+829968,Deep vein thrombosis,30,Vascular
+882014,Pulmonary embolism,30,Vascular
+325185,Varicose veins,30,Vascular
+616545,Arteriovenous malformation,30,Vascular
+163446,Buerger disease,30,Vascular
+656266,Hypertensive heart disease,30,Vascular
+388285,Aortic dissection,30,Vascular
+650493,Carotid artery disease,30,Vascular

@@ -17,7 +17,7 @@ def connect2server(usr='root', passwd='St240342', hst='localhost', prt=3306):
     port = prt
     con = mysql.connector.connect(host=host, user=user, passwd=password, buffered=True)
     cursor = con.cursor()
-    return cursor
+    return cursor, con
 
 
 def showDBs():
@@ -296,6 +296,8 @@ def updateTable(tableName):
 
 
 def main():
+    connect2server()
+    initDB('his_project')
     connect2serverDB(database='his_project')
     tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch',
                    'patientdiagnosis']
