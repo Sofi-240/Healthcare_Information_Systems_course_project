@@ -67,7 +67,7 @@ class DataQueries:
             dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             if index.shape[0] == 1:
                 # Temporary solution for a bug --- > need to check the fks construction
-                return dec + [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
+                return dec + ['', 0]
             dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
@@ -89,7 +89,9 @@ class DataQueries:
             counter += 1
             if ID != prev_id or counter == len(id_Sym):
                 if counter == len(id_Sym):
-                    stack += self.SymptomsTrie.get_disID(sym.split())
+                    stack += self.SymptomsTrie.get_disID(sym.lower().split())
+                if len(id_Sym) == 1 and not prev_id:
+                    prev_id = ID
                 if stack:
                     curr_dec = [prev_id] + DiagnosisDecision(stack)
                     curr_dec[2] /= len(stack)
@@ -98,13 +100,14 @@ class DataQueries:
                     stack = []
                 prev_id = ID
             if prev_id == ID:
-                stack += self.SymptomsTrie.get_disID(sym.split())
+                stack += self.SymptomsTrie.get_disID(sym.lower().split())
         queryStr = queryStr[:-2] + f" AS new(i, f, fc, s, sc) " \
                                    f"ON DUPLICATE KEY UPDATE " \
                                    f"FdisID = f, " \
                                    f"Fconf = fc, " \
                                    f"SdisID = s, " \
                                    f"Sconf = sc;"
+        print(queryStr)
         executedQueryCommit(queryStr)
         updateTable('patientdiagnosis')
         print(queryStr)
@@ -430,10 +433,17 @@ if __name__ == "__main__":
                                        age=(37, None),
                                        weight=[60, 100])
 
-    Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
-                          DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
-                          phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
-                          weight=90, support=1, symptoms=['Abdominal mass or swelling',
-                                                          'Fatigue', 'Weight loss'])
-    Qpi2 = Queries.queryPatientIndices(ID=320468461)
-    Queries.DeleteUser('p', '320468461')
+    # Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
+    #                       DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
+    #                       phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
+    #                       weight=90, support=1, symptoms=['Abdominal mass or swelling',
+    #                                                       'Fatigue', 'Weight loss'])
+    # Qpi2 = Queries.queryPatientIndices(ID=320468461)
+    # Queries.DeleteUser('p', '320468461')
+
+Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
+                      DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
+                      phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
+                      weight=90, support=1, symptoms=['blood in stool'])
+
+# Queries.DeleteUser('p', '320468461')
