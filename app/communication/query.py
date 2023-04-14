@@ -67,7 +67,7 @@ class DataQueries:
             dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             if index.shape[0] == 1:
                 # Temporary solution for a bug --- > need to check the fks construction
-                return dec + ['', 0]
+                return dec + [data.get_group(index.index[0][0])['disID'].iloc[0], 0]
             dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
@@ -262,10 +262,17 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return self.addItem('patientIndices', table)
 
-    def queryAvailableResearch(self, ID):
+    def queryAvailableResearch(self, userPath, **kwargs):
+        where_limits = {}
+        join = []
+        if userPath == 'r' or userPath == 'researcher':
+            pass
+        elif userPath == 'p' or userPath == 'patient':
+            pass
+        queryStr = f"SELECT "
         return
 
-    def InsertNewResearch(self):
+    def InsertResearch(self, ):
         return
 
     def insertNewSymptom(self, symptomPath, **kwargs):
@@ -426,12 +433,12 @@ def main():
 
 if __name__ == "__main__":
     Queries = main()
-    patient_diagnosis = Queries.get_table('patientdiagnosis')
-    Qpi1 = Queries.queryPatientIndices(symptom='pain',
-                                       diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
-                                       conf=[0.3, None],
-                                       age=(37, None),
-                                       weight=[60, 100])
+    # patient_diagnosis = Queries.get_table('patientdiagnosis')
+    # Qpi1 = Queries.queryPatientIndices(symptom='pain',
+    #                                    diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
+    #                                    conf=[0.3, None],
+    #                                    age=(37, None),
+    #                                    weight=[60, 100])
 
     # Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
     #                       DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
@@ -441,9 +448,4 @@ if __name__ == "__main__":
     # Qpi2 = Queries.queryPatientIndices(ID=320468461)
     # Queries.DeleteUser('p', '320468461')
 
-Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
-                      DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
-                      phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
-                      weight=90, support=1, symptoms=['blood in stool'])
-
-# Queries.DeleteUser('p', '320468461')
+# Qpi1 = Queries.get_table('activeresearch')
