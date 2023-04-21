@@ -272,7 +272,26 @@ class DataQueries:
         queryStr = f"SELECT "
         return
 
-    def InsertResearch(self, ):
+    def InsertResearch(self, researcherID, disease, *patientID):
+        queryStr = f'SELECT MAX(ID) FROM activeresearch'
+        newID = executedQuery(queryStr) + 1
+        if type(disease) == str:
+            queryStr = f'SELECT disID FROM diseases WHERE disName = {disease}'
+            disID = executedQuery(queryStr)
+        else:
+            disID = disease
+        if not patientID:
+            insert2Table('activeresearch', [newID, disID, researcherID, None])
+            return
+        while patientID:
+            insert2Table('activeresearch', [newID, disID, researcherID, patientID.pop()])
+        return
+
+    def InsertPatientToResearch(self, researchID, *patientID):
+        queryStr = f'SELECT disID, rID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
+        disID, rID = executedQuery(queryStr)
+        while patientID:
+            insert2Table('activeresearch', [researchID, disID, rID, patientID.pop()])
         return
 
     def insertNewSymptom(self, symptomPath, **kwargs):
