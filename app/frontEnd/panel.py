@@ -1,13 +1,15 @@
-from app.communication.query import DataQueries
 import tkinter as tk
 from tkinter import ttk
 from screeninfo import get_monitors
+from tkinter import messagebox
+from app.frontEnd.autoComplete import AUTO_complete
 
 
 class Panel(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('App Panel')
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.width = get_monitors()[0].width
         self.height = get_monitors()[0].height
         self.geometry(f'{int(self.width * 1)}x{int(self.height * 1)}')
@@ -29,6 +31,10 @@ class Panel(tk.Tk):
         self.frame = self.frames[name]
         self.frame.tkraise()
         return
+
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.destroy()
 
 
 class UserLogInPanel(ttk.Frame):
@@ -241,7 +247,7 @@ class PatientSingInPg1(ttk.Frame):
         entryConfigure = {'font': ("Helvetica", 16), 'background': 'white'}
 
         self.Label_UserID = ttk.Label(self, text='ID', borderwidth=0)
-        self.Label_UserID.grid(column=1, row=1,  **gridConfigure)
+        self.Label_UserID.grid(column=1, row=1, **gridConfigure)
         self.Entry_UserID = ttk.Entry(self, **entryConfigure)
         self.Entry_UserID.grid(column=1, row=2, **gridTEntryConfigure)
         self.EntryError_UserID = ttk.Label(self, font=("Helvetica", 10), background='white',
@@ -341,9 +347,11 @@ class PatientSingInPg1(ttk.Frame):
 class PatientSingInPg2(ttk.Frame):
     def __init__(self, MasterPanel):
         ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED)
-        self.columnconfigure(list(range(1, 6)), weight=1)
+        self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 16)), weight=1)
+        self.symptomsTrie = AUTO_complete()
         self._create_widgets(MasterPanel)
+        self.keyRelBool = True
 
     def _create_widgets(self, MasterPanel):
         self.style = ttk.Style(self)
@@ -407,12 +415,15 @@ class PatientSingInPg2(ttk.Frame):
         self.Label_UserSymptoms.grid(column=4, row=3, **gridConfigure)
         self.symptomText = tk.StringVar()
         self.Entry_UserSymptoms = ttk.Entry(self, textvariable=self.symptomText, **entryConfigure)
-        self.Entry_UserSymptoms.grid(column=4, row=4, columnspan=3, rowspan=3, **gridTEntryConfigure)
+        self.Entry_UserSymptoms.grid(column=4, row=4, columnspan=3, rowspan=2, **gridTEntryConfigure)
         self.Entry_UserSymptoms.bind("<Button-1>", lambda e: self.EntryButton1('Symptoms'))
         self.Entry_UserSymptoms.bind("<FocusOut>", lambda e: self.EntryFocusOut('Symptoms'))
-        self.Entry_UserSymptoms.bind("<space>", lambda e: self.autoComplete())
-        self.Listbox_UserSymptoms = tk.Listbox(self)
-        # self.Listbox_UserSymptoms.grid(column=2, row=14, padx=0, pady=0)
+        self.Entry_UserSymptoms.bind("<space>", lambda e: self._space())
+        self.Entry_UserSymptoms.bind("<BackSpace>", lambda e: self._backSpace())
+        self.Entry_UserSymptoms.bind("<KeyRelease>", lambda e: self._KeyRelease())
+        self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 16),
+                                               bg='SystemButtonFace', highlightcolor='SystemButtonFace', relief='flat')
+        self.Listbox_UserSymptoms.grid(column=4, row=6, columnspan=4, rowspan=3, **gridTEntryConfigure)
 
         self.Button_SingIN = ttk.Button(self, text="SingIN", command=self.SingINButton(MasterPanel))
         self.Button_SingIN.grid(column=3, row=15, **gridConfigure)
@@ -440,9 +451,26 @@ class PatientSingInPg2(ttk.Frame):
     def HandelFiled(self, EntryName, txt):
         return
 
-    def autoComplete(self):
-        txt = self.Entry_UserSymptoms.get()
-        print(txt)
+    def _space(self):
+        word = self.Entry_UserSymptoms.get()
+        self.symptomsTrie.space(word)
+        return
+
+    def _backSpace(self):
+        self.symptomsTrie.backSpace()
+        return
+
+    def _KeyRelease(self):
+        gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 5, 'ipadx': 0}
+        sentence = self.Entry_UserSymptoms.get()
+        sentence_list = self.symptomsTrie.keyRelease(sentence)
+        var = tk.Variable(value=sentence_list)
+        self.Listbox_UserSymptoms = tk.Listbox(self, listvariable=var, selectmode=tk.EXTENDED, font=("Helvetica", 16))
+        self.Listbox_UserSymptoms.grid(column=4, row=6, columnspan=3, rowspan=3, **gridTEntryConfigure)
+        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.Listbox_UserSymptoms.yview)
+
+        self.Listbox_UserSymptoms['yscrollcommand'] = scrollbar.set
+        self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: print(self.Listbox_UserSymptoms.curselection()))
         return
 
 
