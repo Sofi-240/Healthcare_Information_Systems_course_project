@@ -1,4 +1,3 @@
-from app.communication.query import DataQueries
 import tkinter as tk
 from tkinter import ttk
 from screeninfo import get_monitors
