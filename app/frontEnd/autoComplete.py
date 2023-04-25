@@ -59,6 +59,7 @@ class AUTO_complete:
     def keyRelease(self, sentence):
         if not sentence:
             return []
+        sentence = sentence.lower()
 
         def mapFunc(e):
             if len(e) < len(sentence):
