@@ -103,9 +103,6 @@ class LogInFrame(ttk.Frame):
         self.Entry_UserID.grid(column=2, row=5, **gridTEntryConfigure)
         self.Entry_UserID.bind("<FocusOut>", lambda e: self.EntryFocusOut('ID'))
         self.Entry_UserID.bind("<Button-1>", lambda e: self.EntryButton1('ID'))
-        self.LabelError_UserID = ttk.Label(self, **labelConfigure)
-        self.LabelError_UserID.grid(column=3, row=5, padx=0, pady=0)
-        self.LabelError_UserID.configure(foreground="red")
 
         # User researcher or patient Insert Name
         self.Label_UserName = ttk.Label(self, text='User Name:', **labelConfigure)
@@ -118,14 +115,14 @@ class LogInFrame(ttk.Frame):
         self.LabelError_UserName = ttk.Label(self, **labelConfigure)
 
         # LOGIN button
-        self.Button_LogIn = RoundedButton(master=self, text="Log In", radius=25, btnbackground="LightGoldenrod1",
+        self.Button_LogIn = RoundedButton(master=self, text="Log In", radius=25, btnbackground="DarkGoldenrod3",
                                           btnforeground="black", width=250, height=60, highlightthickness=0,
                                           font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.Button_LogIn.grid(column=2, row=7, **gridConfigure)
         self.Button_LogIn.bind("<Button-1>", lambda e: self.ExLogIn(MasterPanel))
 
         # SingIN button
-        self.Button_SignIN = RoundedButton(master=self, text="Sign IN", radius=25, btnbackground="LightGoldenrod1",
+        self.Button_SignIN = RoundedButton(master=self, text="Sign IN", radius=25, btnbackground="DarkGoldenrod3",
                                            btnforeground="black", width=250, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.Button_SignIN.grid(column=2, row=8, **gridConfigure)
@@ -137,9 +134,7 @@ class LogInFrame(ttk.Frame):
         if not txt:
             self.__dict__[f'Entry_User{EntryName}'].insert(0, EntryName)
             return
-        if self.__dict__.get(f'LabelError_User{EntryName}'):
-            return self.HandelFiled(EntryName, txt)
-        return
+        return self.HandelFiled(EntryName, txt)
 
     def EntryButton1(self, EntryName):
         txt = self.__dict__[f'Entry_User{EntryName}'].get()
@@ -154,10 +149,8 @@ class LogInFrame(ttk.Frame):
                 return
             if len(txt) < 9 or len(txt) > 9:
                 self.Entry_UserID.config(foreground="red")
-                self.LabelError_UserID.configure(text='*The ID is not valid')
                 return
             self.Entry_UserID.config(foreground="black")
-            self.LabelError_UserID.configure(text='')
         return
 
     def validUser(self, path):
@@ -202,27 +195,28 @@ class PatientSignInPanel(ttk.Frame):
     def _create_sub_frames(self, MasterPanel):
         self.style = ttk.Style(self)
         self.style.configure('TFrame', background='white', borderwidth=10, relief='RAISED')
-        self.style.configure('TNotebook', background="LightSkyBlue4", weight=50, tabmargins=[0, 5, 0, 0])
-        self.style.configure('TNotebook.Tab', background="LightGoldenrod1", compound=tk.LEFT,
+        self.style.configure('TNotebook', background="LightSkyBlue4", weight=50, tabmargins=[5, 5, 0, 0])
+        self.style.configure('TNotebook.Tab', background="tomato3", compound=tk.LEFT,
                              font=("Helvetica", 18, "bold"), weight=50, padding=[50, 20])
 
-        Label_title = ttk.Label(self, text='                      Sign In', font=("Helvetica", 50, "bold"),
-                                background="white", foreground='black')
-        Label_title.grid(column=2, row=1, padx=5, pady=5, sticky=tk.E)
+        Label_title = ttk.Label(self, text='                                            Sign In',
+                                font=("Helvetica", 50, "bold"),
+                                background="DarkGoldenrod2", foreground='black')
+        Label_title.grid(row=1, column=0, columnspan=6, ipadx=150, sticky=tk.W + tk.E)
 
         ttk.Separator(self, orient=HORIZONTAL).grid(row=2, column=0, columnspan=6, ipadx=150, sticky=tk.W + tk.E)
 
         # Back button
         self.Button_Back = RoundedButton(master=self, text="Back", radius=10, btnbackground="LightSkyBlue4",
                                          btnforeground="white", width=150, height=60, highlightthickness=0,
-                                         font=("Helvetica", 18, "bold"), masterBackground='white')
+                                         font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_Back.grid(column=2, row=1, padx=5, pady=5, sticky=tk.W)
         self.Button_Back.bind("<Button-1>", lambda e: self.back())
 
         # Next button
         self.Button_Next = RoundedButton(master=self, text="Next", radius=10, btnbackground="LightSkyBlue4",
                                          btnforeground="white", width=150, height=60, highlightthickness=0,
-                                         font=("Helvetica", 18, "bold"), masterBackground='white')
+                                         font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_Next.grid(column=4, row=1, padx=5, pady=5, sticky=tk.E)
         self.Button_Next.bind("<Button-1>", lambda e: self.forward())
 
@@ -233,7 +227,7 @@ class PatientSignInPanel(ttk.Frame):
         self.Button_Return.grid(column=2, row=10, padx=5, pady=5, sticky=tk.W)
         self.Button_Return.bind("<Button-1>", lambda e: MasterPanel.show_frame(UserLogInPanel))
 
-        self.Page_Frames = ttk.Notebook(self, width=500, height=600)
+        self.Page_Frames = ttk.Notebook(self, width=700, height=600)
         self.Page_Frames.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
 
         self.pg0 = PatientSignInPg1(self.Page_Frames, style='TFrame')
@@ -283,8 +277,8 @@ class PatientSignInPg1(ttk.Frame):
         self._create_widgets(MasterPanel)
 
     def _create_widgets(self, MasterPanel):
-        gridConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W}
-        gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 5, 'ipadx': 0}
+        gridConfigure = {'padx': 20, 'pady': 0, 'sticky': tk.W}
+        gridTEntryConfigure = {'padx': 20, 'pady': 0, 'sticky': tk.W, 'ipady': 5, 'ipadx': 0}
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
 
@@ -296,10 +290,6 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserID.grid(column=1, row=2, **gridTEntryConfigure)
         self.Entry_UserID.bind("<Button-1>", lambda e: self.EntryButton1('ID'))
         self.Entry_UserID.bind("<FocusOut>", lambda e: self.EntryFocusOut('ID'))
-
-        self.EntryError_UserID = ttk.Label(self, font=("Helvetica", 14), background='white', foreground='red')
-        self.EntryError_UserID.grid(column=2, row=1, padx=0, pady=0, sticky=tk.W)
-        self.EntryError_UserID.configure(foreground="red", font=("Helvetica", 12))
 
         # ------------------------- Name ------------------------------------------
         self.Label_UserName = ttk.Label(self, text='Name: *', **labelConfigure)
@@ -343,14 +333,8 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserPhone.bind("<Button-1>", lambda e: self.EntryButton1('Phone'))
         self.Entry_UserPhone.bind("<FocusOut>", lambda e: self.EntryFocusOut('Phone'))
 
-        self.EntryError_UserPhone = ttk.Label(self)
-        self.EntryError_UserPhone.grid(column=2, row=11, **gridConfigure)
-        self.EntryError_UserPhone.configure(foreground="red", font=("Helvetica", 12))
-
         # ------------------------- Separator ------------------------------------------
-        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=2, rowspan=13, ipady=150, sticky=tk.N + tk.S)
-        gridConfigure['padx'] = 2
-        gridTEntryConfigure['padx'] = 2
+        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=2, rowspan=13, ipady=150, sticky=tk.N + tk.S + tk.E)
 
         # ------------------------- DOB ------------------------------------------
         self.Label_UserDOB = ttk.Label(self, text='Date of Birth: *', **labelConfigure)
@@ -358,15 +342,11 @@ class PatientSignInPg1(ttk.Frame):
 
         self.Entry_UserDOB = DateEntry(self, selectmode='day', date_pattern='MM-dd-yyyy',
                                        font=("Helvetica", 18, "bold"),
-                                       firstweekday='sunday', weekenddays=[6, 7], background='LightGoldenrod1',
-                                       foreground='black')
+                                       firstweekday='sunday', weekenddays=[6, 7], background='LightSkyBlue4',
+                                       foreground='white')
         self.Entry_UserDOB.bind("<<DateEntrySelected>>",
                                 lambda e: self.HandelFiled('DOB', self.Entry_UserDOB.get_date()))
         self.Entry_UserDOB.grid(column=3, row=2, **gridConfigure)
-
-        self.EntryError_UserDOB = ttk.Label(self, **labelConfigure)
-        self.EntryError_UserDOB.configure(foreground="red", font=("Helvetica", 12))
-        self.EntryError_UserDOB.grid(column=4, row=1, **gridConfigure)
 
         # ------------------------- HMO ------------------------------------------
         self.Label_UserHMO = ttk.Label(self, text='HMO: *', **labelConfigure)
@@ -395,10 +375,6 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserHeight.grid(column=3, row=8, **gridTEntryConfigure)
         self.Entry_UserHeight.bind("<FocusOut>", lambda e: self.EntryFocusOut('Height'))
 
-        self.EntryError_UserHeight = ttk.Label(self, **labelConfigure)
-        self.EntryError_UserHeight.configure(foreground="red", font=("Helvetica", 12))
-        self.EntryError_UserHeight.grid(column=4, row=7, **gridConfigure)
-
         # ------------------------- Weight ------------------------------------------
         self.Label_UserWeight = ttk.Label(self, text='Weight: *', **labelConfigure)
         self.Label_UserWeight.grid(column=3, row=9, **gridConfigure)
@@ -406,10 +382,6 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserWeight = ttk.Entry(self, **entryConfigure)
         self.Entry_UserWeight.grid(column=3, row=10, **gridTEntryConfigure)
         self.Entry_UserWeight.bind("<FocusOut>", lambda e: self.EntryFocusOut('Weight'))
-
-        self.EntryError_UserWeight = ttk.Label(self, **labelConfigure)
-        self.EntryError_UserWeight.configure(foreground="red", font=("Helvetica", 12))
-        self.EntryError_UserWeight.grid(column=4, row=9, **gridConfigure)
 
         # ------------------------- Support ------------------------------------------
         self.Label_UserSupport = ttk.Label(self, text='Support: *', **labelConfigure)
@@ -424,9 +396,7 @@ class PatientSignInPg1(ttk.Frame):
         txt = self.__dict__[f'Entry_User{EntryName}'].get()
         if not txt and EntryName == 'COB':
             self.Entry_UserCOB.insert(0, 'Israel')
-        if self.__dict__.get(f'EntryError_User{EntryName}'):
-            return self.HandelFiled(EntryName, txt)
-        return
+        return self.HandelFiled(EntryName, txt)
 
     def EntryButton1(self, EntryName):
         txt = self.__dict__[f'Entry_User{EntryName}'].get()
@@ -438,45 +408,35 @@ class PatientSignInPg1(ttk.Frame):
         if EntryName == 'ID':
             if txt and (len(txt) < 9 or len(txt) > 9):
                 self.Entry_UserID.config(foreground="red")
-                self.EntryError_UserID.configure(text='The ID is not valid')
                 return
             self.Entry_UserID.config(foreground="black")
-            self.EntryError_UserID.configure(text='')
             return
         if EntryName == 'Phone':
             if txt and (len(txt) < 10 or len(txt) > 10):
                 self.Entry_UserPhone.config(foreground="red")
-                self.EntryError_UserPhone.configure(text='The Phone number is not valid')
                 return
             self.Entry_UserPhone.config(foreground="black")
-            self.EntryError_UserPhone.configure(text='')
             return
         if EntryName == 'DOB':
             today = datetime.date.today()
             if today.year - txt.year - ((today.month, today.day) < (txt.month, txt.day)) < 18:
                 self.Entry_UserDOB.config(foreground="red")
-                self.EntryError_UserDOB.configure(text='The minimum age is 18')
                 return
             self.Entry_UserDOB.config(foreground="black")
-            self.EntryError_UserDOB.configure(text='')
             return
         if EntryName == 'Weight':
             txt = list(txt.split())
             if txt and (not str.isdigit(txt[0]) or (str.isdigit(txt[0]) and int(txt[0]) < 0)):
                 self.Entry_UserWeight.config(foreground="red")
-                self.EntryError_UserWeight.configure(text='The Weight need to be positive number')
                 return
             self.Entry_UserWeight.config(foreground="black")
-            self.EntryError_UserWeight.configure(text='')
             return
         if EntryName == 'Height':
             txt = list(txt.split())
             if txt and (not str.isdigit(txt[0]) or (str.isdigit(txt[0]) and int(txt[0]) < 0)):
                 self.Entry_UserHeight.config(foreground="red")
-                self.EntryError_UserHeight.configure(text='The Height need to be positive number')
                 return
             self.Entry_UserHeight.config(foreground="black")
-            self.EntryError_UserHeight.configure(text='')
             return
         return
 
@@ -485,50 +445,57 @@ class PatientSignInPg2(ttk.Frame):
     def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.List_UserSelectSymptoms = {}
-        self.columnconfigure(list(range(1, 14)), weight=1)
+        self.columnconfigure(list(range(1, 6)), weight=1)
         self.rowconfigure(list(range(1, 16)), weight=1)
         self.symptomsTrie = AUTO_complete()
         self._create_widgets(MasterPanel)
         self.keyRelBool = True
 
     def _create_widgets(self, MasterPanel):
-        gridConfigure = {'padx': 50, 'pady': 0}
-        gridTEntryConfigure = {'padx': 50, 'pady': 0, 'ipady': 0, 'ipadx': 0}
+        gridConfigure = {'padx': 20, 'pady': 0}
+        gridTEntryConfigure = {'padx': 20, 'pady': 0, 'ipady': 0, 'ipadx': 0}
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
 
+        # ------------------------- Enter Symptoms ------------------------------------------
         self.Label_UserSymptoms = ttk.Label(self, text='Symptoms:', **labelConfigure)
-        self.Label_UserSymptoms.grid(column=1, row=3, columnspan=5, sticky=tk.W + tk.N, **gridConfigure)
+        self.Label_UserSymptoms.grid(column=1, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
 
         self.symptomText = tk.StringVar()
         self.Entry_UserSymptoms = ttk.Entry(self, textvariable=self.symptomText, width=40, **entryConfigure)
-        self.Entry_UserSymptoms.grid(column=1, row=4, columnspan=5, rowspan=2, sticky=tk.W + tk.N, **gridTEntryConfigure)
+        self.Entry_UserSymptoms.insert(0, 'Enter your common symptoms...')
+        self.Entry_UserSymptoms.grid(column=1, row=4, columnspan=2, rowspan=2, sticky=tk.W + tk.N,
+                                     **gridTEntryConfigure)
         self.Entry_UserSymptoms.bind("<space>", lambda e: self._space())
         self.Entry_UserSymptoms.bind("<BackSpace>", lambda e: self._backSpace())
         self.Entry_UserSymptoms.bind("<KeyRelease>", lambda e: self._KeyRelease())
 
         self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                               bg='white', highlightcolor='white', highlightthickness=3,
+                                               bg='white', highlightcolor='white', highlightthickness=0,
                                                relief='flat', width=40)
-        self.Listbox_UserSymptoms.grid(column=1, row=6, columnspan=5, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
+        self.Listbox_UserSymptoms.grid(column=1, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
 
         self.Scrollbar_UserSymptoms = ttk.Scrollbar(self, orient=VERTICAL, command=self.Listbox_UserSymptoms.yview)
         self.Listbox_UserSymptoms['yscrollcommand'] = self.Scrollbar_UserSymptoms.set
         self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.updateSelectSymptoms())
 
         # ------------------------- Separator ------------------------------------------
-        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=6, rowspan=13, ipady=150, sticky=tk.N + tk.S)
-        gridConfigure['padx'] = 0
-        gridTEntryConfigure['padx'] = 0
+        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=3, rowspan=13, ipady=150, sticky=tk.N + tk.S)
+        gridConfigure['padx'] = 2
+        gridTEntryConfigure['padx'] = 2
+
+        # ------------------------- Selected Symptoms ------------------------------------------
         self.Label_UserSelectSymptoms = ttk.Label(self, text='Selected Symptoms:', **labelConfigure)
-        self.Label_UserSelectSymptoms.grid(column=7, row=3, columnspan=5, sticky=tk.W + tk.N, **gridConfigure)
+        self.Label_UserSelectSymptoms.grid(column=4, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
 
         self.Listbox_UserSelectSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                               bg='white', highlightcolor='white', highlightthickness=3,
-                                               relief='flat', width=40)
-        self.Listbox_UserSelectSymptoms.grid(column=7, row=6, columnspan=5, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
+                                                     bg='white', highlightcolor='white', highlightthickness=0,
+                                                     relief='flat', width=40)
+        self.Listbox_UserSelectSymptoms.grid(column=4, row=6, columnspan=5, rowspan=3, sticky=tk.W + tk.N,
+                                             **gridConfigure)
 
-        self.Scrollbar_UserSelectSymptoms = ttk.Scrollbar(self, orient=VERTICAL, command=self.Listbox_UserSelectSymptoms.yview)
+        self.Scrollbar_UserSelectSymptoms = ttk.Scrollbar(self, orient=VERTICAL,
+                                                          command=self.Listbox_UserSelectSymptoms.yview)
         self.Listbox_UserSelectSymptoms['yscrollcommand'] = self.Scrollbar_UserSelectSymptoms.set
         self.Listbox_UserSelectSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
 
@@ -536,13 +503,13 @@ class PatientSignInPg2(ttk.Frame):
         self.Button_SignIN = RoundedButton(master=self, text="Sign In", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.Button_SignIN.grid(column=6, row=14, sticky=tk.N + tk.S)
+        self.Button_SignIN.grid(column=3, row=14, sticky=tk.N + tk.S)
         self.Button_SignIN.bind("<Button-1>", lambda e: self.SignINButton(MasterPanel))
         self.Entry_coniferVar = tk.IntVar()
         self.Entry_conifer = tk.Checkbutton(self, text="I agree to the terms", variable=self.Entry_coniferVar,
                                             onvalue=1, offvalue=0, width=20, background="white",
                                             font=("Helvetica", 12), foreground='black')
-        self.Entry_conifer.grid(column=6, row=15, sticky=tk.N + tk.S)
+        self.Entry_conifer.grid(column=3, row=15, sticky=tk.N + tk.S)
 
     def SignINButton(self, MasterPanel):
         var = self.Entry_coniferVar.get()
