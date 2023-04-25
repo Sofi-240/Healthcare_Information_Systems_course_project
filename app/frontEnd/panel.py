@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from screeninfo import get_monitors
 from tkinter import messagebox
+from app.frontEnd.RoundButton import RoundedButton
 from app.frontEnd.autoComplete import AUTO_complete
 
 
@@ -21,7 +22,7 @@ class Panel(tk.Tk):
 
     def _initPanel(self):
         self.frames = {}
-        for F in [UserLogInPanel, PatientSingInPanel, ResearcherSingInFrame]:
+        for F in [UserLogInPanel, PatientSingInPanel, ResearcherSingInPanel, ResearcherMainPanel, PatientMainPanel]:
             frame = F(self)
             frame.grid(column=1, row=1, padx=20, pady=20, sticky="nsew")
             self.frames[F] = frame
@@ -49,15 +50,15 @@ class UserLogInPanel(ttk.Frame):
 
     def _create_sub_frames(self, MasterPanel):
         self.style = ttk.Style(self)
-        self.style.configure('TFrame', background='white')
-        self.logIn_frame = LogInFrame(self)
-        self.logIn_frame.grid(column=5, row=5, padx=50, pady=50)
+        self.style.configure('Frame1.TFrame', background='burlywood3', borderwidth=0)
+        self.logIn_frame = LogInFrame(self, style='Frame1.TFrame')
+        self.logIn_frame.grid(column=5, row=5, padx=50, pady=50, sticky="nsew")
         return
 
 
 class LogInFrame(ttk.Frame):
-    def __init__(self, MasterPanel):
-        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=20)
+    def __init__(self, MasterPanel, *args, **kwargs):
+        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, *args, **kwargs)
         self.width = 0.5 * MasterPanel.width
         self.height = 0.5 * MasterPanel.height
         self.columnconfigure(list(range(1, 5)), weight=1)
@@ -65,11 +66,14 @@ class LogInFrame(ttk.Frame):
         self._create_widgets(MasterPanel)
 
     def _create_widgets(self, MasterPanel):
+
         self.style = ttk.Style(self)
+        self.style.configure("TEntry", borderwidth=0)
         self.style.configure('TLabel', font=("Helvetica", 14, "bold"), background='white')
         self.style.configure('TLabelframe', bordercolor="LightSkyBlue2", background='white')
         self.style.configure('TLabelframe.Label', font=("Helvetica", 14, "bold"), background='white')
-        self.style.configure('TButton', font=("Helvetica", 14, "bold"), background="LightSkyBlue2", foreground='black')
+        self.style.configure('TButton', font=("Helvetica", 14, "bold"), background="LightSkyBlue2", foreground='black',
+                             relief='flat')
         self.style.configure('TRadiobutton', font=("Helvetica", 14, "bold"), background="white", foreground='black')
         self.style.configure('TEntry', width=20)
         entryConfigure = {'font': ("Helvetica", 16, "bold"), 'background': 'white'}
@@ -110,13 +114,22 @@ class LogInFrame(ttk.Frame):
         self.EntryError_UserName = ttk.Label(self)
 
         # LOGIN button
-        self.Button_LogIn = ttk.Button(self, text="Log In", command=lambda: self.ExLogIn(MasterPanel))
+        # self.Button_LogIn = ttk.Button(self, text="Log In", command=lambda: self.ExLogIn(MasterPanel))
+        # self.Button_LogIn.grid(column=4, row=3, **gridConfigure)
+        self.Button_LogIn = RoundedButton(master=self, text="Log In", radius=25, btnbackground="LightSkyBlue2",
+                                          btnforeground="black", width=150, height=50, highlightthickness=0,
+                                          font=("Helvetica", 16, "bold"))
         self.Button_LogIn.grid(column=4, row=3, **gridConfigure)
+        self.Button_LogIn.bind("<Button-1>", lambda e: self.ExLogIn(MasterPanel))
 
         # SingIN button
-        self.Button_SingIN = ttk.Button(self, text="Sing IN", command=lambda: self.ExSingIN(MasterPanel))
+        # self.Button_SingIN = ttk.Button(self, text="Sing IN", command=lambda: self.ExSingIN(MasterPanel))
+        # self.Button_SingIN.grid(column=4, row=4, **gridConfigure)
+        self.Button_SingIN = RoundedButton(master=self, text="Sing IN", radius=25, btnbackground="LightSkyBlue2",
+                                           btnforeground="black", width=150, height=50, highlightthickness=0,
+                                           font=("Helvetica", 16, "bold"))
         self.Button_SingIN.grid(column=4, row=4, **gridConfigure)
-
+        self.Button_SingIN.bind("<Button-1>", lambda e: self.ExSingIN(MasterPanel))
         return
 
     def EntryFocusOut(self, EntryName):
@@ -168,13 +181,13 @@ class LogInFrame(ttk.Frame):
             print('error')
             return
         if selected == 0:
-            return
-        return
+            return MasterPanel.master.show_frame(ResearcherMainPanel)
+        return MasterPanel.master.show_frame(PatientMainPanel)
 
     def ExSingIN(self, MasterPanel):
         selected = self.Entry_UserPath.get()
         if selected == 0:
-            return MasterPanel.master.show_frame(ResearcherSingInFrame)
+            return MasterPanel.master.show_frame(ResearcherSingInPanel)
         return MasterPanel.master.show_frame(PatientSingInPanel)
 
 
@@ -213,6 +226,10 @@ class PatientSingInPanel(ttk.Frame):
         self.Page_Frames.add(pg0, text='                Step 1                ')
         self.Page_Frames.add(pg1, text='                Step 2                ')
         self.Page_Frames.select(0)
+
+        # Return button
+        self.Button_Return = ttk.Button(self, text="Return", command=lambda: MasterPanel.show_frame(UserLogInPanel))
+        self.Button_Return.grid(column=3, row=1, padx=5, pady=5, sticky=tk.E)
         return
 
     def back(self):
@@ -347,7 +364,7 @@ class PatientSingInPg1(ttk.Frame):
 class PatientSingInPg2(ttk.Frame):
     def __init__(self, MasterPanel):
         ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED)
-        self.columnconfigure(list(range(1, 9)), weight=1)
+        self.columnconfigure(list(range(1, 14)), weight=1)
         self.rowconfigure(list(range(1, 16)), weight=1)
         self.symptomsTrie = AUTO_complete()
         self._create_widgets(MasterPanel)
@@ -412,21 +429,30 @@ class PatientSingInPg2(ttk.Frame):
         self.Entry_UserSupport.grid(column=1, row=12, **gridTEntryConfigure)
 
         self.Label_UserSymptoms = ttk.Label(self, text='Symptoms:')
-        self.Label_UserSymptoms.grid(column=4, row=3, **gridConfigure)
+        self.Label_UserSymptoms.grid(column=3, row=3, **gridConfigure)
         self.symptomText = tk.StringVar()
         self.Entry_UserSymptoms = ttk.Entry(self, textvariable=self.symptomText, **entryConfigure)
-        self.Entry_UserSymptoms.grid(column=4, row=4, columnspan=3, rowspan=2, **gridTEntryConfigure)
+        self.Entry_UserSymptoms.grid(column=3, row=4, columnspan=4, rowspan=2, **gridTEntryConfigure)
         self.Entry_UserSymptoms.bind("<Button-1>", lambda e: self.EntryButton1('Symptoms'))
         self.Entry_UserSymptoms.bind("<FocusOut>", lambda e: self.EntryFocusOut('Symptoms'))
         self.Entry_UserSymptoms.bind("<space>", lambda e: self._space())
         self.Entry_UserSymptoms.bind("<BackSpace>", lambda e: self._backSpace())
         self.Entry_UserSymptoms.bind("<KeyRelease>", lambda e: self._KeyRelease())
+
         self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 16),
-                                               bg='SystemButtonFace', highlightcolor='SystemButtonFace', relief='flat')
-        self.Listbox_UserSymptoms.grid(column=4, row=6, columnspan=4, rowspan=3, **gridTEntryConfigure)
+                                               bg='white', highlightcolor='white', relief='flat', width=40)
+        self.Listbox_UserSymptoms.grid(column=3, row=6, columnspan=5, rowspan=3, **gridConfigure)
+
+        self.Scrollbar_UserSymptoms = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.Listbox_UserSymptoms.yview)
+        self.Listbox_UserSymptoms['yscrollcommand'] = self.Scrollbar_UserSymptoms.set
+        self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.updateSelectSymptoms())
+
+        self.Listbox_UserSelectSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 16),
+                                                     bg='white', highlightcolor='white', relief='flat', width=40)
+        self.Listbox_UserSelectSymptoms.grid(column=8, row=6, columnspan=5, rowspan=3, **gridConfigure)
 
         self.Button_SingIN = ttk.Button(self, text="SingIN", command=self.SingINButton(MasterPanel))
-        self.Button_SingIN.grid(column=3, row=15, **gridConfigure)
+        self.Button_SingIN.grid(column=11, row=10, **gridConfigure)
 
     def SingINButton(self, MasterPanel):
 
@@ -451,6 +477,9 @@ class PatientSingInPg2(ttk.Frame):
     def HandelFiled(self, EntryName, txt):
         return
 
+    def updateSelectSymptoms(self):
+        return print(self.Listbox_UserSymptoms.curselection())
+
     def _space(self):
         word = self.Entry_UserSymptoms.get()
         self.symptomsTrie.space(word)
@@ -461,20 +490,42 @@ class PatientSingInPg2(ttk.Frame):
         return
 
     def _KeyRelease(self):
-        gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 5, 'ipadx': 0}
         sentence = self.Entry_UserSymptoms.get()
         sentence_list = self.symptomsTrie.keyRelease(sentence)
         var = tk.Variable(value=sentence_list)
-        self.Listbox_UserSymptoms = tk.Listbox(self, listvariable=var, selectmode=tk.EXTENDED, font=("Helvetica", 16))
-        self.Listbox_UserSymptoms.grid(column=4, row=6, columnspan=3, rowspan=3, **gridTEntryConfigure)
-        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.Listbox_UserSymptoms.yview)
-
-        self.Listbox_UserSymptoms['yscrollcommand'] = scrollbar.set
-        self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: print(self.Listbox_UserSymptoms.curselection()))
+        self.Listbox_UserSymptoms.config(listvariable=var)
         return
 
 
-class ResearcherSingInFrame(ttk.Frame):
+class ResearcherSingInPanel(ttk.Frame):
+
+    def __init__(self, MasterPanel):
+        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
+        self.width = 0.5 * MasterPanel.width
+        self.height = 0.5 * MasterPanel.height
+        self.columnconfigure(list(range(1, 11)), weight=1)
+        self.rowconfigure(list(range(1, 11)), weight=1)
+        self._create_sub_frames(MasterPanel)
+
+    def _create_sub_frames(self, MasterPanel):
+        return
+
+
+class ResearcherMainPanel(ttk.Frame):
+
+    def __init__(self, MasterPanel):
+        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
+        self.width = 0.5 * MasterPanel.width
+        self.height = 0.5 * MasterPanel.height
+        self.columnconfigure(list(range(1, 11)), weight=1)
+        self.rowconfigure(list(range(1, 11)), weight=1)
+        self._create_sub_frames(MasterPanel)
+
+    def _create_sub_frames(self, MasterPanel):
+        return
+
+
+class PatientMainPanel(ttk.Frame):
 
     def __init__(self, MasterPanel):
         ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
