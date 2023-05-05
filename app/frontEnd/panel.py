@@ -457,6 +457,44 @@ class PatientSignInPg2(ttk.Frame):
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
 
+        def make_scrollbar_styles():
+            style = ttk.Style()
+
+            for is_hori in (True, False):
+                v = "Horizontal" if is_hori else "Vertical"
+                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.trough', 'from', 'default')
+                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.thumb', 'from', 'default')
+                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.leftarrow', 'from', 'default')
+                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.rightarrow', 'from', 'default')
+                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.grip', 'from', 'default')
+                style.layout(
+                    f'CustomScrollbarStyle.{v}.TScrollbar',
+                    [(f'CustomScrollbarStyle.{v}.Scrollbar.trough', {
+                        'children': [
+                            # Commenting in these 2 lines adds arrows (at least horizontally)
+                            (f'CustomScrollbarStyle.{v}.Scrollbar.leftarrow',
+                             {'side': 'left', 'sticky': 'we'}) if is_hori else (
+                            f'CustomScrollbarStyle.{v}.Scrollbar.uparrow', {}),
+                            (f'CustomScrollbarStyle.{v}.Scrollbar.rightarrow',
+                             {'side': 'right', 'sticky': 'we'}) if is_hori else (
+                            f'CustomScrollbarStyle.{v}.Scrollbar.downarrow', {}),
+                            (f'CustomScrollbarStyle.{v}.Scrollbar.thumb', {
+                                'unit': '20',
+                                'children': [(f'CustomScrollbarStyle.{v}.Scrollbar.grip', {'sticky': ''})],
+                                'sticky': 'nswe'}
+                             )
+                        ],
+                        'sticky': 'we' if is_hori else 'ns'}),
+                     ])
+                style.configure(f'CustomScrollbarStyle.{v}.TScrollbar', troughcolor='white',
+                                background='LightSkyBlue4',
+                                arrowcolor='white', borderwidth=0)
+                style.map(f'CustomScrollbarStyle.{v}.TScrollbar',
+                          background=[('pressed', '!disabled', 'white'), ('active', 'white')])
+            return "CustomScrollbarStyle.Horizontal.TScrollbar", "CustomScrollbarStyle.Vertical.TScrollbar"
+
+        hstyle, vstyle = make_scrollbar_styles()
+
         # ------------------------- Enter Symptoms ------------------------------------------
         self.Label_UserSymptoms = ttk.Label(self, text='Symptoms:', **labelConfigure)
         self.Label_UserSymptoms.grid(column=1, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
@@ -466,6 +504,8 @@ class PatientSignInPg2(ttk.Frame):
         self.Entry_UserSymptoms.insert(0, 'Enter your common symptoms...')
         self.Entry_UserSymptoms.grid(column=1, row=4, columnspan=2, rowspan=2, sticky=tk.W + tk.N,
                                      **gridTEntryConfigure)
+        self.Entry_UserSymptoms.bind("<Button-1>", lambda e: self.EntryButton1('Symptoms'))
+        self.Entry_UserSymptoms.bind("<FocusOut>", lambda e: self.EntryFocusOut('Symptoms'))
         self.Entry_UserSymptoms.bind("<space>", lambda e: self._space())
         self.Entry_UserSymptoms.bind("<BackSpace>", lambda e: self._backSpace())
         self.Entry_UserSymptoms.bind("<KeyRelease>", lambda e: self._KeyRelease())
@@ -475,9 +515,21 @@ class PatientSignInPg2(ttk.Frame):
                                                relief='flat', width=40)
         self.Listbox_UserSymptoms.grid(column=1, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
 
-        self.Scrollbar_UserSymptoms = ttk.Scrollbar(self, orient=VERTICAL, command=self.Listbox_UserSymptoms.yview)
-        self.Listbox_UserSymptoms['yscrollcommand'] = self.Scrollbar_UserSymptoms.set
+        self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
+                                               bg='white', highlightcolor='white', highlightthickness=0,
+                                               relief='flat', width=40)
+        self.Listbox_UserSymptoms.grid(column=1, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
         self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.updateSelectSymptoms())
+        self.Scrollbar_UserSymptoms_y = ttk.Scrollbar(self, orient=VERTICAL, command=self.Listbox_UserSymptoms.yview,
+                                                      cursor="arrow", style=vstyle)
+        self.Scrollbar_UserSymptoms_x = ttk.Scrollbar(self, orient=HORIZONTAL, command=self.Listbox_UserSymptoms.xview,
+                                                      cursor="arrow", style=hstyle)
+        self.Scrollbar_UserSymptoms_y.grid(column=1, row=6, rowspan=3, sticky=tk.W + tk.N)
+        self.Scrollbar_UserSymptoms_x.grid(column=1, row=9, columnspan=2, sticky=tk.W + tk.N)
+        self.Listbox_UserSymptoms['yscrollcommand'] = self.Scrollbar_UserSymptoms_y.set
+        self.Listbox_UserSymptoms['xscrollcommand'] = self.Scrollbar_UserSymptoms_x.set
+        var = tk.Variable(value=self.symptomsTrie.initValues())
+        self.Listbox_UserSymptoms.config(listvariable=var)
 
         # ------------------------- Separator ------------------------------------------
         ttk.Separator(self, orient=VERTICAL).grid(row=1, column=3, rowspan=13, ipady=150, sticky=tk.N + tk.S)
@@ -485,19 +537,27 @@ class PatientSignInPg2(ttk.Frame):
         gridTEntryConfigure['padx'] = 2
 
         # ------------------------- Selected Symptoms ------------------------------------------
+
         self.Label_UserSelectSymptoms = ttk.Label(self, text='Selected Symptoms:', **labelConfigure)
         self.Label_UserSelectSymptoms.grid(column=4, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
 
         self.Listbox_UserSelectSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
                                                      bg='white', highlightcolor='white', highlightthickness=0,
                                                      relief='flat', width=40)
-        self.Listbox_UserSelectSymptoms.grid(column=4, row=6, columnspan=5, rowspan=3, sticky=tk.W + tk.N,
+        self.Listbox_UserSelectSymptoms.grid(column=4, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N,
                                              **gridConfigure)
 
-        self.Scrollbar_UserSelectSymptoms = ttk.Scrollbar(self, orient=VERTICAL,
-                                                          command=self.Listbox_UserSelectSymptoms.yview)
-        self.Listbox_UserSelectSymptoms['yscrollcommand'] = self.Scrollbar_UserSelectSymptoms.set
         self.Listbox_UserSelectSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
+        self.Scrollbar_UserSelectSymptoms_y = ttk.Scrollbar(self, orient=VERTICAL,
+                                                            command=self.Listbox_UserSelectSymptoms.yview,
+                                                            cursor="arrow", style=vstyle)
+        self.Scrollbar_UserSelectSymptoms_x = ttk.Scrollbar(self, orient=HORIZONTAL,
+                                                            command=self.Listbox_UserSelectSymptoms.xview,
+                                                            cursor="arrow", style=hstyle)
+        self.Scrollbar_UserSelectSymptoms_y.grid(column=4, row=6, rowspan=3, sticky=tk.W + tk.N)
+        self.Scrollbar_UserSelectSymptoms_x.grid(column=4, row=9, columnspan=2, sticky=tk.W + tk.N)
+        self.Listbox_UserSelectSymptoms['yscrollcommand'] = self.Scrollbar_UserSelectSymptoms_y.set
+        self.Listbox_UserSelectSymptoms['xscrollcommand'] = self.Scrollbar_UserSelectSymptoms_x.set
 
         # ------------------------- SignIN ------------------------------------------
         self.Button_SignIN = RoundedButton(master=self, text="Sign In", radius=10, btnbackground="LightSkyBlue4",
@@ -543,9 +603,20 @@ class PatientSignInPg2(ttk.Frame):
         self.Listbox_UserSelectSymptoms.config(listvariable=var)
         return
 
+    def EntryButton1(self, EntryName):
+        txt = self.__dict__[f'Entry_User{EntryName}'].get()
+        if EntryName == 'Symptoms' and txt == 'Enter your common symptoms...':
+            self.__dict__[f'Entry_User{EntryName}'].delete(0, "end")
+        return
+
+    def EntryFocusOut(self, EntryName):
+        txt = self.__dict__[f'Entry_User{EntryName}'].get()
+        if not txt and EntryName == 'Symptoms':
+            self.Entry_UserSymptoms.insert(0, 'Enter your common symptoms...')
+        return
+
     def _space(self):
-        word = self.Entry_UserSymptoms.get()
-        self.symptomsTrie.space(word)
+        self.symptomsTrie.space()
         return
 
     def _backSpace(self):
