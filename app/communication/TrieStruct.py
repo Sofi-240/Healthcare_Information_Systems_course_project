@@ -62,7 +62,7 @@ class Trie:
                 _, node = carry[0]
         return node.disID
 
-    def complete_sentence(self, part_sentence):
+    def complete_sentence(self, part_sentence, disId=True):
         node = self.root
         sentence_list = []
         for i, word in enumerate(part_sentence):
@@ -73,17 +73,23 @@ class Trie:
             else:
                 return sentence_list
         if node.end:
-            sentence_list.append((part_sentence, node.disID))
-        self._walk(node, part_sentence, sentence_list)
+            if disId:
+                sentence_list.append((part_sentence, node.disID))
+            else:
+                sentence_list.append(part_sentence)
+        self._walk(node, part_sentence, sentence_list, disId=disId)
         return sentence_list
 
-    def _walk(self, node, sentence, sentence_list):
+    def _walk(self, node, sentence, sentence_list, disId=True):
         if node.children:
             for word in node.children:
                 sentence_new = sentence + [word]
                 if node.children[word].end:
-                    sentence_list.append((' '.join(sentence_new), node.children[word].disID))
-                self._walk(node.children[word], sentence_new, sentence_list)
+                    if disId:
+                        sentence_list.append((' '.join(sentence_new), node.children[word].disID))
+                    else:
+                        sentence_list.append(' '.join(sentence_new))
+                self._walk(node.children[word], sentence_new, sentence_list, disId)
 
     def _find_forward_path(self, node, word, curr_sentence, limit, carry):
         if node.children and limit > 0:

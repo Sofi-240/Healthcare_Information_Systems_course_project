@@ -67,7 +67,7 @@ class DataQueries:
             dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
             if index.shape[0] == 1:
                 # Temporary solution for a bug --- > need to check the fks construction
-                return dec + ['', 0]
+                return dec + [data.get_group(index.index[0][0])['disID'].iloc[0], 0]
             dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
             return dec
 
@@ -262,10 +262,36 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return self.addItem('patientIndices', table)
 
-    def queryAvailableResearch(self, ID):
+    def queryAvailableResearch(self, userPath, **kwargs):
+        where_limits = {}
+        join = []
+        if userPath == 'r' or userPath == 'researcher':
+            pass
+        elif userPath == 'p' or userPath == 'patient':
+            pass
+        queryStr = f"SELECT "
         return
 
-    def InsertNewResearch(self):
+    def InsertResearch(self, researcherID, disease, *patientID):
+        queryStr = f'SELECT MAX(ID) FROM activeresearch'
+        newID = executedQuery(queryStr) + 1
+        if type(disease) == str:
+            queryStr = f'SELECT disID FROM diseases WHERE disName = {disease}'
+            disID = executedQuery(queryStr)
+        else:
+            disID = disease
+        if not patientID:
+            insert2Table('activeresearch', [newID, disID, researcherID, None])
+            return
+        while patientID:
+            insert2Table('activeresearch', [newID, disID, researcherID, patientID.pop()])
+        return
+
+    def InsertPatientToResearch(self, researchID, *patientID):
+        queryStr = f'SELECT disID, rID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
+        disID, rID = executedQuery(queryStr)
+        while patientID:
+            insert2Table('activeresearch', [researchID, disID, rID, patientID.pop()])
         return
 
     def insertNewSymptom(self, symptomPath, **kwargs):
@@ -426,12 +452,12 @@ def main():
 
 if __name__ == "__main__":
     Queries = main()
-    patient_diagnosis = Queries.get_table('patientdiagnosis')
-    Qpi1 = Queries.queryPatientIndices(symptom='pain',
-                                       diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
-                                       conf=[0.3, None],
-                                       age=(37, None),
-                                       weight=[60, 100])
+    # patient_diagnosis = Queries.get_table('patientdiagnosis')
+    # Qpi1 = Queries.queryPatientIndices(symptom='pain',
+    #                                    diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
+    #                                    conf=[0.3, None],
+    #                                    age=(37, None),
+    #                                    weight=[60, 100])
 
     # Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
     #                       DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
@@ -441,9 +467,4 @@ if __name__ == "__main__":
     # Qpi2 = Queries.queryPatientIndices(ID=320468461)
     # Queries.DeleteUser('p', '320468461')
 
-Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
-                      DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
-                      phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
-                      weight=90, support=1, symptoms=['blood in stool'])
-
-# Queries.DeleteUser('p', '320468461')
+# Qpi1 = Queries.get_table('activeresearch')
