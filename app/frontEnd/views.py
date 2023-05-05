@@ -78,21 +78,20 @@ class LogInFrame(ttk.Frame):
         self.Entry_UserName.grid(column=2, row=6, **gridTEntryConfigure)
         self.Entry_UserName.bind("<FocusOut>", lambda e: self.EntryFocusOut('Name'))
         self.Entry_UserName.bind("<Button-1>", lambda e: self.EntryButton1('Name'))
-        self.LabelError_UserName = ttk.Label(self, **labelConfigure)
 
         # LOGIN button
         self.Button_LogIn = RoundedButton(master=self, text="Log In", radius=25, btnbackground="DarkGoldenrod3",
                                           btnforeground="black", width=250, height=60, highlightthickness=0,
                                           font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.Button_LogIn.grid(column=2, row=7, **gridConfigure)
-        self.Button_LogIn.bind("<Button-1>", lambda e: self.ExLogIn(MasterPanel))
+        self.Button_LogIn.bind("<Button-1>", lambda e: MasterPanel.master.app_insert2DB.ExLogIn())
 
         # SingIN button
         self.Button_SignIN = RoundedButton(master=self, text="Sign IN", radius=25, btnbackground="DarkGoldenrod3",
                                            btnforeground="black", width=250, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.Button_SignIN.grid(column=2, row=8, **gridConfigure)
-        self.Button_SignIN.bind("<Button-1>", lambda e: self.ExSignIN(MasterPanel))
+        self.Button_SignIN.bind("<Button-1>", lambda e: MasterPanel.master.app_insert2DB.ExSignIN())
         return
 
     def EntryFocusOut(self, EntryName):
@@ -108,27 +107,20 @@ class LogInFrame(ttk.Frame):
             self.__dict__[f'Entry_User{EntryName}'].delete(0, "end")
         return
 
-    def HandelFiled(self, EntryName, txt):
+    def HandelFiled(self, EntryName, txt, appCall=False):
         if EntryName == 'ID':
-            if len(txt) < 9 or len(txt) > 9:
-                self.Entry_UserID.config(foreground="red")
+            if appCall or (txt and (len(txt) < 9 or len(txt) > 9)):
+                self.Label_UserID.config(foreground="red")
                 return
-            self.Entry_UserID.config(foreground="black")
-        return
-
-    def ExLogIn(self, MasterPanel):
-        selected = self.Entry_UserPath.get()
-        if not MasterPanel.master.app_insert2DB.validUser(selected):
+            self.Label_UserID.config(foreground="black")
             return
-        if selected == 0:
-            return MasterPanel.master.show_frame(ResearcherMainPanel)
-        return MasterPanel.master.show_frame(PatientMainPanel)
-
-    def ExSignIN(self, MasterPanel):
-        selected = self.Entry_UserPath.get()
-        if selected == 0:
-            return MasterPanel.master.show_frame(ResearcherSignInPanel)
-        return MasterPanel.master.show_frame(PatientSignInPanel)
+        if EntryName == 'Name':
+            if appCall:
+                self.Label_UserName.config(foreground="red")
+                return
+            self.Label_UserName.config(foreground="black")
+            return
+        return
 
 
 class PatientSignInPanel(ttk.Frame):
@@ -167,14 +159,14 @@ class PatientSignInPanel(ttk.Frame):
                                          btnforeground="white", width=150, height=60, highlightthickness=0,
                                          font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_Next.grid(column=4, row=1, padx=5, pady=5, sticky=tk.E)
-        self.Button_Next.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.validPatientSignInForward())
+        self.Button_Next.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.validPatientSignIn())
 
         # Return button
         self.Button_Return = RoundedButton(master=self, text="Return", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='white')
         self.Button_Return.grid(column=2, row=10, padx=5, pady=5, sticky=tk.W)
-        self.Button_Return.bind("<Button-1>", lambda e: MasterPanel.show_frame(UserLogInPanel))
+        self.Button_Return.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.ExSignOut())
 
         self.Page_Frames = ttk.Notebook(self, width=700, height=600)
         self.Page_Frames.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
@@ -183,11 +175,10 @@ class PatientSignInPanel(ttk.Frame):
         self.pg0.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
         self.pg1 = PatientSignInPg2(self.Page_Frames, style='TFrame')
         self.pg1.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self.frames = {}
-        self.Page_Frames.add(self.pg0, text='                Step 1                ')
+        self.Page_Frames.add(self.pg0, text='                Step 1                ', )
         self.Page_Frames.add(self.pg1, text='                Step 2                ')
         self.Page_Frames.select(0)
-
+        self.Page_Frames.tab(1, state="disabled")
         return
 
     def back(self):
@@ -226,15 +217,17 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserName = ttk.Entry(self, **entryConfigure)
         self.Entry_UserName.grid(column=1, row=4, columnspan=2, **gridTEntryConfigure)
         self.Entry_UserName.bind("<Button-1>", lambda e: self.EntryButton1('Name'))
+        self.Entry_UserName.bind("<FocusOut>", lambda e: self.EntryFocusOut('Name'))
 
         # ------------------------- Gender ------------------------------------------
-        self.Label_UserGender = ttk.Label(self, text='Gender:', **labelConfigure)
+        self.Label_UserGender = ttk.Label(self, text='Gender: *', **labelConfigure)
         self.Label_UserGender.grid(column=1, row=5, **gridConfigure)
 
         self.textVariable_UserGender = tk.StringVar()
         self.Entry_UserGender = ttk.Combobox(self, textvariable=self.textVariable_UserGender, **entryConfigure)
         self.Entry_UserGender['values'] = ('Female', 'Male')
         self.Entry_UserGender.grid(column=1, row=6, **gridTEntryConfigure)
+        self.Entry_UserGender.bind("<FocusOut>", lambda e: self.EntryFocusOut('Gender'))
 
         # ------------------------- Area ------------------------------------------
         self.Label_UserArea = ttk.Label(self, text='Area: *', **labelConfigure)
@@ -244,6 +237,7 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserArea = ttk.Combobox(self, textvariable=self.textVariable_UserArea, **entryConfigure)
         self.Entry_UserArea['values'] = ('North', 'Center', 'South')
         self.Entry_UserArea.grid(column=1, row=8, **gridTEntryConfigure)
+        self.Entry_UserArea.bind("<FocusOut>", lambda e: self.EntryFocusOut('Area'))
 
         # ------------------------- City ------------------------------------------
         self.Label_UserCity = ttk.Label(self, text='City: *', **labelConfigure)
@@ -251,6 +245,7 @@ class PatientSignInPg1(ttk.Frame):
 
         self.Entry_UserCity = ttk.Entry(self, **entryConfigure)
         self.Entry_UserCity.grid(column=1, row=10, columnspan=2, **gridTEntryConfigure)
+        self.Entry_UserCity.bind("<FocusOut>", lambda e: self.EntryFocusOut('City'))
 
         # ------------------------- Phone ------------------------------------------
         self.Label_UserPhone = ttk.Label(self, text='Phone: *', **labelConfigure)
@@ -286,7 +281,7 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserHMO.grid(column=3, row=4, **gridTEntryConfigure)
 
         # ------------------------- COB ------------------------------------------
-        self.Label_UserCOB = ttk.Label(self, text='COB:', **labelConfigure)
+        self.Label_UserCOB = ttk.Label(self, text='Country Of Birth:', **labelConfigure)
         self.Label_UserCOB.grid(column=3, row=5, **gridConfigure)
 
         self.Entry_UserCOB = ttk.Entry(self, **entryConfigure)
@@ -319,62 +314,102 @@ class PatientSignInPg1(ttk.Frame):
         self.Entry_UserSupport = ttk.Combobox(self, textvariable=self.textVariable_UserSupport, **entryConfigure)
         self.Entry_UserSupport['values'] = ('Yes', 'No')
         self.Entry_UserSupport.grid(column=3, row=12, **gridTEntryConfigure)
+        self.Entry_UserSupport.bind("<FocusOut>", lambda e: self.EntryFocusOut('Support'))
 
     def EntryFocusOut(self, EntryName):
         txt = self.__dict__[f'Entry_User{EntryName}'].get()
         if not txt and EntryName == 'COB':
             self.Entry_UserCOB.insert(0, 'Israel')
-            return
         self.HandelFiled(EntryName, txt)
         return
 
     def EntryButton1(self, EntryName):
         txt = self.__dict__[f'Entry_User{EntryName}'].get()
-        if txt == EntryName or (EntryName == 'COB' and txt == 'Israel'):
+        if EntryName == 'COB' and txt == 'Israel':
             self.__dict__[f'Entry_User{EntryName}'].delete(0, "end")
         return
 
-    def HandelFiled(self, EntryName, txt):
+    def HandelFiled(self, EntryName, txt, appCall=False):
         if EntryName == 'ID':
-            if txt and (len(txt) < 9 or len(txt) > 9):
-                self.Entry_UserID.config(foreground="red")
+            if (not txt and appCall) or (txt and (len(txt) < 9 or len(txt) > 9)):
+                self.Label_UserID.config(foreground="red")
                 return False
-            self.Entry_UserID.config(foreground="black")
+            self.Label_UserID.config(foreground="black")
             return True
         if EntryName == 'Name':
-            if txt and len(txt) < 2:
-                self.Entry_UserName.config(foreground="red")
+            if (not txt and appCall) or (txt and len(txt) < 2):
+                self.Label_UserName.config(foreground="red")
                 return False
-            self.Entry_UserName.config(foreground="black")
+            self.Label_UserName.config(foreground="black")
             return True
         if EntryName == 'Phone':
-            if txt and (len(txt) < 10 or len(txt) > 10):
-                self.Entry_UserPhone.config(foreground="red")
+            if (not txt and appCall) or (txt and (len(txt) < 10 or len(txt) > 10)):
+                self.Label_UserPhone.config(foreground="red")
                 return False
-            self.Entry_UserPhone.config(foreground="black")
+            self.Label_UserPhone.config(foreground="black")
             return True
         if EntryName == 'DOB':
             today = datetime.date.today()
             if today.year - txt.year - ((today.month, today.day) < (txt.month, txt.day)) < 18:
-                self.Entry_UserDOB.config(foreground="red")
+                self.Label_UserDOB.config(foreground="red")
                 return False
-            self.Entry_UserDOB.config(foreground="black")
+            self.Label_UserDOB.config(foreground="black")
             return True
         if EntryName == 'Weight':
-            txt = list(txt.split())
-            if txt and (not str.isdigit(txt[0]) or (str.isdigit(txt[0]) and int(txt[0]) < 0)):
-                self.Entry_UserWeight.config(foreground="red")
+            if not txt and not appCall:
                 return False
-            self.Entry_UserWeight.config(foreground="black")
+            try:
+                digit = int(txt)
+            except ValueError:
+                digit = 0
+            if digit <= 0:
+                self.Label_UserWeight.config(foreground="red")
+                return False
+            self.Label_UserWeight.config(foreground="black")
             return True
         if EntryName == 'Height':
-            txt = list(txt.split())
-            if txt and (not str.isdigit(txt[0]) or (str.isdigit(txt[0]) and int(txt[0]) < 0)):
-                self.Entry_UserHeight.config(foreground="red")
+            if not txt and not appCall:
                 return False
-            self.Entry_UserHeight.config(foreground="black")
+            try:
+                digit = float(txt)
+            except ValueError:
+                digit = 0
+            if digit <= 0:
+                self.Label_UserHeight.config(foreground="red")
+                return False
+            self.Label_UserHeight.config(foreground="black")
             return True
-        return True
+        if EntryName == 'Gender':
+            if not txt and appCall:
+                self.Label_UserGender.config(foreground="red")
+                return False
+            self.Label_UserGender.config(foreground="black")
+            return True
+        if EntryName == 'Area':
+            if not txt and appCall:
+                self.Label_UserArea.config(foreground="red")
+                return False
+            self.Label_UserArea.config(foreground="black")
+            return True
+        if EntryName == 'City':
+            if not txt and appCall:
+                self.Label_UserCity.config(foreground="red")
+                return False
+            self.Label_UserCity.config(foreground="black")
+            return True
+        if EntryName == 'HMO':
+            if not txt and appCall:
+                self.Label_UserHMO.config(foreground="red")
+                return False
+            self.Label_UserHMO.config(foreground="black")
+            return True
+        if EntryName == 'Support':
+            if not txt and appCall:
+                self.Label_UserSupport.config(foreground="red")
+                return False
+            self.Label_UserSupport.config(foreground="black")
+            return True
+        return False
 
 
 class PatientSignInPg2(ttk.Frame):
@@ -486,11 +521,10 @@ class PatientSignInPg2(ttk.Frame):
         self.Listbox_UserSelectSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
         self.Scrollbar_UserSelectSymptoms_y = ttk.Scrollbar(self, orient=VERTICAL,
                                                             command=self.Listbox_UserSelectSymptoms.yview,
-                                                            cursor="arrow", style=vstyle)
+                                                            cursor="arrow")
         self.Scrollbar_UserSelectSymptoms_x = ttk.Scrollbar(self, orient=HORIZONTAL,
                                                             command=self.Listbox_UserSelectSymptoms.xview,
                                                             cursor="arrow", style=hstyle)
-        self.Scrollbar_UserSelectSymptoms_y.grid(column=4, row=6, rowspan=3, sticky=tk.W + tk.N)
         self.Scrollbar_UserSelectSymptoms_x.grid(column=4, row=9, columnspan=2, sticky=tk.W + tk.N)
         self.Listbox_UserSelectSymptoms['yscrollcommand'] = self.Scrollbar_UserSelectSymptoms_y.set
         self.Listbox_UserSelectSymptoms['xscrollcommand'] = self.Scrollbar_UserSelectSymptoms_x.set
@@ -509,13 +543,10 @@ class PatientSignInPg2(ttk.Frame):
 
     def SignINButton(self, MasterPanel):
         var = self.Entry_coniferVar.get()
-        if var == 1 and MasterPanel.master.master.app_insert2DB.pushNewPatient():
-            return MasterPanel.master.master.show_frame(PatientMainPanel)
-        self.Entry_conifer.configure(foreground='red', font=("Helvetica", 12, "bold", 'underline'))
-        return
-
-    def HandelFiled(self, EntryName, txt):
-        return
+        if var == 0:
+            self.Entry_conifer.configure(foreground='red', font=("Helvetica", 12, "bold", 'underline'))
+            return
+        return MasterPanel.master.master.app_insert2DB.validPatientSignIn()
 
     def updateSelectSymptoms(self):
         selected = self.Listbox_UserSymptoms.curselection()
@@ -578,6 +609,53 @@ class PatientMainPanel(ttk.Frame):
         self._create_sub_frames(MasterPanel)
 
     def _create_sub_frames(self, MasterPanel):
+        gridConfigure = {'padx': 20, 'pady': 0}
+        gridTEntryConfigure = {'padx': 20, 'pady': 0, 'ipady': 0, 'ipadx': 0}
+        entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
+        labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
+        self.style = ttk.Style(self)
+        self.style.configure('TFrame', background='white', borderwidth=10, relief='RAISED')
+
+        Label_title = ttk.Label(self, text=' ',
+                                font=("Helvetica", 50, "bold"),
+                                background="DarkGoldenrod2", foreground='black')
+        Label_title.grid(row=0, column=0, columnspan=11, ipadx=150, sticky=tk.W + tk.E)
+
+        ttk.Separator(self, orient=HORIZONTAL).grid(row=1, column=0, columnspan=11, ipadx=150,
+                                                    sticky=tk.W + tk.E + tk.N)
+        self.Button_SignOut = RoundedButton(master=self, text="Sign Out", radius=10, btnbackground="LightSkyBlue4",
+                                            btnforeground="white", width=150, height=60, highlightthickness=0,
+                                            font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
+        self.Button_SignOut.grid(column=0, row=0, padx=5, pady=5, sticky=tk.W)
+        self.Button_SignOut.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.ExSignOut())
+
+        ttk.Separator(self, orient=VERTICAL).grid(row=2, column=2, rowspan=9, ipady=150,
+                                                    sticky=tk.W + tk.S + tk.N)
+        Indices_title = ttk.Label(self, text='Your Indices', font=("Helvetica", 16, "bold"), background="white", foreground='LightSkyBlue4')
+        Indices_title.grid(row=2, column=0)
+
+        Indices = MasterPanel.app_insert2DB.dequeueIndices()
+        print(Indices)
+        txt = ''
+        for lab in ['ID', 'name', 'gender', 'DOB', 'area', 'city', 'phone', 'HMO', 'height', 'weight']:
+            labName = lab[0].upper() + lab[1:]
+            txt += f'- {labName}:   {str(Indices[lab])}\n'
+
+        self.Label_Indices = ttk.Label(self, text=txt, font=("Helvetica", 16, "bold"), background="white",
+                                       foreground='black')
+        self.Label_Indices.grid(row=3, column=0, sticky=tk.N)
+
+        symptom_title = ttk.Label(self, text='Your Symptoms', font=("Helvetica", 16, "bold"), background="white",
+                                foreground='LightSkyBlue4')
+        symptom_title.grid(row=5, column=0)
+        symptom = Indices.get('symptoms')
+        txt = ''
+        if symptom:
+            for sym in symptom:
+                txt += f'- {sym}\n'
+        self.Label_Symptoms = ttk.Label(self, text=txt, font=("Helvetica", 16, "bold"), background="white",
+                                       foreground='black')
+        self.Label_Symptoms.grid(row=6, column=0, sticky=tk.N)
         return
 
 

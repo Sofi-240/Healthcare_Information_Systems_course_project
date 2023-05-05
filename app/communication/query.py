@@ -19,6 +19,10 @@ class DataQueries:
         diss_symptoms = executedQuery(queryStr)
         self.SymptomsTrie.build_trie(diss_symptoms)
         print('LOAD Symptoms Tree')
+        print(f"Last update for patient diagnosis (trigger) Table: {self.LastUpdate}")
+        checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
+        if self.LastUpdate.days >= 1 or not checkNan:
+            self.queryUpdateTrigger()
         return
 
     @property
@@ -35,6 +39,22 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(f"SELECT * FROM {tableName.lower()};"))
         table.columns = getTableCarry(tableName.lower()).get('headers')
         return table
+
+    @staticmethod
+    def checkForLogIn(userPath, ID):
+        ret = []
+        if userPath == 'patient' or userPath == 'p':
+            ret = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
+            if ret:
+                ret = list(ret[0])
+                ret += list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';")[0])
+        elif userPath == 'researcher' or userPath == 'r':
+            ret = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
+            if ret:
+                ret = list(ret[0])
+        if not ret:
+            return
+        return ret
 
     def addItem(self, key, itm):
         """
@@ -443,10 +463,6 @@ class DataQueries:
 
 def main():
     q = DataQueries("his_project")
-    print(f"Last update for patient diagnosis (trigger) Table: {q.LastUpdate}")
-    checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
-    if q.LastUpdate.days >= 1 or not checkNan:
-        q.queryUpdateTrigger()
     return q
 
 
