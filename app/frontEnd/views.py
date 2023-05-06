@@ -606,13 +606,9 @@ class PatientMainPanel(ttk.Frame):
         self.height = 0.5 * MasterPanel.height
         self.columnconfigure(list(range(1, 11)), weight=1)
         self.rowconfigure(list(range(1, 11)), weight=1)
-        self._create_sub_frames(MasterPanel)
+        self._create_widgets(MasterPanel)
 
-    def _create_sub_frames(self, MasterPanel):
-        gridConfigure = {'padx': 20, 'pady': 0}
-        gridTEntryConfigure = {'padx': 20, 'pady': 0, 'ipady': 0, 'ipadx': 0}
-        entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
-        labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
+    def _create_widgets(self, MasterPanel):
         self.style = ttk.Style(self)
         self.style.configure('TFrame', background='white', borderwidth=10, relief='RAISED')
 
@@ -630,32 +626,43 @@ class PatientMainPanel(ttk.Frame):
         self.Button_SignOut.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.ExSignOut())
 
         ttk.Separator(self, orient=VERTICAL).grid(row=2, column=2, rowspan=9, ipady=150,
-                                                    sticky=tk.W + tk.S + tk.N)
-        Indices_title = ttk.Label(self, text='Your Indices', font=("Helvetica", 16, "bold"), background="white", foreground='LightSkyBlue4')
-        Indices_title.grid(row=2, column=0)
+                                                  sticky=tk.W + tk.S + tk.N)
+        Indices_title = ttk.Label(self, text='Your Indices', font=("Helvetica", 18, "bold"), background="white",
+                                  foreground='LightSkyBlue4')
+        Indices_title.grid(row=2, column=0, sticky=tk.W)
 
         Indices = MasterPanel.app_insert2DB.dequeueIndices()
-        print(Indices)
         txt = ''
-        for lab in ['ID', 'name', 'gender', 'DOB', 'area', 'city', 'phone', 'HMO', 'height', 'weight']:
+        for lab, val in Indices.items():
+            if lab == 'symptoms':
+                continue
             labName = lab[0].upper() + lab[1:]
+            if labName == 'COB':
+                labName = 'Country Of Birth'
+            if labName == 'DOB':
+                labName = 'Date of Birth'
             txt += f'- {labName}:   {str(Indices[lab])}\n'
 
         self.Label_Indices = ttk.Label(self, text=txt, font=("Helvetica", 16, "bold"), background="white",
                                        foreground='black')
-        self.Label_Indices.grid(row=3, column=0, sticky=tk.N)
+        self.Label_Indices.grid(row=3, column=0, sticky=tk.W)
 
-        symptom_title = ttk.Label(self, text='Your Symptoms', font=("Helvetica", 16, "bold"), background="white",
-                                foreground='LightSkyBlue4')
-        symptom_title.grid(row=5, column=0)
+        symptom_title = ttk.Label(self, text='Your Symptoms', font=("Helvetica", 18, "bold"), background="white",
+                                  foreground='LightSkyBlue4')
+        symptom_title.grid(row=4, column=0, sticky=tk.W)
         symptom = Indices.get('symptoms')
         txt = ''
         if symptom:
             for sym in symptom:
                 txt += f'- {sym}\n'
         self.Label_Symptoms = ttk.Label(self, text=txt, font=("Helvetica", 16, "bold"), background="white",
-                                       foreground='black')
-        self.Label_Symptoms.grid(row=6, column=0, sticky=tk.N)
+                                        foreground='black')
+        self.Label_Symptoms.grid(row=5, column=0, sticky=tk.W)
+
+        self.Button_UpDate = RoundedButton(master=self, text="UPDATE", radius=10, btnbackground="LightSkyBlue4",
+                                           btnforeground="white", width=150, height=60, highlightthickness=0,
+                                           font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_UpDate.grid(column=0, row=9, padx=5, pady=5, sticky=tk.W)
         return
 
 
