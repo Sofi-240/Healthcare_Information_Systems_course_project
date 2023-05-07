@@ -132,7 +132,6 @@ class DataQueries:
         print(queryStr)
         executedQueryCommit(queryStr)
         updateTable('patientdiagnosis')
-        print(queryStr)
         if not IDs:
             updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
         return
@@ -460,6 +459,40 @@ class DataQueries:
             queryStr = f"DELETE FROM {t} WHERE {v} = '{ID}';"
             print(queryStr)
             executedQueryCommit(queryStr)
+        return
+
+    def updateUserIndices(self, userPath, ID, **kwargs):
+        if userPath == 'patient' or userPath == 'p':
+            cols = getTableCarry('patient').get('headers')
+            tableName = 'patient'
+        elif userPath == 'researcher' or userPath == 'r':
+            cols = getTableCarry('researcher').get('headers')
+            tableName = 'researcher'
+        else:
+            print(f"User Path {userPath} is not valid")
+            return
+        queryStr = f"UPDATE {tableName} SET"
+        newSet = False
+        for key, val in kwargs.items():
+            if key in cols:
+                newSet = True
+                queryStr += f' {key} = {val},'
+        if not newSet:
+            return
+        queryStr = queryStr[:-1]
+        queryStr += f' WHERE ID = {ID};'
+        print(queryStr)
+        executedQueryCommit(queryStr)
+        return
+
+    def deletePatientSymptom(self, ID, *symptoms):
+        if not symptoms:
+            return
+        for symp in symptoms:
+            queryStr = f"DELETE FROM symptomsPatient WHERE ID = '{ID}' AND Symptom LIKE '%{symp}%';"
+            print(queryStr)
+            executedQueryCommit(queryStr)
+        self.queryUpdateTrigger(ID)
         return
 
 

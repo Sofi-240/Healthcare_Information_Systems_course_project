@@ -19,6 +19,7 @@ class Panel(tk.Tk):
         self.config(bg="white")
         self.app_queries = DataQueries("his_project")
         self.app_insert2DB = insert2DB(self)
+        self.symptomsTrie = AUTO_complete(self.app_queries.SymptomsTrie.root)
         self._initPanel()
 
     def _initPanel(self):
