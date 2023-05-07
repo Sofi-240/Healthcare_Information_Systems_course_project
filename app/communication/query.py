@@ -47,7 +47,9 @@ class DataQueries:
             ret = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
             if ret:
                 ret = list(ret[0])
-                ret += list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';")[0])
+                symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
+                for symp in symptoms:
+                    ret.append(symp[0])
         elif userPath == 'researcher' or userPath == 'r':
             ret = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
             if ret:
