@@ -3,6 +3,7 @@ from tkinter import messagebox
 from app.frontEnd.views import *
 from app.communication.query import DataQueries
 from app.communication.input import insert2DB
+from app.frontEnd.autoComplete import AUTO_complete
 
 
 class Panel(tk.Tk):
@@ -79,4 +80,3 @@ if __name__ == '__main__':
     myPanel.mainloop()
 
 
-# '319861803', 'Lior'

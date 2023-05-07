@@ -517,13 +517,13 @@ class PatientMainPanel(ttk.Frame):
 
         self.Page_Frames = ttk.Notebook(self, width=800, height=600)
         self.Page_Frames.grid(column=1, row=2, padx=1, pady=1, sticky="nsew", columnspan=3, rowspan=3)
-        Indices = MasterPanel.app_insert2DB.dequeueUserIndices()
+        Indices = MasterPanel.app_insert2DB.activeUserVals
 
         self.pg0 = PatientMainPg1(self.Page_Frames, Indices, style='TFrame')
         self.pg0.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
         self.pg1 = PatientMainPg2(self.Page_Frames, Indices, style='TFrame')
         self.pg1.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self.pg2 = PatientMainPg3(self.Page_Frames, style='TFrame')
+        self.pg2 = PatientMainPg3(self.Page_Frames, Indices, style='TFrame')
         self.pg2.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
         self.Page_Frames.add(self.pg0, text='                Profile                ', )
         self.Page_Frames.add(self.pg1, text='                Symptoms                ')
@@ -786,13 +786,28 @@ class PatientMainPg2(ttk.Frame):
 
 
 class PatientMainPg3(ttk.Frame):
-    def __init__(self, MasterPanel, *args, **kwargs):
+    def __init__(self, MasterPanel, Indices, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
-        self._create_widgets(MasterPanel)
+        self._create_widgets(MasterPanel, Indices)
 
-    def _create_widgets(self, MasterPanel):
+    def _create_widgets(self, MasterPanel, Indices):
+        entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
+        labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
+                          'foreground': 'LightSkyBlue4'}
+
+        # ------------------------- Researchers ------------------------------------------
+
+        self.Label_UserSymptoms = ttk.Label(self, text='Your Researchers:', **labelConfigure)
+        self.Label_UserSymptoms.grid(column=1, row=1, columnspan=3, sticky=tk.W + tk.N, padx=5)
+
+        self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
+                                               bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
+                                               relief='flat', width=40)
+        self.Listbox_UserSymptoms.grid(column=1, row=2, columnspan=2, rowspan=3, sticky=tk.W + tk.N, padx=5)
+        var = tk.Variable(value=[])
+        self.Listbox_UserSymptoms.config(listvariable=var)
         return
 
 

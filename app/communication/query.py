@@ -42,20 +42,30 @@ class DataQueries:
 
     @staticmethod
     def checkForLogIn(userPath, ID):
-        ret = []
+        ret = {}
         if userPath == 'patient' or userPath == 'p':
-            ret = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
-            if ret:
-                ret = list(ret[0])
+            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
+            if temp:
+                columns = getTableCarry('patient').get('headers')
+                for i, col in enumerate(columns):
+                    ret[col] = temp[0][i]
                 symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
+                ret['symptoms'] = []
                 for symp in symptoms:
-                    ret.append(symp[0])
+                    ret['symptoms'].append(symp[0])
+                researchers = list(executedQuery(f"SELECT d.ID, d.rID FROM activeresearch AS d WHERE d.disID = "
+                                                 f"(SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') or "
+                                                 f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}');"))
+                ret['researchers'] = []
+                for res in researchers:
+                    ret['researchers'].append(res[0])
+
         elif userPath == 'researcher' or userPath == 'r':
-            ret = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
-            if ret:
-                ret = list(ret[0])
-        if not ret:
-            return
+            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
+            if temp:
+                columns = getTableCarry('researcher').get('headers')
+                for i, col in enumerate(columns):
+                    ret[col] = temp[0][i]
         return ret
 
     def addItem(self, key, itm):
@@ -103,6 +113,8 @@ class DataQueries:
         queryStr += " ORDER BY ID;"
         print(queryStr)
         id_Sym = executedQuery(queryStr)
+        if not id_Sym[0]:
+            return
         prev_id = ''
         stack = []
         counter = 0
@@ -289,8 +301,12 @@ class DataQueries:
         if userPath == 'r' or userPath == 'researcher':
             pass
         elif userPath == 'p' or userPath == 'patient':
-            pass
-        queryStr = f"SELECT "
+            queryStr = f"SELECT * activeresearch"
+            ID = kwargs.get('ID')
+            if not ID:
+                print("Missing ID column")
+                return
+
         return
 
     def InsertResearch(self, researcherID, disease, *patientID):
@@ -503,19 +519,4 @@ def main():
 
 if __name__ == "__main__":
     Queries = main()
-    # patient_diagnosis = Queries.get_table('patientdiagnosis')
-    # Qpi1 = Queries.queryPatientIndices(symptom='pain',
-    #                                    diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
-    #                                    conf=[0.3, None],
-    #                                    age=(37, None),
-    #                                    weight=[60, 100])
 
-    # Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
-    #                       DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
-    #                       phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
-    #                       weight=90, support=1, symptoms=['Abdominal mass or swelling',
-    #                                                       'Fatigue', 'Weight loss'])
-    # Qpi2 = Queries.queryPatientIndices(ID=320468461)
-    # Queries.DeleteUser('p', '320468461')
-
-# Qpi1 = Queries.get_table('activeresearch')

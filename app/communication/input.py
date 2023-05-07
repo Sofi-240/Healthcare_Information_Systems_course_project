@@ -6,7 +6,7 @@ class insert2DB:
     def __init__(self, panel):
         self.panel = panel
         self.activeUser = None
-        self.activeUserVals = []
+        self.activeUserVals = {}
 
     @staticmethod
     def HandelFiled(EntryName, txt):
@@ -102,12 +102,11 @@ class insert2DB:
         index = self.panel.frame.Page_Frames.index(self.panel.frame.Page_Frames.select())
         print(index)
         if index == 0:
-            Indices = self.dequeueUserIndices()
             updateVals = {}
             errCache = False
-            for val, item in Indices.items():
+            for val, item in self.activeUserVals.items():
                 colName = val[0].upper() + val[1:]
-                if val in ['symptoms', 'ID', 'name', 'gender', 'DOB', 'COB']:
+                if val in ['symptoms', 'ID', 'name', 'gender', 'DOB', 'COB', 'researchers']:
                     continue
                 insertVal = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
                 if not self.HandelFiled(colName, insertVal):
@@ -137,20 +136,19 @@ class insert2DB:
                 updateVals[val] = insertVal
             if errCache:
                 return
-            self.panel.app_queries.updateUserIndices('p', Indices['ID'], **updateVals)
-            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', Indices['ID'])
+            self.panel.app_queries.updateUserIndices('p', self.activeUserVals['ID'], **updateVals)
+            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserVals['ID'])
             return
         if index == 1:
             selected = list(self.panel.frame.pg1.List_UserSymptoms.keys())
-            Indices = self.dequeueUserIndices()
-            symptomsCurr = Indices.get('symptoms')
+            symptomsCurr = self.activeUserVals.get('symptoms')
             if not selected and not symptomsCurr:
                 return
             if not selected and symptomsCurr:
-                self.panel.app_queries.deletePatientSymptom(Indices['ID'], *selected)
+                self.panel.app_queries.deletePatientSymptom(self.activeUserVals['ID'], *selected)
                 return
             if selected and not symptomsCurr:
-                self.panel.app_queries.insertNewSymptom('p', ID=Indices['ID'], symptom=selected)
+                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserVals['ID'], symptom=selected)
                 return
             symptomsCurrHash = {symp: True for symp in symptomsCurr}
             symptomsNew = []
@@ -160,10 +158,10 @@ class insert2DB:
                     continue
                 symptomsNew.append(symp)
             if symptomsCurrHash:
-                self.panel.app_queries.deletePatientSymptom(Indices['ID'], *list(symptomsCurrHash.keys()))
+                self.panel.app_queries.deletePatientSymptom(self.activeUserVals['ID'], *list(symptomsCurrHash.keys()))
             if symptomsNew:
-                self.panel.app_queries.insertNewSymptom('p', ID=Indices['ID'], symptom=symptomsNew)
-            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', Indices['ID'])
+                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserVals['ID'], symptom=symptomsNew)
+            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserVals['ID'])
             return
         return
 
@@ -205,17 +203,16 @@ class insert2DB:
         elif self.activeUser == 1:
             self.panel.destroy_frame('PatientMainPanel')
         self.activeUser = None
-        self.activeUserVals = None
+        self.activeUserVals = {}
         return self.panel.show_frame('UserLogInPanel')
 
     def ExDisConnect(self):
-        Indices = self.dequeueUserIndices()
-        if not Indices:
+        if not self.activeUserVals:
             return
         if self.activeUser == 0:
-            self.panel.app_queries.DeleteUser('r', Indices['ID'])
+            self.panel.app_queries.DeleteUser('r', self.activeUserVals['ID'])
         elif self.activeUser == 1:
-            self.panel.app_queries.DeleteUser('p', Indices['ID'])
+            self.panel.app_queries.DeleteUser('p', self.activeUserVals['ID'])
         return self.ExSignOut()
 
     def ExLogIn(self, afterSignIN=False, pathSignIN=None):
@@ -233,7 +230,7 @@ class insert2DB:
             self.panel.frame.logIn_frame.raiseError('Name')
             return
         userName = self.panel.frame.logIn_frame.Entry_UserName.get()
-        retRow = []
+        retRow = {}
         if path == 0:
             retRow = self.panel.app_queries.checkForLogIn('r', userID)
             print(f'Researcher Entry, Name: {userName}, ID: {userID}. {retRow}')
@@ -243,7 +240,7 @@ class insert2DB:
         if not retRow:
             self.panel.frame.logIn_frame.raiseError('ID')
             return
-        if userName.lower() != retRow[2].lower():
+        if userName.lower() != retRow['name'].lower():
             self.panel.frame.logIn_frame.raiseError('Name')
             return
         self.activeUser = path
@@ -258,20 +255,3 @@ class insert2DB:
             return self.panel.show_frame('ResearcherSignInPanel')
         return self.panel.show_frame('PatientSignInPanel')
 
-    def dequeueUserIndices(self):
-        if self.activeUser is None:
-            return
-        if not self.activeUserVals:
-            return
-        if self.activeUser == 1:
-            columns = getTableCarry('patient').get('headers')
-        else:
-            columns = getTableCarry('researcher').get('headers')
-        Indices = {}
-        for i, col in enumerate(columns):
-            Indices[col] = self.activeUserVals[i]
-        if self.activeUser == 0:
-            return Indices
-        if len(self.activeUserVals) > len(columns):
-            Indices['symptoms'] = self.activeUserVals[len(columns):]
-        return Indices
