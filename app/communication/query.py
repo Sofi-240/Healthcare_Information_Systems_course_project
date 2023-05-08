@@ -19,6 +19,10 @@ class DataQueries:
         diss_symptoms = executedQuery(queryStr)
         self.SymptomsTrie.build_trie(diss_symptoms)
         print('LOAD Symptoms Tree')
+        print(f"Last update for patient diagnosis (trigger) Table: {self.LastUpdate}")
+        checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
+        if self.LastUpdate.days >= 1 or not checkNan:
+            self.queryUpdateTrigger()
         return
 
     @property
@@ -35,6 +39,29 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(f"SELECT * FROM {tableName.lower()};"))
         table.columns = getTableCarry(tableName.lower()).get('headers')
         return table
+
+    def checkForLogIn(self, userPath, ID):
+        ret = {}
+        if userPath == 'patient' or userPath == 'p':
+            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
+            if temp:
+                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
+                symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
+                ret['symptoms'] = []
+                for symp in symptoms:
+                    ret['symptoms'].append(symp[0])
+                ret['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
+                queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+                           f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{ID}';"
+                researchers = pd.DataFrame(list(executedQuery(queryStr)),
+                                                 columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
+                                                          'Mail'])
+                ret['researchers'] = researchers
+        elif userPath == 'researcher' or userPath == 'r':
+            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
+            if temp:
+                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
+        return ret
 
     def addItem(self, key, itm):
         """
@@ -81,6 +108,8 @@ class DataQueries:
         queryStr += " ORDER BY ID;"
         print(queryStr)
         id_Sym = executedQuery(queryStr)
+        if not id_Sym[0]:
+            return
         prev_id = ''
         stack = []
         counter = 0
@@ -110,7 +139,6 @@ class DataQueries:
         print(queryStr)
         executedQueryCommit(queryStr)
         updateTable('patientdiagnosis')
-        print(queryStr)
         if not IDs:
             updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
         return
@@ -263,13 +291,22 @@ class DataQueries:
         return self.addItem('patientIndices', table)
 
     def queryAvailableResearch(self, userPath, **kwargs):
-        where_limits = {}
-        join = []
         if userPath == 'r' or userPath == 'researcher':
             pass
         elif userPath == 'p' or userPath == 'patient':
-            pass
-        queryStr = f"SELECT "
+            ID = kwargs.get('ID')
+            if not ID:
+                print("Missing ID column")
+                return
+            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+                       f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE " \
+                       f"d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
+                       f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}'); "
+            researchers = list(executedQuery(queryStr))
+            availableResearch = pd.DataFrame(researchers,
+                                             columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
+            return self.addItem('availableResearch', availableResearch)
+
         return
 
     def InsertResearch(self, researcherID, disease, *patientID):
@@ -440,31 +477,45 @@ class DataQueries:
             executedQueryCommit(queryStr)
         return
 
+    def updateUserIndices(self, userPath, ID, **kwargs):
+        if userPath == 'patient' or userPath == 'p':
+            cols = getTableCarry('patient').get('headers')
+            tableName = 'patient'
+        elif userPath == 'researcher' or userPath == 'r':
+            cols = getTableCarry('researcher').get('headers')
+            tableName = 'researcher'
+        else:
+            print(f"User Path {userPath} is not valid")
+            return
+        queryStr = f"UPDATE {tableName} SET"
+        newSet = False
+        for key, val in kwargs.items():
+            if key in cols:
+                newSet = True
+                queryStr += f" {key} = '{val}',"
+        if not newSet:
+            return
+        queryStr = queryStr[:-1]
+        queryStr += f' WHERE ID = {ID};'
+        print(queryStr)
+        executedQueryCommit(queryStr)
+        return
+
+    def deletePatientSymptom(self, ID, *symptoms):
+        if not symptoms:
+            return
+        for symp in symptoms:
+            queryStr = f"DELETE FROM symptomsPatient WHERE ID = '{ID}' AND Symptom LIKE '%{symp}%';"
+            print(queryStr)
+            executedQueryCommit(queryStr)
+        self.queryUpdateTrigger(ID)
+        return
+
 
 def main():
     q = DataQueries("his_project")
-    print(f"Last update for patient diagnosis (trigger) Table: {q.LastUpdate}")
-    checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
-    if q.LastUpdate.days >= 1 or not checkNan:
-        q.queryUpdateTrigger()
     return q
 
 
 if __name__ == "__main__":
     Queries = main()
-    # patient_diagnosis = Queries.get_table('patientdiagnosis')
-    # Qpi1 = Queries.queryPatientIndices(symptom='pain',
-    #                                    diseases=('Bone cancer', 'Skin cancer', 'Breast cancer'),
-    #                                    conf=[0.3, None],
-    #                                    age=(37, None),
-    #                                    weight=[60, 100])
-
-    # Queries.insertNewUser('p', ID='320468461', gender='M', name='Nicki',
-    #                       DOB=datetime.date(1999, 5, 20), area='C', city='Yavne',
-    #                       phone='0502226474', HMO='Clalit', COB='Israel', height=2.1,
-    #                       weight=90, support=1, symptoms=['Abdominal mass or swelling',
-    #                                                       'Fatigue', 'Weight loss'])
-    # Qpi2 = Queries.queryPatientIndices(ID=320468461)
-    # Queries.DeleteUser('p', '320468461')
-
-# Qpi1 = Queries.get_table('activeresearch')

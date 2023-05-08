@@ -1,4 +1,3 @@
-from app.communication.query import DataQueries
 
 
 class latNode:
@@ -39,12 +38,15 @@ class wordNode:
                     sentence_list.append(' '.join(sentence_new))
                 self._walkTier(node.children[word], sentence_new, sentence_list)
 
+    def restart(self):
+        return self._walkBack()
+
     def keyRelease(self, txt):
-        if self.backSpaceBool:
-            self.backSpaceBool = False
-            return self.root.items
         if not txt:
             self._walkBack()
+            return self.root.items
+        if self.backSpaceBool:
+            self.backSpaceBool = False
             return self.root.items
 
         if len(txt) == len(self.sentence):
@@ -76,43 +78,47 @@ class wordNode:
 
 
 class AUTO_complete:
-    def __init__(self):
-        self.root = wordNode(DataQueries('his_project').SymptomsTrie.root, '')
+    def __init__(self, SymptomsTrieRoot):
+        self.root = wordNode(SymptomsTrieRoot, '')
         self.spaceBoll = False
 
     def _walkBack(self):
         if not self.root.next:
-            return
+            return self.root.restart()
         self.root = self.root.next
         return self._walkBack()
 
     def initFrom(self, txt):
         if not txt:
             return
-        if self.root.next:
-            self._walkBack()
+        self._walkBack()
 
         wordList = list(txt)
         prev = ''
         while wordList:
             curr = wordList.pop(0)
-            if curr == '':
+            if curr == ' ':
                 self.space()
             prev += curr
-            self.keyRelease(prev)
+            self.root.keyRelease(prev)
         return
 
     def initValues(self):
+        if self.root.next:
+            self._walkBack()
         return self.root.root.items
 
     def keyRelease(self, txt):
+        print(txt)
+        if not txt:
+            self._walkBack()
+            return self.root.root.items
+        if not self.root.sentence and txt:
+            self.initFrom(txt)
         if self.spaceBoll:
             self.spaceBoll = False
             return self.root.root.items
 
-        if not txt:
-            self._walkBack()
-            return self.root.root.items
         ret = self.root.keyRelease(txt)
         return ret
 

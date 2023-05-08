@@ -245,25 +245,19 @@ def researcher_table(IDlist):
     data.loc[mask[:, 0], 'Fname'] = random_item(mask[:, 0].sum(), *random_dict['Fname']['F'])
     data.loc[mask[:, 1], 'Fname'] = random_item(mask[:, 1].sum(), *random_dict['Fname']['M'])
     data.loc[:, 'Lname'] = random_item(N, *random_dict['LNames'])
-    data.loc[:, 'USRname'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname']
     data['phone'] = random_item(N, '050', '054', '052')
     data['phone'] += random_rnf_uni(1000001, 9999999, N).astype(str)
-    data.loc[:, 'Mail'] = data.loc[:, 'USRname'] + pd.Series(random_rnf_uni(1000, 9999, N)).astype(str)
+    data.loc[:, 'Mail'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname'] + pd.Series(random_rnf_uni(1000, 9999, N)).astype(str)
     data.loc[:, 'Mail'] += '@LUKA.com'
     return data
 
 
-def initActiveR(diseases_data, researcher_data, patient_data):
-    rid = random.choices(list(researcher_data['ID']), k=10)
-    des = random.choices(list(diseases_data['disID']), k=10)
+def initActiveR(diseases_data, researcher_data):
     data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
-    res_id = random_rnf_uni(1001, 9999, 10).tolist()
-    stack = random_rnf_uni(0, patient_data.index[-1], 60).tolist()
-    data['pID'] = patient_data.loc[stack, 'ID'].values
-    i = 0
-    for d in des:
-        data.loc[i:i + 6, ['ID', 'disID', 'rID']] = [res_id.pop(), d, rid.pop()]
-        i += 6
+
+    data['ID'] = random_rnf_uni(1001, 9999, 10).tolist()[:10]
+    data['disID'] = random.choices(list(diseases_data['disID']), k=10)
+    data['rID'] = random.choices(list(researcher_data['ID']), k=10)
     return data
 
 
@@ -287,7 +281,7 @@ def main():
     patient_symptoms = patient_symptoms_table(diseases_symptoms, patient, department)
     diseases_symptoms.drop(columns='disName', inplace=True)
     researcher = researcher_table(ids_uni[1000:])
-    ActiveResearch = initActiveR(diseases, researcher, patient)
+    ActiveResearch = initActiveR(diseases, researcher)
     patient['DOB'] = patient['DOB'].astype(str)
     PatientDiagnosis = Trigger_table(patient)
 
@@ -324,9 +318,9 @@ def main():
 
     Table('activeresearch',
           data=ActiveResearch,
-          fks=[['disID'], ['rID'], ['pID']],
-          refs=[['disID'], ['ID'], ['ID']],
-          ref_tables=['diseases', 'researcher', 'patient']).save()
+          fks=[['disID'], ['rID']],
+          refs=[['disID'], ['ID']],
+          ref_tables=['diseases', 'researcher']).save()
     return
 
 
