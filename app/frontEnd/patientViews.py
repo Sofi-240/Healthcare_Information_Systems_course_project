@@ -4,113 +4,6 @@ from app.frontEnd.RoundButton import RoundedButton
 from tkcalendar import DateEntry
 
 
-class UserLogInPanel(ttk.Frame):
-
-    def __init__(self, MasterPanel):
-        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
-        self.width = 0.5 * MasterPanel.width
-        self.height = 0.5 * MasterPanel.height
-        self.columnconfigure(list(range(1, 8)), weight=1)
-        self.rowconfigure(list(range(1, 8)), weight=1)
-        self._create_sub_frames(MasterPanel)
-
-    def _create_sub_frames(self, MasterPanel):
-        self.style = ttk.Style(self)
-        self.style.configure('Frame1.TFrame', background='LightSkyBlue4', borderwidth=10, relief='RAISED')
-        self.logIn_frame = LogInFrame(self, style='Frame1.TFrame')
-        self.logIn_frame.grid(column=4, row=2, rowspan=4, padx=50, pady=50, sticky="nsew")
-        return
-
-
-class LogInFrame(ttk.Frame):
-    def __init__(self, MasterPanel, *args, **kwargs):
-        ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
-        self.columnconfigure(list(range(1, 6)), weight=1)
-        self.rowconfigure(list(range(1, 9)), weight=1)
-        self._create_widgets(MasterPanel)
-
-    def _create_widgets(self, MasterPanel):
-
-        self.style = ttk.Style(self)
-        self.style.configure('TRadiobutton', font=("Helvetica", 18, "bold"), background="LightSkyBlue4",
-                             foreground='black', weight=40)
-        self.style.configure('TEntry', weight=100)
-        labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'LightSkyBlue4'}
-        entryConfigure = {'font': ("Helvetica", 16, "bold"), 'background': 'white'}
-        gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
-        gridConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W}
-
-        Label_title = ttk.Label(self, text='Log In', font=("Helvetica", 60, "bold", 'underline'),
-                                background="LightSkyBlue4", foreground='white')
-        Label_title.grid(column=2, row=1, sticky="nsew")
-
-        ttk.Separator(self, orient=HORIZONTAL).grid(row=2, column=0, columnspan=6, ipadx=150, sticky=tk.W + tk.E)
-
-        # User Path researcher or patient
-        self.Label_UserPath = ttk.Label(self, text='User', **labelConfigure)
-        self.Label_UserPath.grid(column=1, row=3, **gridConfigure)
-        self.Entry_UserPath = tk.IntVar()
-        self.Entry_UserPath.set(1)
-        self.RB_UserPath_Patient = ttk.Radiobutton(self, text='Patient', variable=self.Entry_UserPath,
-                                                   value=1)
-        self.RB_UserPath_Patient.grid(column=2, row=3, **gridConfigure)
-
-        self.RB_UserPath_Researcher = ttk.Radiobutton(self, text='Researcher',
-                                                      variable=self.Entry_UserPath, value=0)
-        self.RB_UserPath_Researcher.grid(column=2, row=4, **gridConfigure)
-
-        # User, researcher or patient Insert ID
-        self.Label_UserID = ttk.Label(self, text='User ID:', **labelConfigure)
-        self.Label_UserID.grid(column=1, row=5, **gridConfigure)
-        self.Entry_UserID = ttk.Entry(self, **entryConfigure)
-        self.Entry_UserID.insert(0, "ID")
-        self.Entry_UserID.grid(column=2, row=5, **gridTEntryConfigure)
-        self.Entry_UserID.bind("<FocusOut>", lambda e: self.EntryFocusOut('ID'))
-        self.Entry_UserID.bind("<Button-1>", lambda e: self.EntryButton1('ID'))
-
-        # User researcher or patient Insert Name
-        self.Label_UserName = ttk.Label(self, text='User Name:', **labelConfigure)
-        self.Label_UserName.grid(column=1, row=6, **gridConfigure)
-        self.Entry_UserName = ttk.Entry(self, **entryConfigure)
-        self.Entry_UserName.insert(0, "Name")
-        self.Entry_UserName.grid(column=2, row=6, **gridTEntryConfigure)
-        self.Entry_UserName.bind("<FocusOut>", lambda e: self.EntryFocusOut('Name'))
-        self.Entry_UserName.bind("<Button-1>", lambda e: self.EntryButton1('Name'))
-
-        # LOGIN button
-        self.Button_LogIn = RoundedButton(master=self, text="Log In", radius=25, btnbackground="DarkGoldenrod3",
-                                          btnforeground="black", width=250, height=60, highlightthickness=0,
-                                          font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
-        self.Button_LogIn.grid(column=2, row=7, **gridConfigure)
-        self.Button_LogIn.bind("<Button-1>", lambda e: MasterPanel.master.app_insert2DB.ExLogIn())
-
-        # SingIN button
-        self.Button_SignIN = RoundedButton(master=self, text="Sign IN", radius=25, btnbackground="DarkGoldenrod3",
-                                           btnforeground="black", width=250, height=60, highlightthickness=0,
-                                           font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
-        self.Button_SignIN.grid(column=2, row=8, **gridConfigure)
-        self.Button_SignIN.bind("<Button-1>", lambda e: MasterPanel.master.app_insert2DB.ExSignIN())
-        return
-
-    def EntryFocusOut(self, EntryName):
-        if not self.__dict__[f'Entry_User{EntryName}'].get():
-            self.__dict__[f'Entry_User{EntryName}'].insert(0, EntryName)
-        return
-
-    def EntryButton1(self, EntryName):
-        if self.__dict__[f'Entry_User{EntryName}'].get() == EntryName:
-            self.__dict__[f'Entry_User{EntryName}'].delete(0, "end")
-        return
-
-    def raiseError(self, EntryName):
-        self.__dict__[f'Label_User{EntryName}'].config(foreground="red")
-        return
-
-    def deleteError(self, EntryName):
-        self.__dict__[f'Label_User{EntryName}'].config(foreground="black")
-        return
-
-
 class PatientSignInPanel(ttk.Frame):
 
     def __init__(self, MasterPanel):
@@ -312,65 +205,27 @@ class PatientSignInPg1(ttk.Frame):
 class PatientSignInPg2(ttk.Frame):
     def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
-        self.List_UserSelectSymptoms = {}
-        self.columnconfigure(list(range(1, 6)), weight=1)
-        self.rowconfigure(list(range(1, 16)), weight=1)
+        self.columnconfigure(list(range(1, 7)), weight=1)
+        self.rowconfigure(list(range(1, 9)), weight=1)
         self._create_widgets(MasterPanel)
         self.keyRelBool = True
+        self.TableIndex = 0
 
     def _create_widgets(self, MasterPanel):
-        gridConfigure = {'padx': 20, 'pady': 0}
-        gridTEntryConfigure = {'padx': 20, 'pady': 0, 'ipady': 0, 'ipadx': 0}
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0}
-
-        def make_scrollbar_styles():
-            style = ttk.Style()
-
-            for is_hori in (True, False):
-                v = "Horizontal" if is_hori else "Vertical"
-                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.trough', 'from', 'default')
-                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.thumb', 'from', 'default')
-                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.leftarrow', 'from', 'default')
-                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.rightarrow', 'from', 'default')
-                style.element_create(f'CustomScrollbarStyle.{v}.Scrollbar.grip', 'from', 'default')
-                style.layout(
-                    f'CustomScrollbarStyle.{v}.TScrollbar',
-                    [(f'CustomScrollbarStyle.{v}.Scrollbar.trough', {
-                        'children': [
-                            # Commenting in these 2 lines adds arrows (at least horizontally)
-                            (f'CustomScrollbarStyle.{v}.Scrollbar.leftarrow',
-                             {'side': 'left', 'sticky': 'we'}) if is_hori else (
-                                f'CustomScrollbarStyle.{v}.Scrollbar.uparrow', {}),
-                            (f'CustomScrollbarStyle.{v}.Scrollbar.rightarrow',
-                             {'side': 'right', 'sticky': 'we'}) if is_hori else (
-                                f'CustomScrollbarStyle.{v}.Scrollbar.downarrow', {}),
-                            (f'CustomScrollbarStyle.{v}.Scrollbar.thumb', {
-                                'unit': '20',
-                                'children': [(f'CustomScrollbarStyle.{v}.Scrollbar.grip', {'sticky': ''})],
-                                'sticky': 'nswe'}
-                             )
-                        ],
-                        'sticky': 'we' if is_hori else 'ns'}),
-                     ])
-                style.configure(f'CustomScrollbarStyle.{v}.TScrollbar', troughcolor='white',
-                                background='LightSkyBlue4',
-                                arrowcolor='white', borderwidth=0)
-                style.map(f'CustomScrollbarStyle.{v}.TScrollbar',
-                          background=[('pressed', '!disabled', 'white'), ('active', 'white')])
-            return "CustomScrollbarStyle.Horizontal.TScrollbar", "CustomScrollbarStyle.Vertical.TScrollbar"
-
-        hstyle, vstyle = make_scrollbar_styles()
+        s = ttk.Style()
+        s.configure('Custom.Treeview', rowheight=30, highlightthickness=2, bd=0, font=('Helvetica', 18))
+        s.map("Custom.Treeview", background=[("selected", "ivory4")])
 
         # ------------------------- Enter Symptoms ------------------------------------------
         self.Label_UserSymptoms = ttk.Label(self, text='Symptoms:', **labelConfigure)
-        self.Label_UserSymptoms.grid(column=1, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
+        self.Label_UserSymptoms.grid(column=1, row=1, columnspan=2, sticky=tk.W + tk.N, padx=5, pady=10)
 
         self.symptomText = tk.StringVar()
         self.Entry_UserSymptoms = ttk.Entry(self, textvariable=self.symptomText, width=40, **entryConfigure)
         self.Entry_UserSymptoms.insert(0, 'Enter your common symptoms...')
-        self.Entry_UserSymptoms.grid(column=1, row=4, columnspan=2, rowspan=2, sticky=tk.W + tk.N,
-                                     **gridTEntryConfigure)
+        self.Entry_UserSymptoms.grid(column=1, row=2, columnspan=2, sticky=tk.W + tk.N + tk.E, padx=5)
         self.Entry_UserSymptoms.bind("<Button-1>", lambda e: self.EntryButton1('Symptoms'))
         self.Entry_UserSymptoms.bind("<FocusOut>", lambda e: self.EntryFocusOut('Symptoms'))
         self.Entry_UserSymptoms.bind("<space>", lambda e: MasterPanel.master.master.symptomsTrie.space())
@@ -380,57 +235,53 @@ class PatientSignInPg2(ttk.Frame):
         self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
                                                bg='white', highlightcolor='white', highlightthickness=0,
                                                relief='flat', width=40)
-        self.Listbox_UserSymptoms.grid(column=1, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N, **gridConfigure)
-        self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.updateSelectSymptoms())
-        self.Scrollbar_UserSymptoms_y = ttk.Scrollbar(self, orient=VERTICAL, command=self.Listbox_UserSymptoms.yview,
-                                                      cursor="arrow", style=vstyle)
-        self.Scrollbar_UserSymptoms_x = ttk.Scrollbar(self, orient=HORIZONTAL, command=self.Listbox_UserSymptoms.xview,
-                                                      cursor="arrow", style=hstyle)
-        self.Scrollbar_UserSymptoms_y.grid(column=1, row=6, rowspan=3, sticky=tk.W + tk.N)
-        self.Scrollbar_UserSymptoms_x.grid(column=1, row=9, columnspan=2, sticky=tk.W + tk.N)
-        self.Listbox_UserSymptoms['yscrollcommand'] = self.Scrollbar_UserSymptoms_y.set
-        self.Listbox_UserSymptoms['xscrollcommand'] = self.Scrollbar_UserSymptoms_x.set
+        self.Listbox_UserSymptoms.grid(column=1, row=3, columnspan=2, rowspan=3, sticky=tk.W + tk.N + tk.E, padx=5,
+                                       pady=10)
         var = tk.Variable(value=MasterPanel.master.master.symptomsTrie.initValues())
         self.Listbox_UserSymptoms.config(listvariable=var)
 
+        self.Button_select = RoundedButton(master=self, text="Select", radius=10,
+                                           btnbackground="seashell3",
+                                           btnforeground="black", width=80, height=60, highlightthickness=0,
+                                           font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_select.grid(column=1, row=7, sticky=tk.W + tk.N + tk.E)
+        self.Button_select.bind('<Button-1>', lambda e: self.updateSelectSymptoms())
+
         # ------------------------- Separator ------------------------------------------
-        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=3, rowspan=13, ipady=150, sticky=tk.N + tk.S)
-        gridConfigure['padx'] = 2
-        gridTEntryConfigure['padx'] = 2
+        ttk.Separator(self, orient=VERTICAL).grid(row=2, column=3, rowspan=7, ipady=150, sticky=tk.N + tk.S)
 
         # ------------------------- Selected Symptoms ------------------------------------------
 
         self.Label_UserSelectSymptoms = ttk.Label(self, text='Selected Symptoms:', **labelConfigure)
-        self.Label_UserSelectSymptoms.grid(column=4, row=3, columnspan=2, sticky=tk.W + tk.N, **gridConfigure)
+        self.Label_UserSelectSymptoms.grid(column=4, row=1, columnspan=2, sticky=tk.W + tk.N, pady=10, padx=10)
 
-        self.Listbox_UserSelectSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                                     bg='white', highlightcolor='white', highlightthickness=0,
-                                                     relief='flat', width=40)
-        self.Listbox_UserSelectSymptoms.grid(column=4, row=6, columnspan=2, rowspan=3, sticky=tk.W + tk.N,
-                                             **gridConfigure)
+        self.Table_UserSelectSymptoms = ttk.Treeview(self, selectmode='browse', style='Custom.Treeview')
+        self.Table_UserSelectSymptoms['columns'] = ['Symptoms']
+        self.Table_UserSelectSymptoms.column("#0", width=0, stretch=tk.NO)
+        self.Table_UserSelectSymptoms.column('Symptoms', anchor=tk.W, width=400)
 
-        self.Listbox_UserSelectSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
-        self.Scrollbar_UserSelectSymptoms_y = ttk.Scrollbar(self, orient=VERTICAL,
-                                                            command=self.Listbox_UserSelectSymptoms.yview,
-                                                            cursor="arrow")
-        self.Scrollbar_UserSelectSymptoms_x = ttk.Scrollbar(self, orient=HORIZONTAL,
-                                                            command=self.Listbox_UserSelectSymptoms.xview,
-                                                            cursor="arrow", style=hstyle)
-        self.Scrollbar_UserSelectSymptoms_x.grid(column=4, row=9, columnspan=2, sticky=tk.W + tk.N)
-        self.Listbox_UserSelectSymptoms['yscrollcommand'] = self.Scrollbar_UserSelectSymptoms_y.set
-        self.Listbox_UserSelectSymptoms['xscrollcommand'] = self.Scrollbar_UserSelectSymptoms_x.set
+        self.Table_UserSelectSymptoms.grid(column=4, row=3, columnspan=3, rowspan=3, sticky=tk.W + tk.N + tk.E)
+        self.Table_UserSelectSymptoms.tag_configure('odd', background='snow2')
+        self.Table_UserSelectSymptoms.tag_configure('even', background='white')
+
+        self.Button_deleteSelect = RoundedButton(master=self, text="Delete Selected", radius=10,
+                                                 btnbackground="seashell3",
+                                                 btnforeground="black", width=80, height=60, highlightthickness=0,
+                                                 font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_deleteSelect.grid(column=4, row=7, sticky=tk.W + tk.N + tk.E)
+        self.Button_deleteSelect.bind('<Button-1>', lambda e: self.deleteSelectSymptoms())
 
         # ------------------------- SignIN ------------------------------------------
         self.Button_SignIN = RoundedButton(master=self, text="Sign In", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.Button_SignIN.grid(column=3, row=14, sticky=tk.N + tk.S)
+        self.Button_SignIN.grid(column=6, row=8, sticky=tk.E + tk.S + tk.W)
         self.Button_SignIN.bind("<Button-1>", lambda e: self.SignINButton(MasterPanel))
         self.Entry_coniferVar = tk.IntVar()
         self.Entry_conifer = tk.Checkbutton(self, text="I agree to the terms", variable=self.Entry_coniferVar,
                                             onvalue=1, offvalue=0, width=20, background="white",
                                             font=("Helvetica", 12), foreground='black')
-        self.Entry_conifer.grid(column=3, row=15, sticky=tk.N + tk.S)
+        self.Entry_conifer.grid(column=6, row=9, sticky=tk.E + tk.S + tk.W)
 
     def SignINButton(self, MasterPanel):
         var = self.Entry_coniferVar.get()
@@ -444,21 +295,24 @@ class PatientSignInPg2(ttk.Frame):
         if not selected:
             return
         txt = self.Listbox_UserSymptoms.get(selected[0])
-        if self.List_UserSelectSymptoms.get(txt):
-            return
-        self.List_UserSelectSymptoms[txt] = True
-        var = tk.Variable(value=list(self.List_UserSelectSymptoms.keys()))
-        self.Listbox_UserSelectSymptoms.config(listvariable=var)
+        for each in self.Table_UserSelectSymptoms.get_children():
+            if self.Table_UserSelectSymptoms.item(each)['values'][0] == txt:
+                return
+        if int(self.TableIndex) % 2:
+            self.Table_UserSelectSymptoms.insert(parent='', index='end', iid=int(self.TableIndex), text='',
+                                                 values=[txt], tags=('even',))
+        else:
+            self.Table_UserSelectSymptoms.insert(parent='', index='end', iid=int(self.TableIndex), text='',
+                                                 values=[txt], tags=('odd',))
+        self.TableIndex += 1
         return print(txt)
 
     def deleteSelectSymptoms(self):
-        selected = self.Listbox_UserSelectSymptoms.curselection()
-        if not selected:
+        textList = self.Table_UserSelectSymptoms.item(self.Table_UserSelectSymptoms.focus())["values"]
+        if not textList:
             return
-        txt = self.Listbox_UserSelectSymptoms.get(selected[0])
-        self.List_UserSelectSymptoms.pop(txt)
-        var = tk.Variable(value=list(self.List_UserSelectSymptoms.keys()))
-        self.Listbox_UserSelectSymptoms.config(listvariable=var)
+        self.Table_UserSelectSymptoms.delete(self.Table_UserSelectSymptoms.selection()[0])
+        self.TableIndex -= 1
         return
 
     def EntryButton1(self, EntryName):
@@ -535,7 +389,7 @@ class PatientMainPanel(ttk.Frame):
 class PatientMainPg1(ttk.Frame):
     def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
-        self.columnconfigure(list(range(1, 9)), weight=1)
+        self.columnconfigure(list(range(1, 10)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
         self._create_widgets(MasterPanel)
 
@@ -545,7 +399,15 @@ class PatientMainPg1(ttk.Frame):
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
-        Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg1')
+        s = ttk.Style()
+        s.configure('Custom.Treeview', rowheight=30, highlightthickness=2, bd=0, font=('Helvetica', 18))
+        s.configure('Custom.Treeview.Heading', background='seashell3', foreground='black',
+                    font=('Helvetica', 18, 'bold'))
+        s.map("Custom.Treeview", background=[("selected", "ivory4")])
+
+        UserIndices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg1')
+        Indices = UserIndices['Indices']
+        researchers = UserIndices['researchers']
         # ------------------------- ID ------------------------------------------
         self.Label_UserID = ttk.Label(self, text='ID:', **labelConfigure)
         self.Label_UserID.grid(column=1, row=1, **gridConfigure)
@@ -663,6 +525,35 @@ class PatientMainPg1(ttk.Frame):
         self.Entry_UserSupport['values'] = ('Yes', 'No')
         self.Entry_UserSupport.grid(column=2, row=12, **gridTEntryConfigure)
 
+        # ------------------------- Separator ------------------------------------------
+        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=3, rowspan=13, ipady=150, sticky=tk.N + tk.S)
+
+        # ------------------------- Researchers ------------------------------------------
+
+        self.Label_Researchers = ttk.Label(self, text='Researchers in which you participate:', **labelConfigure)
+        self.Label_Researchers.grid(column=5, row=1, columnspan=3, sticky=tk.N + tk.W + tk.E, pady=5, padx=5)
+
+        self.Table_Researchers = ttk.Treeview(self, style='Custom.Treeview')
+        self.Table_Researchers['columns'] = list(researchers.columns)
+        self.Table_Researchers.column("#0", width=0, stretch=tk.NO)
+        for col in list(researchers.columns):
+            w = 100
+            if col == 'Mail':
+                w = 200
+            self.Table_Researchers.column(col, anchor=tk.CENTER, width=w, stretch=True)
+            self.Table_Researchers.heading(col, text=col, anchor=tk.CENTER)
+        for row in researchers.index:
+            vals = list(researchers.loc[row, :])
+            if row % 2:
+                self.Table_Researchers.insert(parent='', index='end', iid=int(row), text='', values=vals,
+                                              tags=('even',))
+            else:
+                self.Table_Researchers.insert(parent='', index='end', iid=int(row), text='', values=vals, tags=('odd',))
+
+        self.Table_Researchers.tag_configure('odd', background='snow2')
+        self.Table_Researchers.tag_configure('even', background='white')
+        self.Table_Researchers.grid(column=5, row=3, columnspan=5, rowspan=9, sticky=tk.N + tk.W + tk.E, pady=5)
+
         self.Button_UpDate = RoundedButton(master=self, text="UPDATE", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='white')
@@ -685,7 +576,7 @@ class PatientMainPg2(ttk.Frame):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
-        self.List_UserSymptoms = {}
+        self.TableIndex = 0
         self._create_widgets(MasterPanel)
 
     def _create_widgets(self, MasterPanel):
@@ -693,46 +584,72 @@ class PatientMainPg2(ttk.Frame):
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
         Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg2')
+        s = ttk.Style()
+        s.configure('Custom.Treeview', rowheight=30, highlightthickness=2, bd=0, font=('Helvetica', 18))
+        s.map("Custom.Treeview", background=[("selected", "ivory4")])
         # ------------------------- Symptoms ------------------------------------------
 
         self.Label_UserSymptoms = ttk.Label(self, text='Your Symptoms:', **labelConfigure)
-        self.Label_UserSymptoms.grid(column=1, row=1, columnspan=3, sticky=tk.W + tk.N, padx=5)
+        self.Label_UserSymptoms.grid(column=1, row=1, columnspan=3, sticky=tk.W + tk.N, padx=10, pady=10)
 
-        self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                               bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
-                                               relief='flat', width=40)
-        self.Listbox_UserSymptoms.grid(column=1, row=2, columnspan=2, rowspan=3, sticky=tk.W + tk.N, padx=5)
-        var = tk.Variable(value=Indices)
-        self.Listbox_UserSymptoms.config(listvariable=var)
-        self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
+        self.Table_UserSymptoms = ttk.Treeview(self, style='Custom.Treeview')
+        self.Table_UserSymptoms['columns'] = ['Symptoms']
+        self.Table_UserSymptoms.column("#0", width=0, stretch=tk.NO)
+        self.Table_UserSymptoms.column('Symptoms', anchor=tk.W, width=400)
 
         if Indices:
-            for symp in Indices:
-                self.List_UserSymptoms[symp] = True
+            for row, symp in enumerate(Indices):
+                self.TableIndex += 1
+                if row % 2:
+                    self.Table_UserSymptoms.insert(parent='', index='end', iid=int(row), text='',
+                                                   values=[symp], tags=('even',))
+                else:
+                    self.Table_UserSymptoms.insert(parent='', index='end', iid=int(row), text='',
+                                                   values=[symp], tags=('odd',))
+
+        self.Table_UserSymptoms.tag_configure('odd', background='snow2')
+        self.Table_UserSymptoms.tag_configure('even', background='white')
+
+        self.Table_UserSymptoms.grid(column=1, row=2, columnspan=3, rowspan=4, sticky=tk.W + tk.E, padx=10)
+
+        self.Button_deleteSelect = RoundedButton(master=self, text="Delete Selected", radius=10,
+                                                 btnbackground="LightSkyBlue4",
+                                                 btnforeground="white", width=80, height=60, highlightthickness=0,
+                                                 font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_deleteSelect.grid(column=1, row=6, sticky=tk.W + tk.E)
+        self.Button_deleteSelect.bind('<Button-1>', lambda e: self.deleteSelectSymptoms())
+
+        # ------------------------- Separator ------------------------------------------
+        ttk.Separator(self, orient=VERTICAL).grid(row=1, column=4, rowspan=13, ipady=150, sticky=tk.N + tk.S)
 
         # ------------------------- New Symptoms ------------------------------------------
 
         self.Label_NewUserSymptoms = ttk.Label(self, text='Search for Symptoms:', **labelConfigure)
-        self.Label_NewUserSymptoms.grid(column=3, row=1, columnspan=2, sticky=tk.W + tk.N)
+        self.Label_NewUserSymptoms.grid(column=5, row=1, columnspan=2, sticky=tk.W + tk.N, pady=10, padx=10)
 
         self.symptomText = tk.StringVar()
         self.Entry_UserSymptomsNew = ttk.Entry(self, textvariable=self.symptomText, width=40, **entryConfigure)
         self.Entry_UserSymptomsNew.insert(0, 'Enter your common symptoms...')
-        self.Entry_UserSymptomsNew.grid(column=3, row=2, columnspan=2, rowspan=2, sticky=tk.W + tk.N)
+        self.Entry_UserSymptomsNew.grid(column=5, row=2, columnspan=2, rowspan=2, sticky=tk.W + tk.N + tk.E)
 
         self.Listbox_NewUserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
                                                   bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
                                                   relief='flat', width=40)
-        self.Listbox_NewUserSymptoms.grid(column=3, row=3, columnspan=2, rowspan=3, sticky=tk.W + tk.N)
+        self.Listbox_NewUserSymptoms.grid(column=5, row=3, columnspan=2, rowspan=3, sticky=tk.W + tk.E, padx=10)
         var = tk.Variable(value=MasterPanel.master.master.symptomsTrie.initValues())
         self.Listbox_NewUserSymptoms.config(listvariable=var)
-
         self.Entry_UserSymptomsNew.bind("<space>", lambda e: MasterPanel.master.master.symptomsTrie.space())
         self.Entry_UserSymptomsNew.bind("<BackSpace>", lambda e: MasterPanel.master.master.symptomsTrie.backSpace())
         self.Entry_UserSymptomsNew.bind("<Key>", lambda e: self._KeyRelease(MasterPanel))
         self.Entry_UserSymptomsNew.bind("<Button-1>", lambda e: self.EntryButton1('SymptomsNew'))
         self.Entry_UserSymptomsNew.bind("<FocusOut>", lambda e: self.EntryFocusOut('SymptomsNew'))
-        self.Listbox_NewUserSymptoms.bind('<<ListboxSelect>>', lambda e: self.updateSelectSymptoms())
+
+        self.Button_select = RoundedButton(master=self, text="Select", radius=10,
+                                           btnbackground="LightSkyBlue4",
+                                           btnforeground="white", width=80, height=60, highlightthickness=0,
+                                           font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_select.grid(column=5, row=6, sticky=tk.W + tk.E)
+        self.Button_select.bind('<Button-1>', lambda e: self.updateSelectSymptoms())
 
         self.Button_UpDate = RoundedButton(master=self, text="UPDATE", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
@@ -766,73 +683,91 @@ class PatientMainPg2(ttk.Frame):
         if not selected:
             return
         txt = self.Listbox_NewUserSymptoms.get(selected[0])
-        if self.List_UserSymptoms.get(txt):
-            return
-        self.List_UserSymptoms[txt] = True
-        var = tk.Variable(value=list(self.List_UserSymptoms.keys()))
-        self.Listbox_UserSymptoms.config(listvariable=var)
-        return print(txt)
+        for each in self.Table_UserSymptoms.get_children():
+            if self.Table_UserSymptoms.item(each)['values'][0] == txt:
+                return
+        if int(self.TableIndex) % 2:
+            self.Table_UserSymptoms.insert(parent='', index='end', iid=int(self.TableIndex), text='',
+                                           values=[txt], tags=('even',))
+        else:
+            self.Table_UserSymptoms.insert(parent='', index='end', iid=int(self.TableIndex), text='',
+                                           values=[txt], tags=('odd',))
+        self.TableIndex += 1
+        return
 
     def deleteSelectSymptoms(self):
-        selected = self.Listbox_UserSymptoms.curselection()
-        if not selected:
+        textList = self.Table_UserSymptoms.item(self.Table_UserSymptoms.focus())["values"]
+        if not textList:
             return
-        txt = self.Listbox_UserSymptoms.get(selected[0])
-        self.List_UserSymptoms.pop(txt)
-        var = tk.Variable(value=list(self.List_UserSymptoms.keys()))
-        self.Listbox_UserSymptoms.config(listvariable=var)
+        self.Table_UserSymptoms.delete(self.Table_UserSymptoms.selection()[0])
+        self.TableIndex -= 1
         return
 
 
 class PatientMainPg3(ttk.Frame):
     def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
-        self.columnconfigure(list(range(1, 9)), weight=1)
-        self.rowconfigure(list(range(1, 14)), weight=1)
+        self.columnconfigure(list(range(1, 5)), weight=1)
+        self.rowconfigure(list(range(1, 7)), weight=1)
         self._create_widgets(MasterPanel)
 
     def _create_widgets(self, MasterPanel):
-        entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
         Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg3')
+        s = ttk.Style()
+        s.configure('Custom.Treeview', rowheight=30, highlightthickness=2, bd=0, font=('Helvetica', 18))
+        s.configure('Custom.Treeview.Heading', background='seashell3', foreground='black',
+                    font=('Helvetica', 18, 'bold'))
+        s.map("Custom.Treeview", background=[("selected", "ivory4")])
         # ------------------------- Researchers ------------------------------------------
 
-        self.Label_UserSymptoms = ttk.Label(self, text='Your Researchers:', **labelConfigure)
-        self.Label_UserSymptoms.grid(column=1, row=1, columnspan=3, sticky=tk.W + tk.N, padx=5)
+        self.Label_Researchers = ttk.Label(self, text='Available Researchers for you:', **labelConfigure)
+        self.Label_Researchers.grid(column=1, row=1, columnspan=3, sticky=tk.W, pady=5, padx=5)
 
-        self.Listbox_UserSymptoms = tk.Listbox(self, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                               bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
-                                               relief='flat', width=40)
-        self.Listbox_UserSymptoms.grid(column=1, row=2, columnspan=2, rowspan=3, sticky=tk.W + tk.N, padx=5)
-        var = tk.Variable(value=[])
-        self.Listbox_UserSymptoms.config(listvariable=var)
+        self.Table_AvailableResearch = ttk.Treeview(self, style='Custom.Treeview')
+        self.Table_AvailableResearch['columns'] = list(Indices.columns)
+        self.Table_AvailableResearch.column("#0", width=0, stretch=tk.NO)
+        for col in list(Indices.columns):
+            w = 100
+            if col == 'Mail':
+                w = 200
+            self.Table_AvailableResearch.column(col, anchor=tk.CENTER, width=w)
+            self.Table_AvailableResearch.heading(col, text=col, anchor=tk.CENTER)
+
+        for row in Indices.index:
+            vals = list(Indices.loc[row, :])
+            if row % 2:
+                self.Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
+                                                    values=vals, tags=('even',))
+            else:
+                self.Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
+                                                    values=vals, tags=('odd',))
+
+        self.Table_AvailableResearch.tag_configure('odd', background='snow2')
+        self.Table_AvailableResearch.tag_configure('even', background='white')
+
+        self.Table_AvailableResearch.grid(column=1, row=2, columnspan=4, rowspan=3, sticky=tk.W + tk.E, padx=5)
+
+        self.Button_Refresh = RoundedButton(master=self, text="Refresh", radius=10, btnbackground="LightSkyBlue4",
+                                            btnforeground="white", width=100, height=60, highlightthickness=0,
+                                            font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.Button_Refresh.grid(column=1, row=6, sticky=tk.W + tk.E, padx=5)
+        self.Button_Refresh.bind('<Button-1>', lambda e: self.ButtonRefresh(MasterPanel))
+
         return
 
+    def ButtonRefresh(self, MasterPanel):
+        Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg3')
+        for each in self.Table_AvailableResearch.get_children():
+            self.Table_AvailableResearch.delete(each)
 
-class ResearcherSignInPanel(ttk.Frame):
-
-    def __init__(self, MasterPanel):
-        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
-        self.width = 0.5 * MasterPanel.width
-        self.height = 0.5 * MasterPanel.height
-        self.columnconfigure(list(range(1, 11)), weight=1)
-        self.rowconfigure(list(range(1, 11)), weight=1)
-        self._create_sub_frames(MasterPanel)
-
-    def _create_sub_frames(self, MasterPanel):
-        return
-
-
-class ResearcherMainPanel(ttk.Frame):
-
-    def __init__(self, MasterPanel):
-        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
-        self.width = 0.5 * MasterPanel.width
-        self.height = 0.5 * MasterPanel.height
-        self.columnconfigure(list(range(1, 11)), weight=1)
-        self.rowconfigure(list(range(1, 11)), weight=1)
-        self._create_sub_frames(MasterPanel)
-
-    def _create_sub_frames(self, MasterPanel):
+        for row in Indices.index:
+            vals = list(Indices.loc[row, :])
+            if row % 2:
+                self.Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
+                                                    values=vals, tags=('even',))
+            else:
+                self.Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
+                                                    values=vals, tags=('odd',))
         return

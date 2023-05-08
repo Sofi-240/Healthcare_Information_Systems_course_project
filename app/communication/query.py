@@ -51,6 +51,12 @@ class DataQueries:
                 for symp in symptoms:
                     ret['symptoms'].append(symp[0])
                 ret['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
+                queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+                           f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{ID}';"
+                researchers = pd.DataFrame(list(executedQuery(queryStr)),
+                                                 columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
+                                                          'Mail'])
+                ret['researchers'] = researchers
         elif userPath == 'researcher' or userPath == 'r':
             temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
             if temp:

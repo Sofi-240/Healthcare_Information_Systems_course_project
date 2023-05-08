@@ -141,7 +141,9 @@ class insert2DB:
             self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserVals['ID'])
             return
         if index == 1:
-            selected = list(self.panel.frame.pg1.List_UserSymptoms.keys())
+            selected = []
+            for each in self.panel.frame.pg1.Table_UserSymptoms.get_children():
+                selected.append(self.panel.frame.pg1.Table_UserSymptoms.item(each)['values'][0])
             symptomsCurr = self.activeUserVals.get('symptoms')
             if not selected and not symptomsCurr:
                 return
@@ -192,7 +194,9 @@ class insert2DB:
                 insertVal = float(insertVal)
             print(f'column {col}: {insertVal}')
             NewPatientValues[col] = insertVal
-        NewPatientValues['symptoms'] = list(self.panel.frame.pg1.List_UserSelectSymptoms.keys())
+        NewPatientValues['symptoms'] = []
+        for each in self.panel.frame.pg1.Table_UserSelectSymptoms.get_children():
+            NewPatientValues['symptoms'].append(self.panel.frame.pg1.Table_UserSelectSymptoms.item(each)['values'][0])
         self.panel.app_queries.insertNewUser('p', **NewPatientValues)
         self.activeUser = 1
         self.activeUserID = NewPatientValues['ID']
@@ -212,9 +216,9 @@ class insert2DB:
         if not self.activeUserVals:
             return
         if self.activeUser == 0:
-            self.panel.app_queries.DeleteUser('r', self.activeUserVals['ID'])
+            self.panel.app_queries.DeleteUser('r', self.activeUserID)
         elif self.activeUser == 1:
-            self.panel.app_queries.DeleteUser('p', self.activeUserVals['ID'])
+            self.panel.app_queries.DeleteUser('p', self.activeUserID)
         return self.ExSignOut()
 
     def ExLogIn(self, afterSignIN=False, pathSignIN=None):
@@ -259,10 +263,12 @@ class insert2DB:
         return self.panel.show_frame('PatientSignInPanel')
 
     def dequeueUserIndices(self, call):
-        if not self.activeUserVals:
+        if self.activeUser is None or self.activeUserID is None:
             return
+        self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserID)
         if call == 'PatientMainPg1':
-            return dict(self.activeUserVals['Indices'].iloc[0, :])
+            ret = {'Indices': dict(self.activeUserVals['Indices'].iloc[0, :]), 'researchers': self.activeUserVals['researchers']}
+            return ret
         if call == 'PatientMainPg2':
             return self.activeUserVals.get('symptoms')
         if call == 'PatientMainPg3':
