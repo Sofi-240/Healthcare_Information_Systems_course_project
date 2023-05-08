@@ -7,6 +7,7 @@ class insert2DB:
         self.panel = panel
         self.activeUser = None
         self.activeUserVals = {}
+        self.activeUserID = None
 
     @staticmethod
     def HandelFiled(EntryName, txt):
@@ -33,7 +34,7 @@ class insert2DB:
             if not txt:
                 return False
             try:
-                digit = int(txt)
+                digit = float(txt)
             except ValueError:
                 digit = 0
             if digit <= 0:
@@ -104,9 +105,9 @@ class insert2DB:
         if index == 0:
             updateVals = {}
             errCache = False
-            for val, item in self.activeUserVals.items():
+            for val, item in dict(self.activeUserVals['Indices'].iloc[0, :]).items():
                 colName = val[0].upper() + val[1:]
-                if val in ['symptoms', 'ID', 'name', 'gender', 'DOB', 'COB', 'researchers']:
+                if val in ['ID', 'name', 'gender', 'DOB', 'COB']:
                     continue
                 insertVal = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
                 if not self.HandelFiled(colName, insertVal):
@@ -119,7 +120,7 @@ class insert2DB:
                 if colName == 'Gender':
                     insertVal = insertVal[0]
                 if colName == 'Phone':
-                    insertVal = insertVal[1:]
+                    insertVal = insertVal
                 if colName == 'Support' and insertVal.lower() == 'yes':
                     insertVal = 1
                 elif colName == 'Support' and insertVal.lower() == 'no':
@@ -129,7 +130,7 @@ class insert2DB:
                     if insertVal > 3:
                         insertVal /= 100
                 if colName == 'Weight':
-                    insertVal = int(insertVal)
+                    insertVal = float(insertVal)
                 if str(insertVal) == item:
                     continue
                 print(f'column {val}: {insertVal}')
@@ -145,10 +146,10 @@ class insert2DB:
             if not selected and not symptomsCurr:
                 return
             if not selected and symptomsCurr:
-                self.panel.app_queries.deletePatientSymptom(self.activeUserVals['ID'], *selected)
+                self.panel.app_queries.deletePatientSymptom(self.activeUserID, *selected)
                 return
             if selected and not symptomsCurr:
-                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserVals['ID'], symptom=selected)
+                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserID, symptom=selected)
                 return
             symptomsCurrHash = {symp: True for symp in symptomsCurr}
             symptomsNew = []
@@ -158,10 +159,10 @@ class insert2DB:
                     continue
                 symptomsNew.append(symp)
             if symptomsCurrHash:
-                self.panel.app_queries.deletePatientSymptom(self.activeUserVals['ID'], *list(symptomsCurrHash.keys()))
+                self.panel.app_queries.deletePatientSymptom(self.activeUserID, *list(symptomsCurrHash.keys()))
             if symptomsNew:
-                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserVals['ID'], symptom=symptomsNew)
-            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserVals['ID'])
+                self.panel.app_queries.insertNewSymptom('p', ID=self.activeUserID, symptom=symptomsNew)
+            self.activeUserVals = self.panel.app_queries.checkForLogIn('p', self.activeUserID)
             return
         return
 
@@ -194,6 +195,7 @@ class insert2DB:
         NewPatientValues['symptoms'] = list(self.panel.frame.pg1.List_UserSelectSymptoms.keys())
         self.panel.app_queries.insertNewUser('p', **NewPatientValues)
         self.activeUser = 1
+        self.activeUserID = NewPatientValues['ID']
         self.activeUserVals = self.panel.app_queries.checkForLogIn('p', NewPatientValues['ID'])
         return self.ExLogIn(afterSignIN=True, pathSignIN=1)
 
@@ -240,11 +242,12 @@ class insert2DB:
         if not retRow:
             self.panel.frame.logIn_frame.raiseError('ID')
             return
-        if userName.lower() != retRow['name'].lower():
+        if userName.lower() != retRow['Indices'].iloc[0, :]['name'].lower():
             self.panel.frame.logIn_frame.raiseError('Name')
             return
         self.activeUser = path
         self.activeUserVals = retRow
+        self.activeUserID = userID
         if path == 0:
             return self.panel.show_frame('ResearcherMainPanel')
         return self.panel.show_frame('PatientMainPanel')
@@ -255,3 +258,13 @@ class insert2DB:
             return self.panel.show_frame('ResearcherSignInPanel')
         return self.panel.show_frame('PatientSignInPanel')
 
+    def dequeueUserIndices(self, call):
+        if not self.activeUserVals:
+            return
+        if call == 'PatientMainPg1':
+            return dict(self.activeUserVals['Indices'].iloc[0, :])
+        if call == 'PatientMainPg2':
+            return self.activeUserVals.get('symptoms')
+        if call == 'PatientMainPg3':
+            return self.activeUserVals.get('availableResearch')
+        return

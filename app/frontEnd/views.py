@@ -517,13 +517,12 @@ class PatientMainPanel(ttk.Frame):
 
         self.Page_Frames = ttk.Notebook(self, width=800, height=600)
         self.Page_Frames.grid(column=1, row=2, padx=1, pady=1, sticky="nsew", columnspan=3, rowspan=3)
-        Indices = MasterPanel.app_insert2DB.activeUserVals
 
-        self.pg0 = PatientMainPg1(self.Page_Frames, Indices, style='TFrame')
+        self.pg0 = PatientMainPg1(self.Page_Frames, style='TFrame')
         self.pg0.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self.pg1 = PatientMainPg2(self.Page_Frames, Indices, style='TFrame')
+        self.pg1 = PatientMainPg2(self.Page_Frames, style='TFrame')
         self.pg1.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self.pg2 = PatientMainPg3(self.Page_Frames, Indices, style='TFrame')
+        self.pg2 = PatientMainPg3(self.Page_Frames, style='TFrame')
         self.pg2.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
         self.Page_Frames.add(self.pg0, text='                Profile                ', )
         self.Page_Frames.add(self.pg1, text='                Symptoms                ')
@@ -534,19 +533,19 @@ class PatientMainPanel(ttk.Frame):
 
 
 class PatientMainPg1(ttk.Frame):
-    def __init__(self, MasterPanel, Indices, *args, **kwargs):
+    def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
-        self._create_widgets(MasterPanel, Indices)
+        self._create_widgets(MasterPanel)
 
-    def _create_widgets(self, MasterPanel, Indices):
+    def _create_widgets(self, MasterPanel):
         gridConfigure = {'padx': 5, 'pady': 5, 'sticky': tk.W}
         gridTEntryConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
-
+        Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg1')
         # ------------------------- ID ------------------------------------------
         self.Label_UserID = ttk.Label(self, text='ID:', **labelConfigure)
         self.Label_UserID.grid(column=1, row=1, **gridConfigure)
@@ -602,7 +601,7 @@ class PatientMainPg1(ttk.Frame):
 
         self.Entry_UserPhone = ttk.Entry(self, **entryConfigure)
         self.Entry_UserPhone.grid(column=1, row=12, columnspan=2, **gridTEntryConfigure)
-        self.Entry_UserPhone.insert(0, '0' + str(Indices['phone']))
+        self.Entry_UserPhone.insert(0, Indices['phone'])
 
         # ------------------------- Separator ------------------------------------------
         ttk.Separator(self, orient=VERTICAL).grid(row=1, column=1, rowspan=13, ipady=150, sticky=tk.N + tk.S + tk.E)
@@ -682,18 +681,18 @@ class PatientMainPg1(ttk.Frame):
 
 
 class PatientMainPg2(ttk.Frame):
-    def __init__(self, MasterPanel, Indices, *args, **kwargs):
+    def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
         self.List_UserSymptoms = {}
-        self._create_widgets(MasterPanel, Indices)
+        self._create_widgets(MasterPanel)
 
-    def _create_widgets(self, MasterPanel, Indices):
+    def _create_widgets(self, MasterPanel):
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
-
+        Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg2')
         # ------------------------- Symptoms ------------------------------------------
 
         self.Label_UserSymptoms = ttk.Label(self, text='Your Symptoms:', **labelConfigure)
@@ -703,12 +702,12 @@ class PatientMainPg2(ttk.Frame):
                                                bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
                                                relief='flat', width=40)
         self.Listbox_UserSymptoms.grid(column=1, row=2, columnspan=2, rowspan=3, sticky=tk.W + tk.N, padx=5)
-        var = tk.Variable(value=Indices.get('symptoms'))
+        var = tk.Variable(value=Indices)
         self.Listbox_UserSymptoms.config(listvariable=var)
         self.Listbox_UserSymptoms.bind('<<ListboxSelect>>', lambda e: self.deleteSelectSymptoms())
 
-        if Indices.get('symptoms'):
-            for symp in Indices['symptoms']:
+        if Indices:
+            for symp in Indices:
                 self.List_UserSymptoms[symp] = True
 
         # ------------------------- New Symptoms ------------------------------------------
@@ -786,17 +785,17 @@ class PatientMainPg2(ttk.Frame):
 
 
 class PatientMainPg3(ttk.Frame):
-    def __init__(self, MasterPanel, Indices, *args, **kwargs):
+    def __init__(self, MasterPanel, *args, **kwargs):
         ttk.Frame.__init__(self, master=MasterPanel, *args, **kwargs)
         self.columnconfigure(list(range(1, 9)), weight=1)
         self.rowconfigure(list(range(1, 14)), weight=1)
-        self._create_widgets(MasterPanel, Indices)
+        self._create_widgets(MasterPanel)
 
-    def _create_widgets(self, MasterPanel, Indices):
+    def _create_widgets(self, MasterPanel):
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
         labelConfigure = {'font': ("Helvetica", 18, "bold"), 'background': 'white', 'borderwidth': 0,
                           'foreground': 'LightSkyBlue4'}
-
+        Indices = MasterPanel.master.master.app_insert2DB.dequeueUserIndices('PatientMainPg3')
         # ------------------------- Researchers ------------------------------------------
 
         self.Label_UserSymptoms = ttk.Label(self, text='Your Researchers:', **labelConfigure)

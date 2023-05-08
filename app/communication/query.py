@@ -40,32 +40,21 @@ class DataQueries:
         table.columns = getTableCarry(tableName.lower()).get('headers')
         return table
 
-    @staticmethod
-    def checkForLogIn(userPath, ID):
+    def checkForLogIn(self, userPath, ID):
         ret = {}
         if userPath == 'patient' or userPath == 'p':
             temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
             if temp:
-                columns = getTableCarry('patient').get('headers')
-                for i, col in enumerate(columns):
-                    ret[col] = temp[0][i]
+                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
                 symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
                 ret['symptoms'] = []
                 for symp in symptoms:
                     ret['symptoms'].append(symp[0])
-                researchers = list(executedQuery(f"SELECT d.ID, d.rID FROM activeresearch AS d WHERE d.disID = "
-                                                 f"(SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') or "
-                                                 f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}');"))
-                ret['researchers'] = []
-                for res in researchers:
-                    ret['researchers'].append(res[0])
-
+                ret['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
         elif userPath == 'researcher' or userPath == 'r':
             temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
             if temp:
-                columns = getTableCarry('researcher').get('headers')
-                for i, col in enumerate(columns):
-                    ret[col] = temp[0][i]
+                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
         return ret
 
     def addItem(self, key, itm):
@@ -296,16 +285,21 @@ class DataQueries:
         return self.addItem('patientIndices', table)
 
     def queryAvailableResearch(self, userPath, **kwargs):
-        where_limits = {}
-        join = []
         if userPath == 'r' or userPath == 'researcher':
             pass
         elif userPath == 'p' or userPath == 'patient':
-            queryStr = f"SELECT * activeresearch"
             ID = kwargs.get('ID')
             if not ID:
                 print("Missing ID column")
                 return
+            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+                       f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE " \
+                       f"d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
+                       f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}'); "
+            researchers = list(executedQuery(queryStr))
+            availableResearch = pd.DataFrame(researchers,
+                                             columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
+            return self.addItem('availableResearch', availableResearch)
 
         return
 
@@ -492,7 +486,7 @@ class DataQueries:
         for key, val in kwargs.items():
             if key in cols:
                 newSet = True
-                queryStr += f' {key} = {val},'
+                queryStr += f" {key} = '{val}',"
         if not newSet:
             return
         queryStr = queryStr[:-1]
@@ -519,4 +513,3 @@ def main():
 
 if __name__ == "__main__":
     Queries = main()
-
