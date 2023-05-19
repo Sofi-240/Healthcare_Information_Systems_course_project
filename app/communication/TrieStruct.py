@@ -30,15 +30,6 @@ class Trie:
         node.end = True
         node.disID.append(disId)
 
-    def search_node(self, sentence):
-        node = self.root
-        for word in sentence:
-            if word in node.children:
-                node = node.children[word]
-            else:
-                return False
-        return node.end
-
     def get_disID(self, sentence):
         node = self.root
         limit = 2
@@ -61,24 +52,6 @@ class Trie:
             if carry:
                 _, node = carry[0]
         return node.disID
-
-    def complete_sentence(self, part_sentence, disId=True):
-        node = self.root
-        sentence_list = []
-        for i, word in enumerate(part_sentence):
-            if i == 0 and len(word) == 1:
-                continue
-            if word in node.children:
-                node = node.children[word]
-            else:
-                return sentence_list
-        if node.end:
-            if disId:
-                sentence_list.append((part_sentence, node.disID))
-            else:
-                sentence_list.append(part_sentence)
-        self._walk(node, part_sentence, sentence_list, disId=disId)
-        return sentence_list
 
     def _walk(self, node, sentence, sentence_list, disId=True):
         if node.children:

@@ -82,24 +82,15 @@ class DataQueries:
         self.UserIndices = UserIndices
         return UserIndices
 
-    def dequeueUserIndices(self, call, returnData=False):
+    def dequeueUserIndices(self, call):
         if not self.UserIndices:
             return
         if call == 'PatientMainPg0':
-            if returnData:
-                return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
-            self.panel.frame.pg0.UserIndices = {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
-            return
+            return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
         if call == 'PatientMainPg1':
-            if returnData:
-                return self.UserIndices.get('symptoms')
-            self.panel.frame.pg1.UserSymptoms = self.UserIndices.get('symptoms')
-            return
+            return self.UserIndices.get('symptoms')
         if call == 'PatientMainPg2':
-            if returnData:
-                return self.UserIndices.get('availableResearch')
-            self.panel.frame.pg2.availableResearch = self.UserIndices.get('availableResearch')
-            return
+            return self.UserIndices.get('availableResearch')
         return
 
     def queryUpdateTrigger(self, *IDs):

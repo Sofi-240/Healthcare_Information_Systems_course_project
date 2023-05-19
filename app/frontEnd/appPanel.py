@@ -4,7 +4,6 @@ from app.frontEnd.views import *
 from app.frontEnd.researcherViews import *
 from app.communication.query import DataQueries
 from app.communication.input import insert2DB
-from app.frontEnd.autoComplete import AUTO_complete
 
 
 class Panel(tk.Tk):
@@ -21,7 +20,7 @@ class Panel(tk.Tk):
         self.config(bg="white")
         self.app_queries = DataQueries("his_project", self)
         self.app_insert2DB = insert2DB(self)
-        self.symptomsTrie = AUTO_complete(self.app_queries.SymptomsTrie.root)
+        self.symptomsTrie = self.app_queries.SymptomsTrie.root
         self._initPanel()
 
     def _initPanel(self):
