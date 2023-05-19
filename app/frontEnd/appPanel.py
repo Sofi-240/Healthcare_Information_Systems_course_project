@@ -1,11 +1,9 @@
 from screeninfo import get_monitors
 from tkinter import messagebox
-from app.frontEnd.logInViews import *
-from app.frontEnd.patientViews import *
+from app.frontEnd.views import *
 from app.frontEnd.researcherViews import *
 from app.communication.query import DataQueries
-from app.communication.input import insert2DB
-from app.frontEnd.autoComplete import AUTO_complete
+from app.communication.input import Insert2DB
 
 
 class Panel(tk.Tk):
@@ -20,9 +18,9 @@ class Panel(tk.Tk):
         self.columnconfigure(1, weight=1)
         self.rowconfigure(1, weight=1)
         self.config(bg="white")
-        self.app_queries = DataQueries("his_project")
-        self.app_insert2DB = insert2DB(self)
-        self.symptomsTrie = AUTO_complete(self.app_queries.SymptomsTrie.root)
+        self.app_queries = DataQueries("his_project", self)
+        self.app_insert2DB = Insert2DB(self)
+        self.symptomsTrie = self.app_queries.SymptomsTrie.root
         self._initPanel()
 
     def _initPanel(self):

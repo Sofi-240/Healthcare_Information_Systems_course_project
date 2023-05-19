@@ -1,15 +1,17 @@
-from app.initialization.ServerInitiation import *
+from app.initialization.serverInitiation import *
 import pandas as pd
 import datetime
-from app.communication.TrieStruct import Trie
+from app.communication.trieStruct import Trie
 
 
 class DataQueries:
-    def __init__(self, dbName):
+    def __init__(self, dbName, app):
         self.dbName = dbName
+        self.panel = app
         self.cursor, self.con = connect2serverDB(database=dbName)
         self.SymptomsTrie = Trie()
         self._enqueueSymptomsTrie()
+        self.UserIndices = None
 
     def _enqueueSymptomsTrie(self):
         """
@@ -40,29 +42,6 @@ class DataQueries:
         table.columns = getTableCarry(tableName.lower()).get('headers')
         return table
 
-    def checkForLogIn(self, userPath, ID):
-        ret = {}
-        if userPath == 'patient' or userPath == 'p':
-            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
-            if temp:
-                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
-                symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
-                ret['symptoms'] = []
-                for symp in symptoms:
-                    ret['symptoms'].append(symp[0])
-                ret['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
-                queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
-                           f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{ID}';"
-                researchers = pd.DataFrame(list(executedQuery(queryStr)),
-                                                 columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
-                                                          'Mail'])
-                ret['researchers'] = researchers
-        elif userPath == 'researcher' or userPath == 'r':
-            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
-            if temp:
-                ret['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
-        return ret
-
     def addItem(self, key, itm):
         """
         Args:
@@ -74,6 +53,45 @@ class DataQueries:
         """
         self.__dict__[key] = itm
         return itm
+
+    def checkForLogIn(self, userPath, ID):
+        UserIndices = {}
+        if userPath == 'patient' or userPath == 'p':
+            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
+            if not temp:
+                return
+            UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
+            symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
+            UserIndices['symptoms'] = []
+            for symp in symptoms:
+                UserIndices['symptoms'].append(symp[0])
+            UserIndices['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
+            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+                       f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{ID}';"
+            researchers = pd.DataFrame(list(executedQuery(queryStr)),
+                                       columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
+                                                'Mail'])
+            UserIndices['researchers'] = researchers
+            print(f'Patient Entry, ID: {ID}. {UserIndices}')
+        elif userPath == 'researcher' or userPath == 'r':
+            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
+            if not temp:
+                return
+            UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
+            print(f'Researcher Entry, ID: {ID}. {UserIndices}')
+        self.UserIndices = UserIndices
+        return UserIndices
+
+    def dequeueUserIndices(self, call):
+        if not self.UserIndices:
+            return
+        if call == 'PatientMainPg0':
+            return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
+        if call == 'PatientMainPg1':
+            return self.UserIndices.get('symptoms')
+        if call == 'PatientMainPg2':
+            return self.UserIndices.get('availableResearch')
+        return
 
     def queryUpdateTrigger(self, *IDs):
         """
@@ -512,10 +530,3 @@ class DataQueries:
         return
 
 
-def main():
-    q = DataQueries("his_project")
-    return q
-
-
-if __name__ == "__main__":
-    Queries = main()
