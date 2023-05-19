@@ -1,8 +1,8 @@
-from app.initialization.ServerInitiation import getTableCarry
+from app.initialization.serverInitiation import getTableCarry
 import datetime
 
 
-class insert2DB:
+class Insert2DB:
     def __init__(self, panel):
         self.panel = panel
         self.activeUser = None

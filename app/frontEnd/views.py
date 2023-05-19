@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, HORIZONTAL, VERTICAL
-from app.frontEnd.RoundButton import RoundedButton
+from app.frontEnd.roundButton import RoundedButton
 from tkcalendar import DateEntry
 from app.frontEnd.autoComplete import AUTO_complete
 
@@ -464,7 +464,7 @@ class PatientMainPanel(ttk.Frame):
 
         app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not insert2DB instance')
+            print('Master have not Insert2DB instance')
             return
 
         app_queries = MasterPanel.__dict__.get('app_queries')

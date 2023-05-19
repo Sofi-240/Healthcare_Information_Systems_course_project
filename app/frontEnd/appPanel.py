@@ -3,7 +3,7 @@ from tkinter import messagebox
 from app.frontEnd.views import *
 from app.frontEnd.researcherViews import *
 from app.communication.query import DataQueries
-from app.communication.input import insert2DB
+from app.communication.input import Insert2DB
 
 
 class Panel(tk.Tk):
@@ -19,7 +19,7 @@ class Panel(tk.Tk):
         self.rowconfigure(1, weight=1)
         self.config(bg="white")
         self.app_queries = DataQueries("his_project", self)
-        self.app_insert2DB = insert2DB(self)
+        self.app_insert2DB = Insert2DB(self)
         self.symptomsTrie = self.app_queries.SymptomsTrie.root
         self._initPanel()
 

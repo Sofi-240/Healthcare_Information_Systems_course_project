@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 import mysql.connector
-from app.initialization.table_obj import Table
+from app.initialization.tableObj import Table
 import os
 import pandas as pd
 import json

@@ -1,7 +1,7 @@
-from app.initialization.ServerInitiation import *
+from app.initialization.serverInitiation import *
 import pandas as pd
 import datetime
-from app.communication.TrieStruct import Trie
+from app.communication.trieStruct import Trie
 
 
 class DataQueries:

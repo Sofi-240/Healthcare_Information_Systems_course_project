@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, HORIZONTAL, VERTICAL
-from app.frontEnd.RoundButton import RoundedButton
+from app.frontEnd.roundButton import RoundedButton
 from tkcalendar import DateEntry
 
 
