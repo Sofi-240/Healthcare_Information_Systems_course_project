@@ -932,8 +932,6 @@ class PatientMainPanel(ttk.Frame):
         return
 
     def ButtonRefresh(self):
-        index = self.Page_Frames.index(self.Page_Frames.select())
-        print(index)
         app_queries = self.master.__dict__.get('app_queries')
         if not app_queries:
             return
@@ -941,25 +939,12 @@ class PatientMainPanel(ttk.Frame):
         if not app_insert2DB:
             return
         app_queries.checkForLogIn(app_insert2DB.activeUser, app_insert2DB.activeUserID)
-        app_queries.dequeueUserIndices(f'PatientMainPg{index}')
-        if index == 2:
-            Table_AvailableResearch = self.pg2.__dict__.get('Table_AvailableResearch')
-            if not Table_AvailableResearch:
-                return
-            for each in Table_AvailableResearch.get_children():
-                Table_AvailableResearch.delete(each)
-            availableResearch = self.pg2.__dict__.get('availableResearch')
-            if availableResearch is None:
-                return
-            for row in availableResearch.index:
-                vals = list(availableResearch.loc[row, :])
-                if row % 2:
-                    Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
-                                                   values=vals, tags=('even',))
-                else:
-                    Table_AvailableResearch.insert(parent='', index='end', iid=int(row), text='',
-                                                   values=vals, tags=('odd',))
-            return
+        self._PatientMainPg0(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg0', True),
+                             style='TFrame')
+        self._PatientMainPg1(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg1', True),
+                             style='TFrame')
+        self._PatientMainPg2(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg2', True),
+                             style='TFrame')
         return
 
     def raiseError(self, pgIndex, labelName=None):
