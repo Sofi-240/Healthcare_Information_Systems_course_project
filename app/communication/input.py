@@ -92,12 +92,17 @@ class Insert2DB:
                         self.panel.frame.deleteError(0, labelName=val[10:])
             if errCache:
                 print(errCache)
-                self.panel.frame.Page_Frames.tab(1, state="normal")
-                self.panel.frame.Page_Frames.select(1)
+                if index == 0:
+                    self.panel.frame.Page_Frames.tab(1, state="normal")
+                self.panel.frame.Page_Frames.select(0)
                 return
-            self.panel.frame.Page_Frames.tab(1, state="normal")
+            if index == 0:
+                self.panel.frame.Page_Frames.tab(1, state="normal")
             self.panel.frame.Page_Frames.select(1)
             if index == 1:
+                var = self.panel.frame.pg1.__dict__.get('Var_conifer')
+                if var.get() == 0:
+                    return self.panel.frame.raiseError(1)
                 return self.pushNewUser()
             return
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():

@@ -32,6 +32,11 @@ class UserLogInPanel(ttk.Frame):
         gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
         gridConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W}
 
+        app_insert2DB = self.master.__dict__.get('app_insert2DB')
+        if not app_insert2DB:
+            print('Master have not Insert2DB instance')
+            return
+
         def entryFocusOut(entryName):
             entry = self.logIn_frame.__dict__.get(f'Entry_User{entryName}')
             if not entry:
@@ -92,7 +97,7 @@ class UserLogInPanel(ttk.Frame):
                                                       btnforeground="black", width=250, height=60, highlightthickness=0,
                                                       font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.logIn_frame.Button_LogIn.grid(column=2, row=7, **gridConfigure)
-        self.logIn_frame.Button_LogIn.bind("<Button-1>", lambda e: self.button1(buttonName='LogIn'))
+        self.logIn_frame.Button_LogIn.bind("<Button-1>", lambda e: app_insert2DB.exLogIn())
 
         # SingIN button
         self.logIn_frame.Button_SignIN = RoundedButton(master=self.logIn_frame, text="Sign IN", radius=25,
@@ -101,7 +106,7 @@ class UserLogInPanel(ttk.Frame):
                                                        highlightthickness=0,
                                                        font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.logIn_frame.Button_SignIN.grid(column=2, row=8, **gridConfigure)
-        self.logIn_frame.Button_SignIN.bind("<Button-1>", lambda e: self.button1(buttonName='SignIN'))
+        self.logIn_frame.Button_SignIN.bind("<Button-1>", lambda e: app_insert2DB.exSignIN())
         return
 
     def raiseError(self, labelName):
@@ -116,16 +121,6 @@ class UserLogInPanel(ttk.Frame):
         if not label:
             return
         label.config(foreground="black")
-        return
-
-    def button1(self, buttonName):
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        if buttonName == 'LogIn':
-            return app_insert2DB.exLogIn()
-        if buttonName == 'SignIN':
-            return app_insert2DB.exSignIN()
         return
 
 
@@ -384,7 +379,8 @@ class PatientSignInPanel(ttk.Frame):
                                                btnforeground="white", width=150, height=60, highlightthickness=0,
                                                font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg1.Button_SignIN.grid(column=6, row=8, sticky=tk.E + tk.S + tk.W)
-        self.pg1.Button_SignIN.bind("<Button-1>", lambda e: self.signINButton())
+        app_insert2DB = self.master.__dict__.get('app_insert2DB')
+        self.pg1.Button_SignIN.bind("<Button-1>", lambda e: app_insert2DB.validUserSignIn())
         self.pg1.Var_conifer = tk.IntVar()
         self.pg1.Entry_conifer = tk.Checkbutton(self.pg1, text="I agree to the terms",
                                                 variable=self.pg1.Var_conifer,
@@ -424,15 +420,6 @@ class PatientSignInPanel(ttk.Frame):
             return
         entry.configure(foreground='black', font=("Helvetica", 12))
         return
-
-    def signINButton(self):
-        var = self.pg1.__dict__.get('Var_conifer')
-        if var.get() == 0:
-            return self.raiseError(1)
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        return app_insert2DB.validUserSignIn()
 
     def entryButton1(self, EntryName):
         index = self.Page_Frames.index(self.Page_Frames.select())
