@@ -100,6 +100,8 @@ class Insert2DB:
             if index == 1:
                 return self.pushNewUser()
             return
+        elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
+            return
         return
 
     def pushNewUser(self):
@@ -134,6 +136,8 @@ class Insert2DB:
                 NewPatientValues['symptoms'].append(self.panel.frame.pg1.Table_UserSelectSymptoms.item(each)['values'][0])
             NewPatientValues['ExLogIn'] = True
             self.panel.app_queries.insertNewUser('p', **NewPatientValues)
+        elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
+            return
         return
 
     def exLogIn(self):
@@ -222,6 +226,8 @@ class Insert2DB:
                 if symptomsNew:
                     self.panel.app_queries.insertNewSymptom('active', symptom=symptomsNew)
                 return True
+        elif str(self.panel.frame)[2:].lower() == 'ResearcherMainPanel'.lower():
+            return
         return False
 
     def exSignOut(self):
