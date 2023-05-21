@@ -57,6 +57,9 @@ class Panel(tk.Tk):
         return
 
     def destroy_frame(self, name):
+        if name == 'active':
+            self.frame.destroy()
+            return self.show_frame(UserLogInPanel)
         if type(name) == str and self.framesHash.get(name):
             F = self.framesHash.get(name)
             F = self.frames.get(F)

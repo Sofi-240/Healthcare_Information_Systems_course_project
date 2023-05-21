@@ -11,7 +11,9 @@ class DataQueries:
         self.cursor, self.con = connect2serverDB(database=dbName)
         self.SymptomsTrie = Trie()
         self._enqueueSymptomsTrie()
-        self.UserIndices = None
+        self.UserIndices = {}
+        self.activeUser = None
+        self.activeUserName = None
 
     def _enqueueSymptomsTrie(self):
         """
@@ -54,33 +56,54 @@ class DataQueries:
         self.__dict__[key] = itm
         return itm
 
-    def checkForLogIn(self, userPath, ID):
+    def activateLogIn(self, userPath, userID, userName):
+        showFrame = True
+        if userPath == 'active' and self.UserIndices:
+            userPath = self.activeUser
+            userID = self.UserIndices['Indices'].iloc[0, :]['ID']
+            userName = self.activeUserName
+            showFrame = False
+        if userPath == 'active':
+            return
         UserIndices = {}
+        frameName = ''
         if userPath == 'patient' or userPath == 'p':
-            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{ID}';")
+            temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{userID}';")
             if not temp:
-                return
+                return 'ID'
             UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
-            symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{ID}';"))
+            if userName.lower() != UserIndices['Indices'].iloc[0, :]['name'].lower():
+                return 'name'
+            symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{userID}';"))
             UserIndices['symptoms'] = []
             for symp in symptoms:
                 UserIndices['symptoms'].append(symp[0])
-            UserIndices['availableResearch'] = self.queryAvailableResearch('p', ID=ID)
+            UserIndices['availableResearch'] = self.queryAvailableResearch('p', ID=userID)
             queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
-                       f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{ID}';"
+                       f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{userID}';"
             researchers = pd.DataFrame(list(executedQuery(queryStr)),
                                        columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
                                                 'Mail'])
             UserIndices['researchers'] = researchers
-            print(f'Patient Entry, ID: {ID}. {UserIndices}')
+            print(f'Patient Entry, ID: {userID}. Name {userName}')
+            frameName = 'PatientMainPanel'
         elif userPath == 'researcher' or userPath == 'r':
-            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{ID}';")
+            temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{userID}';")
             if not temp:
-                return
+                return 'ID'
             UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
-            print(f'Researcher Entry, ID: {ID}. {UserIndices}')
+            if userName.lower() != UserIndices['Indices'].iloc[0, :]['Fname'].lower():
+                return 'name'
+            print(f'Researcher Entry, ID: {userID}. Name {userName}')
+            frameName = 'ResearcherMainPanel'
+        if not frameName:
+            return False
         self.UserIndices = UserIndices
-        return UserIndices
+        self.activeUser = userPath[0].lower()
+        self.activeUserName = userName
+        if showFrame:
+            self.panel.show_frame(frameName)
+        return True
 
     def dequeueUserIndices(self, call):
         if not self.UserIndices:
@@ -361,6 +384,11 @@ class DataQueries:
         Returns:
             None.
         """
+        if symptomPath == 'active' and self.UserIndices:
+            symptomPath = self.activeUser
+            kwargs['ID'] = self.UserIndices['Indices'].iloc[0, :]['ID']
+        if symptomPath == 'active':
+            return
         if symptomPath == 'patient' or symptomPath == 'p':
             ID, symptoms = kwargs.get('ID'), kwargs.get('symptom')
             if not ID:
@@ -415,28 +443,30 @@ class DataQueries:
             tableName = 'researcher'
         else:
             print(f"User Path {userPath} is not valid")
-            return
+            return False
         values = []
         for col in cols:
             val = kwargs.get(col)
             if val is None and val != 'support':
                 print(f"column named {col} is missing")
-                return
+                return False
             if col == 'support' and val is None:
                 val = 0
             if col == 'ID':
                 if executedQuery(f"SELECT * FROM {tableName} WHERE ID = '{val}';"):
                     print(f"The user with {val} ID exists in the system")
-                    return
+                    return True
             if col == 'USRname':
                 if executedQuery(f"SELECT * FROM {tableName} WHERE USRname = '{val}';"):
                     print(f"The username {val} exists in the system")
-                    return
+                    return True
             values.append(val)
         insert2Table(tableName, values)
         if tableName == 'patient' and kwargs.get('symptoms'):
             self.insertNewSymptom('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
-        return
+        if kwargs.get('ExLogIn'):
+            return self.activateLogIn(userPath, kwargs.get('ID'), kwargs.get('name'))
+        return True
 
     def insertNewDisease(self, depName, disName, disSymptoms=None):
         """
@@ -478,6 +508,11 @@ class DataQueries:
         Returns:
             None.
         """
+        if userPath == 'active' and self.UserIndices:
+            userPath = self.activeUser
+            ID = self.UserIndices['Indices'].iloc[0, :]['ID']
+        if userPath == 'active':
+            return
         if userPath == 'patient' or userPath == 'p':
             tables = [('symptomsPatient', 'ID'),
                       ('patientdiagnosis', 'ID'),
@@ -496,6 +531,11 @@ class DataQueries:
         return
 
     def updateUserIndices(self, userPath, ID, **kwargs):
+        if userPath == 'active' and self.UserIndices:
+            userPath = self.activeUser
+            ID = self.UserIndices['Indices'].iloc[0, :]['ID']
+        if userPath == 'active':
+            return False
         if userPath == 'patient' or userPath == 'p':
             cols = getTableCarry('patient').get('headers')
             tableName = 'patient'
@@ -504,7 +544,7 @@ class DataQueries:
             tableName = 'researcher'
         else:
             print(f"User Path {userPath} is not valid")
-            return
+            return False
         queryStr = f"UPDATE {tableName} SET"
         newSet = False
         for key, val in kwargs.items():
@@ -512,14 +552,18 @@ class DataQueries:
                 newSet = True
                 queryStr += f" {key} = '{val}',"
         if not newSet:
-            return
+            return True
         queryStr = queryStr[:-1]
         queryStr += f' WHERE ID = {ID};'
         print(queryStr)
         executedQueryCommit(queryStr)
-        return
+        return True
 
     def deletePatientSymptom(self, ID, *symptoms):
+        if ID == 'active' and self.UserIndices:
+            ID = self.UserIndices['Indices'].iloc[0, :]['ID']
+        if ID == 'active':
+            return
         if not symptoms:
             return
         for symp in symptoms:
