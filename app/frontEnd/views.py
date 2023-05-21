@@ -32,6 +32,11 @@ class UserLogInPanel(ttk.Frame):
         gridTEntryConfigure = {'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
         gridConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W}
 
+        app_insert2DB = self.master.__dict__.get('app_insert2DB')
+        if not app_insert2DB:
+            print('Master have not Insert2DB instance')
+            return
+
         def entryFocusOut(entryName):
             entry = self.logIn_frame.__dict__.get(f'Entry_User{entryName}')
             if not entry:
@@ -92,7 +97,7 @@ class UserLogInPanel(ttk.Frame):
                                                       btnforeground="black", width=250, height=60, highlightthickness=0,
                                                       font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.logIn_frame.Button_LogIn.grid(column=2, row=7, **gridConfigure)
-        self.logIn_frame.Button_LogIn.bind("<Button-1>", lambda e: self.button1(buttonName='LogIn'))
+        self.logIn_frame.Button_LogIn.bind("<Button-1>", lambda e: app_insert2DB.exLogIn())
 
         # SingIN button
         self.logIn_frame.Button_SignIN = RoundedButton(master=self.logIn_frame, text="Sign IN", radius=25,
@@ -101,7 +106,7 @@ class UserLogInPanel(ttk.Frame):
                                                        highlightthickness=0,
                                                        font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4')
         self.logIn_frame.Button_SignIN.grid(column=2, row=8, **gridConfigure)
-        self.logIn_frame.Button_SignIN.bind("<Button-1>", lambda e: self.button1(buttonName='SignIN'))
+        self.logIn_frame.Button_SignIN.bind("<Button-1>", lambda e: app_insert2DB.exSignIN())
         return
 
     def raiseError(self, labelName):
@@ -116,16 +121,6 @@ class UserLogInPanel(ttk.Frame):
         if not label:
             return
         label.config(foreground="black")
-        return
-
-    def button1(self, buttonName):
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        if buttonName == 'LogIn':
-            return app_insert2DB.ExLogIn()
-        if buttonName == 'SignIN':
-            return app_insert2DB.ExSignIN()
         return
 
 
@@ -145,6 +140,16 @@ class PatientSignInPanel(ttk.Frame):
         self.style.configure('TNotebook', background="LightSkyBlue4", weight=50, tabmargins=[5, 5, 0, 0])
         self.style.configure('TNotebook.Tab', background="tomato3", compound=tk.LEFT,
                              font=("Helvetica", 18, "bold"), weight=50, padding=[50, 20])
+
+        app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
+        if not app_insert2DB:
+            print('Master have not Insert2DB instance')
+            return
+
+        app_queries = MasterPanel.__dict__.get('app_queries')
+        if not app_queries:
+            print('Master have not queries instance')
+            return
 
         def back():
             index = self.Page_Frames.index(self.Page_Frames.select())
@@ -171,14 +176,14 @@ class PatientSignInPanel(ttk.Frame):
                                          btnforeground="white", width=150, height=60, highlightthickness=0,
                                          font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_Next.grid(column=4, row=1, padx=5, pady=5, sticky=tk.E)
-        self.Button_Next.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.validPatientSignIn())
+        self.Button_Next.bind("<Button-1>", lambda e: app_insert2DB.validUserSignIn())
 
         # Return button
         self.Button_Return = RoundedButton(master=self, text="Return", radius=10, btnbackground="LightSkyBlue4",
                                            btnforeground="white", width=150, height=60, highlightthickness=0,
                                            font=("Helvetica", 18, "bold"), masterBackground='white')
         self.Button_Return.grid(column=2, row=10, padx=5, pady=5, sticky=tk.W)
-        self.Button_Return.bind("<Button-1>", lambda e: MasterPanel.app_insert2DB.ExSignOut())
+        self.Button_Return.bind("<Button-1>", lambda e: app_insert2DB.exSignOut())
 
         self.Page_Frames = ttk.Notebook(self, width=700, height=600)
         self.Page_Frames.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
@@ -374,7 +379,8 @@ class PatientSignInPanel(ttk.Frame):
                                                btnforeground="white", width=150, height=60, highlightthickness=0,
                                                font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg1.Button_SignIN.grid(column=6, row=8, sticky=tk.E + tk.S + tk.W)
-        self.pg1.Button_SignIN.bind("<Button-1>", lambda e: self.signINButton())
+        app_insert2DB = self.master.__dict__.get('app_insert2DB')
+        self.pg1.Button_SignIN.bind("<Button-1>", lambda e: app_insert2DB.validUserSignIn())
         self.pg1.Var_conifer = tk.IntVar()
         self.pg1.Entry_conifer = tk.Checkbutton(self.pg1, text="I agree to the terms",
                                                 variable=self.pg1.Var_conifer,
@@ -414,15 +420,6 @@ class PatientSignInPanel(ttk.Frame):
             return
         entry.configure(foreground='black', font=("Helvetica", 12))
         return
-
-    def signINButton(self):
-        var = self.pg1.__dict__.get('Var_conifer')
-        if var.get() == 0:
-            return self.raiseError(1)
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        return app_insert2DB.validPatientSignIn()
 
     def entryButton1(self, EntryName):
         index = self.Page_Frames.index(self.Page_Frames.select())
@@ -483,7 +480,7 @@ class PatientMainPanel(ttk.Frame):
                                             btnforeground="white", width=150, height=60, highlightthickness=0,
                                             font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_SignOut.grid(column=0, row=0, padx=5, pady=5, sticky=tk.W)
-        self.Button_SignOut.bind("<Button-1>", lambda e: app_insert2DB.ExSignOut())
+        self.Button_SignOut.bind("<Button-1>", lambda e: app_insert2DB.exSignOut())
 
         self.Button_Refresh = RoundedButton(master=self, text="Refresh", radius=10,
                                             btnbackground="LightSkyBlue4",
@@ -496,24 +493,32 @@ class PatientMainPanel(ttk.Frame):
                                                btnforeground="white", width=150, height=60, highlightthickness=0,
                                                font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2')
         self.Button_DisConnect.grid(column=5, row=0, padx=5, pady=5, sticky=tk.E)
-        self.Button_DisConnect.bind("<Button-1>", lambda e: app_insert2DB.ExDisConnect())
+        self.Button_DisConnect.bind("<Button-1>", lambda e: app_insert2DB.exDisConnect())
+        return self._initNoteBook()
 
+    def _initNoteBook(self):
+        index = 0
+        if self.__dict__.get('Page_Frames'):
+            Page_Frames = self.__dict__.get('Page_Frames')
+            index = Page_Frames.index(Page_Frames.select())
+            Page_Frames.destroy()
         self.Page_Frames = ttk.Notebook(self, width=800, height=600)
         self.Page_Frames.grid(column=1, row=2, padx=1, pady=1, sticky="nsew", columnspan=3, rowspan=3)
 
-        self._initPatientMainPg0(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg0'), style='TFrame')
+        self._initPatientMainPg0(self.Page_Frames, style='TFrame')
         self.pg0.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self._initPatientMainPg1(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg1'), style='TFrame')
+        self._initPatientMainPg1(self.Page_Frames, style='TFrame')
         self.pg1.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
-        self._initPatientMainPg2(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg2'), style='TFrame')
+        self._initPatientMainPg2(self.Page_Frames, style='TFrame')
         self.pg2.grid(column=2, row=3, padx=10, pady=10, sticky="nsew", columnspan=3, rowspan=2)
         self.Page_Frames.add(self.pg0, text='                Profile                ', )
         self.Page_Frames.add(self.pg1, text='                Symptoms                ')
         self.Page_Frames.add(self.pg2, text='                Available Researches                ')
-        self.Page_Frames.select(0)
+        self.Page_Frames.select(index)
         return
 
-    def _initPatientMainPg0(self, MasterPanel, UserIndices, *args, **kwargs):
+    def _initPatientMainPg0(self, MasterPanel, *args, **kwargs):
+        UserIndices = self.master.__dict__.get('app_queries').dequeueUserIndices('PatientMainPg0')
         self.pg0 = ttk.Frame(master=MasterPanel, *args, **kwargs)
         self.pg0.columnconfigure(list(range(1, 10)), weight=1)
         self.pg0.rowconfigure(list(range(1, 14)), weight=1)
@@ -687,7 +692,8 @@ class PatientMainPanel(ttk.Frame):
         self.pg0.Button_UpDate.bind('<Button-1>', lambda e: self.buttonUpDate())
         return
 
-    def _initPatientMainPg1(self, MasterPanel, UserSymptoms, *args, **kwargs):
+    def _initPatientMainPg1(self, MasterPanel, *args, **kwargs):
+        UserSymptoms = self.master.__dict__.get('app_queries').dequeueUserIndices('PatientMainPg1')
         self.pg1 = ttk.Frame(master=MasterPanel, *args, **kwargs)
         self.pg1.columnconfigure(list(range(1, 9)), weight=1)
         self.pg1.rowconfigure(list(range(1, 14)), weight=1)
@@ -757,7 +763,8 @@ class PatientMainPanel(ttk.Frame):
         self.pg1.Button_UpDate.bind('<Button-1>', lambda e: self.buttonUpDate())
         return
 
-    def _initPatientMainPg2(self, MasterPanel, availableResearch, *args, **kwargs):
+    def _initPatientMainPg2(self, MasterPanel, *args, **kwargs):
+        availableResearch = self.master.__dict__.get('app_queries').dequeueUserIndices('PatientMainPg2')
         self.pg2 = ttk.Frame(master=MasterPanel, *args, **kwargs)
         self.pg2.columnconfigure(list(range(1, 5)), weight=1)
         self.pg2.rowconfigure(list(range(1, 7)), weight=1)
@@ -804,21 +811,14 @@ class PatientMainPanel(ttk.Frame):
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         if not app_insert2DB:
             return
-        app_insert2DB.PatientUpDate()
-        return self.buttonRefresh()
+        if app_insert2DB.PatientUpDate():
+            return self.buttonRefresh()
+        return
 
     def buttonRefresh(self):
         app_queries = self.master.__dict__.get('app_queries')
-        if not app_queries:
-            return
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        app_queries.checkForLogIn(app_insert2DB.activeUser, app_insert2DB.activeUserID)
-        self._initPatientMainPg0(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg0'), style='TFrame')
-        self._initPatientMainPg1(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg1'), style='TFrame')
-        self._initPatientMainPg2(self.Page_Frames, app_queries.dequeueUserIndices('PatientMainPg2'), style='TFrame')
-        return
+        app_queries.activateLogIn('active', None, None)
+        return self._initNoteBook()
 
     def raiseError(self, pgIndex, labelName=None):
         pg = self.__dict__.get(f'pg{pgIndex}')
