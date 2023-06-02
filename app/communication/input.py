@@ -18,6 +18,18 @@ class Insert2DB:
             if not txt or (txt and len(txt) < 2):
                 return False
             return True
+        if EntryName == 'Fname':
+            if not txt or (txt and len(txt) < 2):
+                return False
+            return True
+        if EntryName == 'Lname':
+            if not txt or (txt and len(txt) < 2):
+                return False
+            return True
+        if EntryName == 'Mail':
+            if not txt or (txt and len(txt) < 2):
+                return False
+            return True
         if EntryName == 'Phone':
             if not txt or (txt and (len(txt) < 10 or len(txt) > 10)):
                 return False
@@ -106,7 +118,19 @@ class Insert2DB:
                 return self.pushNewUser()
             return
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
-            return
+            errCache = False
+            for val, item in self.panel.frame.pg0.__dict__.items():
+                if len(val) > 10 and val[:10] == 'Entry_User':
+                    txt = item.get()
+                    if not self.handelFiled(val[10:], txt):
+                        self.panel.frame.raiseError(0, labelName=val[10:])
+                        errCache = True
+                    else:
+                        self.panel.frame.deleteError(0, labelName=val[10:])
+            if errCache:
+                print(errCache)
+                return
+            return self.pushNewUser()
         return
 
     def pushNewUser(self):
@@ -142,7 +166,22 @@ class Insert2DB:
             NewPatientValues['ExLogIn'] = True
             self.panel.app_queries.insertNewUser('p', **NewPatientValues)
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
-            return
+            columns = getTableCarry('researcher').get('headers')
+            NewResearcherValues = {}
+            for col in columns:
+                colName = col[0].upper() + col[1:]
+                if col != 'DOB':
+                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
+                else:
+                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get_date()
+                insertVal = val
+                if colName == 'Gender':
+                    insertVal = insertVal[0]
+                print(f'column {col}: {insertVal}')
+                NewResearcherValues[col] = insertVal
+            NewResearcherValues['ExLogIn'] = True
+            self.panel.app_queries.insertNewUser('r', **NewResearcherValues)
+            print(NewResearcherValues)
         return
 
     def exLogIn(self):

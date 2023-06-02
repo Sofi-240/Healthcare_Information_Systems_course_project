@@ -93,7 +93,12 @@ class DataQueries:
                 return 'ID'
             UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
             if userName.lower() != UserIndices['Indices'].iloc[0, :]['Fname'].lower():
-                return 'name'
+                return 'Fname'
+            queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
+                       f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{userID}';"
+            researchers = pd.DataFrame(list(executedQuery(queryStr)),
+                                       columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID'])
+            UserIndices['researchers'] = researchers
             print(f'Researcher Entry, ID: {userID}. Name {userName}')
             frameName = 'ResearcherMainPanel'
         if not frameName:
@@ -114,6 +119,8 @@ class DataQueries:
             return self.UserIndices.get('symptoms')
         if call == 'PatientMainPg2':
             return self.UserIndices.get('availableResearch')
+        if call == 'ResearcherMainPg0':
+            return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
         return
 
     def queryUpdateTrigger(self, *IDs):
@@ -347,7 +354,6 @@ class DataQueries:
             availableResearch = pd.DataFrame(researchers,
                                              columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
             return self.addItem('availableResearch', availableResearch)
-
         return
 
     def InsertResearch(self, researcherID, disease, *patientID):
@@ -464,8 +470,10 @@ class DataQueries:
         insert2Table(tableName, values)
         if tableName == 'patient' and kwargs.get('symptoms'):
             self.insertNewSymptom('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
-        if kwargs.get('ExLogIn'):
+        if tableName == 'patient' and kwargs.get('ExLogIn'):
             return self.activateLogIn(userPath, kwargs.get('ID'), kwargs.get('name'))
+        if tableName == 'researcher' and kwargs.get('ExLogIn'):
+            return self.activateLogIn(userPath, kwargs.get('ID'), kwargs.get('Fname'))
         return True
 
     def insertNewDisease(self, depName, disName, disSymptoms=None):

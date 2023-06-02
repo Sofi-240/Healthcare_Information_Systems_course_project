@@ -1,7 +1,6 @@
 from screeninfo import get_monitors
 from tkinter import messagebox
 from app.frontEnd.views import *
-from app.frontEnd.researcherViews import *
 from app.communication.query import DataQueries
 from app.communication.input import Insert2DB
 
