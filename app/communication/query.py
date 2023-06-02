@@ -78,11 +78,10 @@ class DataQueries:
             UserIndices['symptoms'] = []
             for symp in symptoms:
                 UserIndices['symptoms'].append(symp[0])
-            UserIndices['availableResearch'] = self.queryAvailableResearch('p', ID=userID)
+            UserIndices['availableResearch'] = self.queryAvailableResearchValues('p', ID=userID)
             queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
                        f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{userID}';"
-            researchers = pd.DataFrame(list(executedQuery(queryStr)),
-                                       columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
+            researchers = pd.DataFrame(list(executedQuery(queryStr)), columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
                                                 'Mail'])
             UserIndices['researchers'] = researchers
             print(f'Patient Entry, ID: {userID}. Name {userName}')
@@ -99,6 +98,7 @@ class DataQueries:
             researchers = pd.DataFrame(list(executedQuery(queryStr)),
                                        columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID'])
             UserIndices['researchers'] = researchers
+            UserIndices['availablePatients'] = self.queryAvailableResearchValues('r', ID=userID)
             print(f'Researcher Entry, ID: {userID}. Name {userName}')
             frameName = 'ResearcherMainPanel'
         if not frameName:
@@ -338,14 +338,20 @@ class DataQueries:
         table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
         return self.addItem('patientIndices', table)
 
-    def queryAvailableResearch(self, userPath, **kwargs):
+    def queryAvailableResearchValues(self, userPath, **kwargs):
+        ID = kwargs.get('ID')
+        if not ID:
+            print("Missing ID column")
+            return
         if userPath == 'r' or userPath == 'researcher':
-            pass
+            queryStr = f"SELECT p.ID, p.name, p.phone FROM patient AS p" \
+                       f" INNER JOIN activeresearch AS a ON a.rID = '{ID}' WHERE " \
+                       f"a.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = p.ID) OR " \
+                       f"a.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = p.ID);"
+            researchers = list(executedQuery(queryStr))
+            availablePatients = pd.DataFrame(researchers, columns=['patientID', 'patientName', 'patientPhone'])
+            return availablePatients
         elif userPath == 'p' or userPath == 'patient':
-            ID = kwargs.get('ID')
-            if not ID:
-                print("Missing ID column")
-                return
             queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
                        f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE " \
                        f"d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
@@ -353,7 +359,7 @@ class DataQueries:
             researchers = list(executedQuery(queryStr))
             availableResearch = pd.DataFrame(researchers,
                                              columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
-            return self.addItem('availableResearch', availableResearch)
+            return availableResearch
         return
 
     def InsertResearch(self, researcherID, disease, *patientID):
