@@ -373,6 +373,7 @@ class DataQueries:
         queryStr = f"SELECT s.Symptom FROM symptomsdiseases AS s" \
                    f" INNER JOIN diseases AS d ON s.disID = d.disID" \
                    f" WHERE d.disName = '{disName}';"
+
         symptoms = list(executedQuery(queryStr))
         return symptoms
 
