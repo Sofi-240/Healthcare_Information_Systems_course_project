@@ -370,13 +370,14 @@ class DataQueries:
         if not disName:
             print("Missing disName column")
             return
-        queryStr = f"SELECT s.Symptom FROM symptomsdiseases AS s" \
+        queryStr = f"SELECT d.disName, s.disID, s.Symptom FROM symptomdiseases AS s" \
                    f" INNER JOIN diseases AS d ON s.disID = d.disID" \
                    f" WHERE d.disName = '{disName}';"
         symptoms = list(executedQuery(queryStr))
-        return symptoms
+        symptomsDiseases = pd.DataFrame(symptoms, columns=['disName', 'disID', 'Symptom'])
+        return symptomsDiseases
 
-    def insertResearch(self, researcherID, disease, *patientID):
+    def InsertResearch(self, researcherID, disease, *patientID):
         queryStr = f'SELECT MAX(ID) FROM activeresearch'
         newID = executedQuery(queryStr) + 1
         if type(disease) == str:
@@ -391,7 +392,7 @@ class DataQueries:
             insert2Table('activeresearch', [newID, disID, researcherID, patientID.pop()])
         return
 
-    def insertPatientToResearch(self, researchID, *patientID):
+    def InsertPatientToResearch(self, researchID, *patientID):
         queryStr = f'SELECT disID, rID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
         disID, rID = executedQuery(queryStr)
         while patientID:
@@ -511,21 +512,20 @@ class DataQueries:
         if disSymptoms is None:
             disSymptoms = []
 
-        depID = str(
-            int(
-                executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}';")[-1][0]
-            )
-        )
-        disID = str(int(
-            executedQuery(
-                f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]
-            ) + 1)
-        insert2Table('diseases', [disID, disName, depID, depName])
+        depID = str(int(executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}';")[-1][0]))
+        if not depID:
+            depID = str(int(executedQuery(f"SELECT depID FROM diseases ORDER BY depID;")[-1][0]) + 10)
+            disID = depID + '00001'
+            insert2Table('diseases', [disID, disName, depID, depName])
+        else:
+            disID = str(int(
+                executedQuery(f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]) + 1)
+            insert2Table('diseases', [disID, disName, depID, depName])
         for syp in disSymptoms:
             self.insertNewSymptom('d', disID=disID, symptom=syp)
         return
 
-    def deleteUser(self, userPath, ID):
+    def DeleteUser(self, userPath, ID):
         """
         Delete a new from the database.
 

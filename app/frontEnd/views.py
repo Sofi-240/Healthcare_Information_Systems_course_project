@@ -1583,7 +1583,17 @@ class ResearcherMainPanel(ttk.Frame):
 
         self.pg4.Table_DiseaseExistingSymptoms.grid(column=2, row=7, columnspan=3, rowspan=4, sticky=tk.W + tk.E, padx=10)
 
-        temp = self.master.__dict__.get('symptomsTrie')
+        initSymptoms = symptomsDiseases
+        if initSymptoms:
+            for row, smp in enumerate(initSymptoms):
+                self.tableIndex += 1
+                if row % 2:
+                    self.treeview.insert(parent='', index='end', iid=int(row), text='',
+                                         values=[smp], tags=('even',))
+                else:
+                    self.treeview.insert(parent='', index='end', iid=int(row), text='',
+                                         values=[smp], tags=('odd',))
+
         # -------------------------New Symptom Name ------------------------------------------
         self.pg4.Label_DiseaseSymptom = ttk.Label(self.pg4, text='New Symptom Name: *', **labelConfigure)
         self.pg4.Label_DiseaseSymptom.grid(column=5, row=2, **gridConfigure)
