@@ -365,8 +365,8 @@ class DataQueries:
             return availableResearch
         return
 
-    def querySymptomsDiseases(self, **kwargs):
-        disName = kwargs.get('disName')
+    def querySymptomsDiseases(self, disName):
+        disName = disName
         if not disName:
             print("Missing disName column")
             return
@@ -429,20 +429,18 @@ class DataQueries:
             self.queryUpdateTrigger(ID)
             return
         if symptomPath == 'diseases' or symptomPath == 'd':
-            disID, symptoms = kwargs.get('disID'), kwargs.get('symptom')
+            disID, symptoms, disName = kwargs.get('disID'), kwargs.get('symptom'), kwargs.get('disName')
             print(f'The {disID} disease {symptoms} is ')
-            if not symptoms:
+            if symptoms is None:
                 print("No symptoms where given")
                 return
-            if not disID:
-                disName = kwargs.get('disName')
+            if disID is None:
                 if not disName:
                     print('No disease ID entered')
                     return
-                disID = executedQuery(f"SELECT disID FROM diseases WHERE disName = '{disName}';")
-                if disID:
-                    disID = disID[0]
-                else:
+                disName = disName[0]
+                disID = str(int(executedQuery(f"SELECT disID FROM diseases WHERE disName = '{disName}';")[-1][0]))
+                if not disID:
                     print(f'The {disName} disease is not registered in the database')
                     return
             for syp in symptoms:
@@ -511,7 +509,6 @@ class DataQueries:
             """
         if disSymptoms is None:
             disSymptoms = []
-
         depID = str(
             int(
                 executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}';")[-1][0]

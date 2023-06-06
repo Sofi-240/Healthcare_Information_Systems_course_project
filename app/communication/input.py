@@ -230,7 +230,7 @@ class Insert2DB:
                     NewDiseasesValues[col] = insertVal
             NewDiseasesValues['disSymptoms'] = []
             for each in self.panel.frame.pg3.Table_DiseaseSelectSymptoms.get_children():
-                NewDiseasesValues['disSymptoms'].append(self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0])
+                NewDiseasesValues['disSymptoms'].append([self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0]])
             self.panel.app_queries.insertNewDisease(**NewDiseasesValues)
             print(NewDiseasesValues)
         else:
@@ -238,18 +238,11 @@ class Insert2DB:
         return
 
     def pushNewSymptoms(self):
-        columns = getTableCarry('diseases').get('headers')
         NewSymptomValues = {}
-        for col in columns:
-            colName = col[0].upper() + col[1:]
-            insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
-            print(f'column {col}: {insertVal}')
-            NewSymptomValues[col] = insertVal
-        NewSymptomValues['symptoms'] = []
-        for each in self.panel.frame.pg3.Table_UserSelectSymptoms.get_children():
-            NewSymptomValues['symptoms'].append(self.panel.frame.pg3.Table_UserSelectSymptoms.item(each)['values'][0])
+        NewSymptomValues['disName'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseDisName').get()]
+        NewSymptomValues['symptom'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseSymptom').get()]
         self.panel.app_queries.insertNewSymptom('d', **NewSymptomValues)
-        print(NewSymptomValues)
+        print(f'The {NewSymptomValues} disease ')
         return
 
     def exLogIn(self):
