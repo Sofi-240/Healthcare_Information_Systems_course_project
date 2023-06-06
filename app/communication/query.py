@@ -121,7 +121,10 @@ class DataQueries:
             return self.UserIndices.get('availableResearch')
         if call == 'ResearcherMainPg0':
             return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
-        return
+        if call == 'ResearcherMainPg2':
+            return self.UserIndices.get('availablePatients')
+        if call == 'ResearcherMainPg4':
+            return self.UserIndices.get('symptomsDiseases')
 
     def queryUpdateTrigger(self, *IDs):
         """
@@ -344,12 +347,12 @@ class DataQueries:
             print("Missing ID column")
             return
         if userPath == 'r' or userPath == 'researcher':
-            queryStr = f"SELECT p.ID, p.name, p.phone FROM patient AS p" \
+            queryStr = f"SELECT a.ID, p.ID, p.name, p.phone FROM patient AS p" \
                        f" INNER JOIN activeresearch AS a ON a.rID = '{ID}' WHERE " \
                        f"a.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = p.ID) OR " \
                        f"a.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = p.ID);"
             researchers = list(executedQuery(queryStr))
-            availablePatients = pd.DataFrame(researchers, columns=['patientID', 'patientName', 'patientPhone'])
+            availablePatients = pd.DataFrame(researchers, columns=['researchID', 'patientID', 'patientName', 'patientPhone'])
             return availablePatients
         elif userPath == 'p' or userPath == 'patient':
             queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
@@ -361,6 +364,18 @@ class DataQueries:
                                              columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
             return availableResearch
         return
+
+    def querySymptomsDiseases(self, **kwargs):
+        disName = kwargs.get('disName')
+        if not disName:
+            print("Missing disName column")
+            return
+        queryStr = f"SELECT d.disName, s.disID, s.Symptom FROM symptomdiseases AS s" \
+                   f" INNER JOIN diseases AS d ON s.disID = d.disID" \
+                   f" WHERE d.disName = '{disName}';"
+        symptoms = list(executedQuery(queryStr))
+        symptomsDiseases = pd.DataFrame(symptoms, columns=['disName', 'disID', 'Symptom'])
+        return symptomsDiseases
 
     def InsertResearch(self, researcherID, disease, *patientID):
         queryStr = f'SELECT MAX(ID) FROM activeresearch'
@@ -415,7 +430,8 @@ class DataQueries:
             return
         if symptomPath == 'diseases' or symptomPath == 'd':
             disID, symptoms = kwargs.get('disID'), kwargs.get('symptom')
-            if symptoms:
+            print(f'The {disID} disease {symptoms} is ')
+            if not symptoms:
                 print("No symptoms where given")
                 return
             if not disID:
@@ -495,13 +511,13 @@ class DataQueries:
             """
         if disSymptoms is None:
             disSymptoms = []
-        depID = executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}' LIMIT 1;")
+
+        depID = str(int(executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}';")[-1][0]))
         if not depID:
             depID = str(int(executedQuery(f"SELECT depID FROM diseases ORDER BY depID;")[-1][0]) + 10)
             disID = depID + '00001'
             insert2Table('diseases', [disID, disName, depID, depName])
         else:
-            depID = depID[0]
             disID = str(int(
                 executedQuery(f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]) + 1)
             insert2Table('diseases', [disID, disName, depID, depName])

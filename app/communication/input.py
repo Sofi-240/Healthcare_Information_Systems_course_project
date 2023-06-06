@@ -184,6 +184,74 @@ class Insert2DB:
             print(NewResearcherValues)
         return
 
+    def pushNewResearch(self):
+        columnsPatient = getTableCarry('patient').get('headers')
+        columnsDisease = getTableCarry('diseases').get('headers')
+        NewResearchPatientValues = {}
+        NewResearchDiseaseValues= {}
+        for col in columnsPatient:
+            if col != ['ID', 'name', 'phone']:
+                colName = col[0].upper() + col[1:]
+                insertVal = self.panel.frame.pg1.__dict__.get(f'Entry_Research{colName}').get()
+                if colName == 'Area':
+                    insertVal = insertVal[0]
+                if colName == 'Gender':
+                    insertVal = insertVal[0]
+                if colName == 'Support' and insertVal.lower() == 'yes':
+                    insertVal = 1
+                elif colName == 'Support' and insertVal.lower() == 'no':
+                    insertVal = 0
+                if colName == 'Height':
+                    insertVal = float(insertVal)
+                    if insertVal > 3:
+                        insertVal /= 100
+                if colName == 'Weight':
+                    insertVal = float(insertVal)
+                print(f'column {col}: {insertVal}')
+                NewResearchPatientValues[col] = insertVal
+        for col in columnsDisease:
+            if col in ['disName', 'depName']:
+                colName = col[0].upper() + col[1:]
+                insertVal = self.panel.frame.pg1.__dict__.get(f'Entry_Research{colName}').get()
+                print(f'column {col}: {insertVal}')
+                NewResearchDiseaseValues[col] = insertVal
+            self.panel.app_queries.InsertResearch(**NewResearchDiseaseValues)
+        return
+
+    def pushNewDiseases(self):
+        if str(self.panel.frame)[2:].lower() == 'ResearcherMainPanel'.lower():
+            columns = getTableCarry('diseases').get('headers')
+            NewDiseasesValues = {}
+            for col in columns:
+                if col in ['disName', 'depName']:
+                    colName = col[0].upper() + col[1:]
+                    insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
+                    print(f'column {col}: {insertVal}')
+                    NewDiseasesValues[col] = insertVal
+            NewDiseasesValues['disSymptoms'] = []
+            for each in self.panel.frame.pg3.Table_DiseaseSelectSymptoms.get_children():
+                NewDiseasesValues['disSymptoms'].append(self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0])
+            self.panel.app_queries.insertNewDisease(**NewDiseasesValues)
+            print(NewDiseasesValues)
+        else:
+            print('NO')
+        return
+
+    def pushNewSymptoms(self):
+        columns = getTableCarry('diseases').get('headers')
+        NewSymptomValues = {}
+        for col in columns:
+            colName = col[0].upper() + col[1:]
+            insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
+            print(f'column {col}: {insertVal}')
+            NewSymptomValues[col] = insertVal
+        NewSymptomValues['symptoms'] = []
+        for each in self.panel.frame.pg3.Table_UserSelectSymptoms.get_children():
+            NewSymptomValues['symptoms'].append(self.panel.frame.pg3.Table_UserSelectSymptoms.item(each)['values'][0])
+        self.panel.app_queries.insertNewSymptom('d', **NewSymptomValues)
+        print(NewSymptomValues)
+        return
+
     def exLogIn(self):
         path = self.panel.frame.logIn_frame.Entry_UserPath.get()
         if path == 0:
