@@ -215,7 +215,7 @@ class Insert2DB:
                 insertVal = self.panel.frame.pg1.__dict__.get(f'Entry_Research{colName}').get()
                 print(f'column {col}: {insertVal}')
                 NewResearchDiseaseValues[col] = insertVal
-            self.panel.app_queries.InsertResearch(**NewResearchDiseaseValues)
+            self.panel.app_queries.insertResearch(**NewResearchDiseaseValues)
         return
 
     def pushNewDiseases(self):
@@ -350,7 +350,7 @@ class Insert2DB:
         return
 
     def exDisConnect(self):
-        self.panel.app_queries.DeleteUser('active', None)
+        self.panel.app_queries.deleteUser('active', None)
         return self.exSignOut()
 
 
