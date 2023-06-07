@@ -1600,11 +1600,9 @@ class ResearcherMainPanel(ttk.Frame):
         return
 
     def _initResearcherMainPg4(self, MasterPanel, *args, **kwargs):
-        symptomsDiseases = self.master.__dict__.get('app_queries').dequeueUserIndices('ResearcherMainPg4')
         self.pg4 = ttk.Frame(master=MasterPanel, *args, **kwargs)
         self.pg4.columnconfigure(list(range(1, 10)), weight=1)
         self.pg4.rowconfigure(list(range(1, 14)), weight=1)
-        self.pg4.symptomsDiseases = symptomsDiseases
 
         gridConfigure = {'padx': 5, 'pady': 5, 'sticky': tk.W}
         gridTEntryConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
@@ -1624,29 +1622,25 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg4.Entry_DiseaseDisName = ttk.Entry(self.pg4, **entryConfigure)
         self.pg4.Entry_DiseaseDisName.grid(column=2, row=3, **gridTEntryConfigure)
 
-        self.pg4.Button_show = RoundedButton(master=self.pg4, text="Show Existing Symptoms", radius=10,
-                                             btnbackground="LightSkyBlue4",
-                                             btnforeground="white", width=80, height=60, highlightthickness=0,
-                                             font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.pg4.Button_show.grid(column=3, row=3, sticky=tk.W)
-
+        self.pg4.Button_ShowSymptoms = RoundedButton(master=self.pg4, text="Show Existing Symptoms", radius=10,
+                                               btnbackground="LightSkyBlue4",
+                                               btnforeground="white", width=80, height=60, highlightthickness=0,
+                                               font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.pg4.Button_ShowSymptoms.grid(column=3, row=3, sticky=tk.W)
+        self.pg4.Button_ShowSymptoms.bind("<Button-1>", lambda e: self.buttonShowSymptoms())
         # -------------------------Existing Symptoms ------------------------------------------
 
         self.pg4.Label_DiseaseExistingSymptoms = ttk.Label(self.pg4, text='Existing Symptoms:', **labelConfigure)
-        self.pg4.Label_DiseaseExistingSymptoms.grid(column=2, row=6, columnspan=3, sticky=tk.N, padx=10, pady=10)
+        self.pg4.Label_DiseaseExistingSymptoms.grid(column=2, row=6, columnspan=3, sticky=tk.W, padx=10, pady=10)
 
         self.pg4.Table_DiseaseExistingSymptoms = ttk.Treeview(self.pg4, style='Custom.Treeview')
         self.pg4.Table_DiseaseExistingSymptoms['columns'] = ['Symptoms']
         self.pg4.Table_DiseaseExistingSymptoms.column("#0", width=0, stretch=tk.NO)
-        self.pg4.Table_DiseaseExistingSymptoms.column('Symptoms', anchor=tk.W, width=400)
 
         self.pg4.Table_DiseaseExistingSymptoms.tag_configure('odd', background='snow2')
         self.pg4.Table_DiseaseExistingSymptoms.tag_configure('even', background='white')
+        self.pg4.Table_DiseaseExistingSymptoms.grid(column=2, row=7, columnspan=2, rowspan=9, sticky=tk.W + tk.E, pady=5)
 
-        self.pg4.Table_DiseaseExistingSymptoms.grid(column=2, row=7, columnspan=3, rowspan=4, sticky=tk.W + tk.E,
-                                                    padx=10)
-
-        temp = self.master.__dict__.get('symptomsTrie')
         # -------------------------New Symptom Name ------------------------------------------
         self.pg4.Label_DiseaseSymptom = ttk.Label(self.pg4, text='New Symptom Name: *', **labelConfigure)
         self.pg4.Label_DiseaseSymptom.grid(column=5, row=2, **gridConfigure)
@@ -1663,6 +1657,17 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg4.Button_AddSymptom.bind("<Button-1>", lambda e: app_insert2DB.pushNewSymptoms())
         return
 
+    def buttonShowSymptoms(self):
+        disName = self.pg4.__dict__.get(f'Entry_DiseaseDisName').get()
+        symptoms = self.master.__dict__.get('app_queries').querySymptomsDiseases(disName)
+        for i, row in enumerate(symptoms):
+            if i % 2:
+                self.pg4.Table_DiseaseExistingSymptoms.insert(parent='', index='end', iid=int(i), text='', values=[row[0]],
+                                                  tags=('even',))
+            else:
+                self.pg4.Table_DiseaseExistingSymptoms.insert(parent='', index='end', iid=int(i), text='', values=[row[0]],
+                                                  tags=('odd',))
+        return
     def buttonUpDate(self):
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         if not app_insert2DB:
