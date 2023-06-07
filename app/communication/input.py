@@ -90,7 +90,9 @@ class Insert2DB:
 
     def validUserSignIn(self):
         if str(self.panel.frame)[2:].lower() == 'PatientSignInPanel'.lower():
-            index = self.panel.frame.Page_Frames.index(self.panel.frame.Page_Frames.select())
+            index = self.panel.frame.Page_Frames.index(
+                self.panel.frame.Page_Frames.select()
+            )
             errCache = False
             for val, item in self.panel.frame.pg0.__dict__.items():
                 if len(val) > 10 and val[:10] == 'Entry_User':
@@ -99,18 +101,20 @@ class Insert2DB:
                     else:
                         txt = item.get_date()
                     if not self.handelFiled(val[10:], txt):
-                        self.panel.frame.raiseError(0, labelName=val[10:])
+                        self.panel.frame.raiseError(
+                            0, labelName=val[10:]
+                        )
                         errCache = True
                     else:
-                        self.panel.frame.deleteError(0, labelName=val[10:])
+                        self.panel.frame.deleteError(
+                            0, labelName=val[10:]
+                        )
             if errCache:
-                print(errCache)
-                if index == 0:
-                    self.panel.frame.Page_Frames.tab(1, state="normal")
-                self.panel.frame.Page_Frames.select(0)
                 return
             if index == 0:
-                self.panel.frame.Page_Frames.tab(1, state="normal")
+                self.panel.frame.Page_Frames.tab(
+                    1, state="normal"
+                )
             self.panel.frame.Page_Frames.select(1)
             if index == 1:
                 var = self.panel.frame.pg1.__dict__.get('Var_conifer')
@@ -124,10 +128,14 @@ class Insert2DB:
                 if len(val) > 10 and val[:10] == 'Entry_User':
                     txt = item.get()
                     if not self.handelFiled(val[10:], txt):
-                        self.panel.frame.raiseError(0, labelName=val[10:])
+                        self.panel.frame.raiseError(
+                            0, labelName=val[10:]
+                        )
                         errCache = True
                     else:
-                        self.panel.frame.deleteError(0, labelName=val[10:])
+                        self.panel.frame.deleteError(
+                            0, labelName=val[10:]
+                        )
             if errCache:
                 print(errCache)
                 return
@@ -163,7 +171,9 @@ class Insert2DB:
                 NewPatientValues[col] = insertVal
             NewPatientValues['symptoms'] = []
             for each in self.panel.frame.pg1.Table_UserSelectSymptoms.get_children():
-                NewPatientValues['symptoms'].append(self.panel.frame.pg1.Table_UserSelectSymptoms.item(each)['values'][0])
+                NewPatientValues['symptoms'].append(
+                    self.panel.frame.pg1.Table_UserSelectSymptoms.item(each)['values'][0]
+                )
             NewPatientValues['ExLogIn'] = True
             self.panel.app_queries.insertNewUser('p', **NewPatientValues)
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
@@ -181,7 +191,9 @@ class Insert2DB:
                 print(f'column {col}: {insertVal}')
                 NewResearcherValues[col] = insertVal
             NewResearcherValues['ExLogIn'] = True
-            self.panel.app_queries.insertNewUser('r', **NewResearcherValues)
+            self.panel.app_queries.insertNewUser(
+                'r', **NewResearcherValues
+            )
             print(NewResearcherValues)
         return
 
@@ -206,7 +218,9 @@ class Insert2DB:
                 elif colName == 'symptoms':
                     insertVal = []
                     for each in item.get_children():
-                        insertVal.append(item.item(each)['values'][0])
+                        insertVal.append(
+                            item.item(each)['values'][0]
+                        )
                 elif colName in ['disName', 'depName']:
                     insertVal = item.get()
                 else:
@@ -228,9 +242,25 @@ class Insert2DB:
                             insertVal.append(opt)
                 print(f'column {colName}: {insertVal}')
                 NewResearch[colName] = insertVal
-        print(NewResearch)
-        self.panel.app_queries.insertResearch('active', **NewResearch)
+        self.panel.app_queries.insertResearch(
+            'active', **NewResearch
+        )
         messagebox.showinfo("", "The research inserted into the db")
+        return
+
+    def addPatientToResearch(self):
+        treeview = self.panel.frame.pg2.__dict__.get('Table_AvailablePatients')
+        if not treeview:
+            return
+        textList = treeview.item(treeview.focus())["values"]
+        if not textList:
+            return
+        res = messagebox.askquestion(
+            'Agreement', f"Did you have {textList[2]} agreement?"
+        )
+        if res == 'yes':
+            self.panel.app_queries.insertPatientToResearch(textList[0], textList[1])
+            messagebox.showinfo("", f"{textList[2]} now in the research")
         return
 
     def pushNewDiseases(self):
@@ -248,8 +278,7 @@ class Insert2DB:
                 NewDiseasesValues['disSymptoms'].append([self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0]])
             self.panel.app_queries.insertNewDisease(**NewDiseasesValues)
             print(NewDiseasesValues)
-        else:
-            print('NO')
+
         return
 
     def pushNewSymptoms(self):
@@ -257,7 +286,6 @@ class Insert2DB:
         NewSymptomValues['disName'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseDisName').get()]
         NewSymptomValues['symptom'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseSymptom').get()]
         self.panel.app_queries.insertNewSymptom('d', **NewSymptomValues)
-        print(f'The {NewSymptomValues} disease ')
         return
 
     def exLogIn(self):
@@ -286,7 +314,9 @@ class Insert2DB:
 
     def userUpDate(self):
         if str(self.panel.frame)[2:].lower() == 'PatientMainPanel'.lower():
-            index = self.panel.frame.Page_Frames.index(self.panel.frame.Page_Frames.select())
+            index = self.panel.frame.Page_Frames.index(
+                self.panel.frame.Page_Frames.select()
+            )
             print(index)
             if index == 0:
                 updateVals = {}
@@ -327,7 +357,9 @@ class Insert2DB:
             if index == 1:
                 selected = []
                 for each in self.panel.frame.pg1.Table_UserSymptoms.get_children():
-                    selected.append(self.panel.frame.pg1.Table_UserSymptoms.item(each)['values'][0])
+                    selected.append(
+                        self.panel.frame.pg1.Table_UserSymptoms.item(each)['values'][0]
+                    )
                 symptomsCurr = self.panel.app_queries.UserIndices.get('symptoms')
                 if not selected and not symptomsCurr:
                     return True

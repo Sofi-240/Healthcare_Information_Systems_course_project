@@ -29,7 +29,9 @@ class Panel(tk.Tk):
                 [UserLogInPanel, PatientSignInPanel, ResearcherSignInPanel],
                 ['UserLogInPanel', 'PatientSignInPanel', 'ResearcherSignInPanel']):
             frame = F(self)
-            frame.grid(column=1, row=1, padx=20, pady=20, sticky="nsew")
+            frame.grid(
+                column=1, row=1, padx=20, pady=20, sticky="nsew"
+            )
             self.frames[F] = frame
             self.framesHash[strName] = F
         return self.show_frame(UserLogInPanel)
@@ -37,14 +39,18 @@ class Panel(tk.Tk):
     def show_frame(self, name):
         if type(name) == str and name == 'PatientMainPanel':
             self.frame = PatientMainPanel(self)
-            self.frame.grid(column=1, row=1, padx=20, pady=20, sticky="nsew")
+            self.frame.grid(
+                column=1, row=1, padx=20, pady=20, sticky="nsew"
+            )
             self.frame.tkraise()
             self.frames[PatientMainPanel] = self.frame
             self.framesHash['PatientMainPanel'] = self.frame
             return
         if type(name) == str and name == 'ResearcherMainPanel':
             self.frame = ResearcherMainPanel(self)
-            self.frame.grid(column=1, row=1, padx=20, pady=20, sticky="nsew")
+            self.frame.grid(
+                column=1, row=1, padx=20, pady=20, sticky="nsew"
+            )
             self.frame.tkraise()
             self.frames[ResearcherMainPanel] = self.frame
             self.framesHash['ResearcherMainPanel'] = self.frame
@@ -78,7 +84,7 @@ class Panel(tk.Tk):
 
 
 if __name__ == '__main__':
-    appPanel = Panel()
-    appPanel.mainloop()
+    app_panel = Panel()
+    app_panel.mainloop()
 
 

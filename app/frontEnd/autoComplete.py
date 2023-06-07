@@ -204,13 +204,16 @@ class AUTO_complete:
         self.listbox.config(listvariable=tk.Variable(value=sentence_list))
         return
 
-    def updateSelectSymptoms(self):
+    def updateSelectSymptoms(self, symptom=''):
         if not self.treeview:
             return
-        selected = self.listbox.curselection()
-        if not selected:
-            return
-        txt = self.listbox.get(selected[0])
+        if symptom:
+            txt = symptom
+        else:
+            selected = self.listbox.curselection()
+            if not selected:
+                return
+            txt = self.listbox.get(selected[0])
         for each in self.treeview.get_children():
             if self.treeview.item(each)['values'][0] == txt:
                 return
