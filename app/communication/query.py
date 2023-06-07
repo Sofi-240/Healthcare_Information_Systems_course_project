@@ -253,7 +253,7 @@ class DataQueries:
                     temp = None
                 if temp is not None:
                     where_limits[key] = temp
-            if key == 'symptoms':
+            if key == 'symptoms' and val:
                 colName = ['symptom']
                 joinCol = f"t1.Symptom AS symptom, "
                 joinStr = f"INNER JOIN (SELECT d1.Symptom, d1.ID FROM symptomspatient as d1 "
@@ -566,6 +566,25 @@ class DataQueries:
         elif userPath == 'researcher' or userPath == 'r':
             tables = [('activeresearch', 'rID'),
                       ('researcher', 'ID')]
+            queryStr = f"SELECT ID FROM activeresearch WHERE rID = {ID}"
+            researchers = list(executedQuery(queryStr))
+            path = os.path.join(
+                os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+            )
+            fileDict = json.loads(
+                open(
+                    path, 'r'
+                ).read()
+            )
+            for rID in researchers:
+                if fileDict.get(str(rID[0])):
+                    fileDict.pop(str(rID[0]))
+            open(
+                path, 'w'
+            ).write(
+                json.dumps(fileDict)
+            )
+
         else:
             print(f"User Path {userPath} is not valid")
             return

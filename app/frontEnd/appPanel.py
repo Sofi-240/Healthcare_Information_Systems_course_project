@@ -78,9 +78,7 @@ class Panel(tk.Tk):
 
 
 if __name__ == '__main__':
-    myPanel = Panel()
-    myPanel.mainloop()
+    appPanel = Panel()
+    appPanel.mainloop()
 
 
-
-# 123351563 or
