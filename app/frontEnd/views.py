@@ -1223,16 +1223,19 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg0.Table_Researchers.tag_configure('even', background='white')
         self.pg0.Table_Researchers.grid(column=5, row=3, columnspan=5, rowspan=9, sticky=tk.N + tk.W + tk.E, pady=5)
 
-        self.pg0.Button_AddResearch = RoundedButton(master=self.pg0, text="Add Research", radius=10, btnbackground="LightSkyBlue4",
-                                               btnforeground="white", width=150, height=60, highlightthickness=0,
-                                               font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.pg0.Button_AddResearch.grid(column=5, row=10, padx=5, pady=5, sticky=tk.W+tk.E)
+        self.pg0.Button_AddResearch = RoundedButton(master=self.pg0, text="Add Research", radius=10,
+                                                    btnbackground="LightSkyBlue4",
+                                                    btnforeground="white", width=150, height=60, highlightthickness=0,
+                                                    font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.pg0.Button_AddResearch.grid(column=5, row=10, padx=5, pady=5, sticky=tk.W + tk.E)
         self.pg0.Button_AddResearch.bind('<Button-1>', lambda e: self.buttonUpDate())
 
-        self.pg0.Button_AvailablePatient = RoundedButton(master=self.pg0, text="Available Patient", radius=10, btnbackground="LightSkyBlue4",
-                                               btnforeground="white", width=150, height=60, highlightthickness=0,
-                                               font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.pg0.Button_AvailablePatient.grid(column=9, row=10, padx=5, pady=5, sticky=tk.W+tk.E)
+        self.pg0.Button_AvailablePatient = RoundedButton(master=self.pg0, text="Available Patient", radius=10,
+                                                         btnbackground="LightSkyBlue4",
+                                                         btnforeground="white", width=150, height=60,
+                                                         highlightthickness=0,
+                                                         font=("Helvetica", 18, "bold"), masterBackground='white')
+        self.pg0.Button_AvailablePatient.grid(column=9, row=10, padx=5, pady=5, sticky=tk.W + tk.E)
         self.pg0.Button_AvailablePatient.bind('<Button-1>', lambda e: self.buttonUpDate())
         return
 
@@ -1241,6 +1244,8 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg1.columnconfigure(list(range(1, 9)), weight=1)
         self.pg1.rowconfigure(list(range(1, 14)), weight=1)
 
+        diseasesTable = self.master.__dict__.get('app_queries').dequeueUserIndices('ResearcherMainPg1')
+
         gridConfigure = {'padx': 20, 'pady': 0, 'sticky': tk.W}
         gridTEntryConfigure = {'padx': 5, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0}
         entryConfigure = {'font': ("Helvetica", 18), 'background': 'white'}
@@ -1248,113 +1253,169 @@ class ResearcherMainPanel(ttk.Frame):
                           'foreground': 'LightSkyBlue4'}
         s = ttk.Style()
         s.configure('Custom.Treeview', rowheight=30, highlightthickness=2, bd=0, font=('Helvetica', 18))
+        s.configure('Custom.TMenubutton', background='white', font=('Helvetica', 18, "bold"),
+                    bordercolor='LightSkyBlue4', borderwidth=1, foreground='LightSkyBlue4')
+        s.configure('custom.TSpinbox', background='white', foreground='black', font=('Helvetica', 18))
         s.map("Custom.Treeview", background=[("selected", "ivory4")])
 
-        # ------------------------- COB ------------------------------------------
-        self.pg1.Label_ResearchCOB = ttk.Label(self.pg1, text='Country Of Birth:', **labelConfigure)
-        self.pg1.Label_ResearchCOB.grid(column=1, row=1, **gridConfigure)
-
-        self.pg1.Entry_ResearchCOB = ttk.Entry(self.pg1, **entryConfigure)
-        self.pg1.Entry_ResearchCOB.insert(0, 'Israel')
-        self.pg1.Entry_ResearchCOB.grid(column=1, row=2, **gridTEntryConfigure)
-        self.pg1.Entry_ResearchCOB.bind("<Button-1>")
-        self.pg1.Entry_ResearchCOB.bind("<FocusOut>")
-
         # ------------------------- Gender ------------------------------------------
-        self.pg1.Label_ResearchGender = ttk.Label(self.pg1, text='Gender: *', **labelConfigure)
-        self.pg1.Label_ResearchGender.grid(column=2, row=1, **gridConfigure)
+        self.pg1.Entry_Research_gender = ttk.Menubutton(self.pg1, text="Gender", style='Custom.TMenubutton')
+        drop = tk.Menu(self.pg1.Entry_Research_gender, tearoff=False,
+                       activebackground='LightSkyBlue4', activeforeground='white', borderwidth=0)
+        self.pg1.Entry_Research_gender.optionList = []
 
-        self.pg1.textVariable_ResearchGender = tk.StringVar()
-        self.pg1.Entry_ResearchGender = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchGender,
-                                                 **entryConfigure)
-        self.pg1.Entry_ResearchGender['values'] = ('Female', 'Male')
-        self.pg1.Entry_ResearchGender.grid(column=2, row=2, **gridTEntryConfigure)
-
-        # ------------------------- Age ------------------------------------------
-        self.pg1.Label_ResearchDOB = ttk.Label(self.pg1, text='Age', **labelConfigure)
-        self.pg1.Label_ResearchDOB.grid(column=4, row=1, **gridConfigure)
-
-        self.pg1.Entry_ResearchDOB = DateEntry(self.pg1, selectmode='day', date_pattern='MM-dd-yyyy',
-                                           font=("Helvetica", 18, "bold"),
-                                           firstweekday='sunday', weekenddays=[6, 7], background='LightSkyBlue4',
-                                           foreground='white')
-        self.pg1.Entry_ResearchDOB.grid(column=4, row=2, **gridConfigure)
+        for i, val in enumerate(['Female', 'Male']):
+            currVar = tk.IntVar()
+            self.pg1.Entry_Research_gender.optionList.append((currVar, val))
+            drop.add_checkbutton(label=val, variable=currVar, onvalue=1, offvalue=0, font=('Helvetica', 18, "bold"))
+            currVar.set(1)
+        self.pg1.Entry_Research_gender["menu"] = drop
+        self.pg1.Entry_Research_gender.grid(column=1, row=1, **gridTEntryConfigure)
 
         # ------------------------- Support ------------------------------------------
-        self.pg1.Label_ResearchSupport = ttk.Label(self.pg1, text='Support: *', **labelConfigure)
-        self.pg1.Label_ResearchSupport.grid(column=6, row=1, **gridConfigure)
 
-        self.pg1.textVariable_ResearchSupport = tk.StringVar()
-        self.pg1.Entry_ResearchSupport = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchSupport,
-                                                  **entryConfigure)
-        self.pg1.Entry_ResearchSupport['values'] = ('Yes', 'No')
-        self.pg1.Entry_ResearchSupport.grid(column=6, row=2, **gridTEntryConfigure)
+        self.pg1.Entry_Research_support = ttk.Menubutton(self.pg1, text="Support", style='Custom.TMenubutton')
+        drop = tk.Menu(self.pg1.Entry_Research_support, tearoff=False,
+                       activebackground='LightSkyBlue4', activeforeground='white', borderwidth=0)
+        self.pg1.Entry_Research_support.optionList = []
 
-        # ------------------------- Height ------------------------------------------
-        self.pg1.Label_ResearchHeight = ttk.Label(self.pg1, text='Height: *', **labelConfigure)
-        self.pg1.Label_ResearchHeight.grid(column=1, row=3, **gridConfigure)
+        for i, val in enumerate(['Yes', 'No']):
+            currVar = tk.IntVar()
+            self.pg1.Entry_Research_support.optionList.append((currVar, val))
+            drop.add_checkbutton(label=val, variable=currVar, onvalue=1, offvalue=0, font=('Helvetica', 18, "bold"))
+            currVar.set(1)
+        self.pg1.Entry_Research_support["menu"] = drop
 
-        self.pg1.Entry_ResearchHeight = tk.Entry(self.pg1, **entryConfigure)
-        self.pg1.Entry_ResearchHeight.grid(column=1, row=4, **gridTEntryConfigure)
-
-        # ------------------------- Weight ------------------------------------------
-        self.pg1.Label_ResearchWeight = ttk.Label(self.pg1, text='Weight: *', **labelConfigure)
-        self.pg1.Label_ResearchWeight.grid(column=2, row=3, **gridConfigure)
-
-        self.pg1.Entry_ResearchWeight = ttk.Entry(self.pg1, **entryConfigure)
-        self.pg1.Entry_ResearchWeight.grid(column=2, row=4, **gridTEntryConfigure)
+        self.pg1.Entry_Research_support.grid(column=1, row=3, **gridTEntryConfigure)
 
         # ------------------------- HMO ------------------------------------------
-        self.pg1.Label_ResearchHMO = ttk.Label(self.pg1, text='HMO: *', **labelConfigure)
-        self.pg1.Label_ResearchHMO.grid(column=4, row=3, **gridConfigure)
 
-        self.pg1.textVariable_ResearchHMO = tk.StringVar()
-        self.pg1.Entry_ResearchHMO = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchHMO, **entryConfigure)
-        self.pg1.Entry_ResearchHMO['values'] = ('Clalit', 'Maccabi', 'Meuhedet', 'Leumit')
-        self.pg1.Entry_ResearchHMO.grid(column=4, row=4, **gridTEntryConfigure)
+        self.pg1.Entry_Research_HMO = ttk.Menubutton(self.pg1, text="HMO", style='Custom.TMenubutton')
+        drop = tk.Menu(self.pg1.Entry_Research_HMO, tearoff=False,
+                       activebackground='LightSkyBlue4', activeforeground='white', borderwidth=0)
+        self.pg1.Entry_Research_HMO.optionList = []
+
+        for i, val in enumerate(['Clalit', 'Maccabi', 'Meuhedet', 'Leumit']):
+            currVar = tk.IntVar()
+            self.pg1.Entry_Research_HMO.optionList.append((currVar, val))
+            drop.add_checkbutton(label=val, variable=currVar, onvalue=1, offvalue=0, font=('Helvetica', 18, "bold"))
+            currVar.set(1)
+        self.pg1.Entry_Research_HMO["menu"] = drop
+        self.pg1.Entry_Research_HMO.grid(column=2, row=1, **gridTEntryConfigure)
 
         # ------------------------- Area ------------------------------------------
-        self.pg1.Label_ResearchArea = ttk.Label(self.pg1, text='Area: *', **labelConfigure)
-        self.pg1.Label_ResearchArea.grid(column=6, row=3, **gridConfigure)
 
-        self.pg1.textVariable_ResearchArea = tk.StringVar()
-        self.pg1.Entry_ResearchArea = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchArea, **entryConfigure)
-        self.pg1.Entry_ResearchArea['values'] = ('North', 'Center', 'South')
-        self.pg1.Entry_ResearchArea.grid(column=6, row=4, **gridTEntryConfigure)
+        self.pg1.Entry_Research_area = ttk.Menubutton(self.pg1, text="Area", style='Custom.TMenubutton')
+        drop = tk.Menu(self.pg1.Entry_Research_area, tearoff=False,
+                       activebackground='LightSkyBlue4', activeforeground='white', borderwidth=0)
+        self.pg1.Entry_Research_area.optionList = []
+
+        for i, val in enumerate(['North', 'Center', 'South']):
+            currVar = tk.IntVar()
+            self.pg1.Entry_Research_area.optionList.append((currVar, val))
+            drop.add_checkbutton(label=val, variable=currVar, onvalue=1, offvalue=0, font=('Helvetica', 18, "bold"))
+            currVar.set(1)
+        self.pg1.Entry_Research_area["menu"] = drop
+        self.pg1.Entry_Research_area.grid(column=2, row=3, **gridTEntryConfigure)
+
+        # ------------------------- Age ------------------------------------------
+        self.pg1.Label_Research_age = ttk.Label(self.pg1, text='Age between:', **labelConfigure)
+        self.pg1.Label_Research_age.grid(column=3, row=1, **gridConfigure)
+        self.pg1.Entry_Research_age = []
+        start = ttk.Spinbox(self.pg1, from_=18, to=100, style='custom.TSpinbox')
+        start.grid(column=3, row=2, **gridConfigure)
+
+        stop = ttk.Spinbox(self.pg1, from_=18, to=100, style='custom.TSpinbox')
+        stop.grid(column=3, row=4, **gridConfigure)
+        self.pg1.Entry_Research_age = [start, stop]
+
+        # ------------------------- Height ------------------------------------------
+        self.pg1.Label_Research_height = ttk.Label(self.pg1, text='Height between:', **labelConfigure)
+        self.pg1.Label_Research_height.grid(column=4, row=1, **gridConfigure)
+        self.pg1.Entry_Research_height = []
+        start = ttk.Spinbox(self.pg1, from_=10, to=100, style='custom.TSpinbox')
+        start.grid(column=4, row=2, **gridConfigure)
+
+        stop = ttk.Spinbox(self.pg1, from_=10, to=100, style='custom.TSpinbox')
+        stop.grid(column=4, row=4, **gridConfigure)
+        self.pg1.Entry_Research_height = [start, stop]
+
+        # ------------------------- Weight ------------------------------------------
+        self.pg1.Label_Research_weight = ttk.Label(self.pg1, text='Weight:', **labelConfigure)
+        self.pg1.Label_Research_weight.grid(column=5, row=1, **gridConfigure)
+        self.pg1.Entry_Research_weight = []
+        start = ttk.Spinbox(self.pg1, from_=0, to=100, style='custom.TSpinbox')
+        start.grid(column=5, row=2, **gridConfigure)
+
+        stop = ttk.Spinbox(self.pg1, from_=0, to=100, style='custom.TSpinbox')
+        stop.grid(column=5, row=4, **gridConfigure)
+        self.pg1.Entry_Research_weight = [start, stop]
+
+        # ------------------------- COB ------------------------------------------
+        self.pg1.Label_Research_COB = ttk.Label(self.pg1, text='Country Of Birth:', **labelConfigure)
+        self.pg1.Label_Research_COB.grid(column=6, row=1, **gridConfigure)
+        self.pg1.Entry_Research_COB = []
 
         # ------------------------- Separator ------------------------------------------
         ttk.Separator(self.pg1, orient=HORIZONTAL).grid(row=5, column=0, columnspan=11, ipadx=150,
-                                                    sticky=tk.W + tk.E + tk.S)
+                                                        sticky=tk.W + tk.E + tk.S)
 
         # ------------------------- Disease Department ------------------------------------------
-        self.pg1.Label_ResearchDisDep = ttk.Label(self.pg1, text='Department:', **labelConfigure)
-        self.pg1.Label_ResearchDisDep.grid(column=1, row=6, **gridConfigure)
 
-        self.pg1.textVariable_ResearchDisDep = tk.StringVar()
-        self.pg1.Entry_ResearchDisDep = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchDisDep, **entryConfigure)
-        self.pg1.Entry_ResearchDisDep['values'] = ('Oncology', 'Neurological', 'Vascular')
-        self.pg1.Entry_ResearchDisDep.grid(column=1, row=7, **gridTEntryConfigure)
+        self.pg1.Label_Research_depName = ttk.Label(self.pg1, text='Department:', **labelConfigure)
+        self.pg1.Label_Research_depName.grid(column=1, row=6, **gridConfigure)
+
+        self.pg1.textVariable_Research_depName = tk.StringVar()
+        self.pg1.Entry_Research_depName = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_Research_depName,
+                                                       **entryConfigure)
+        if diseasesTable is not None:
+            self.pg1.Entry_Research_depName['values'] = tuple(diseasesTable['depName'].unique())
+
+        self.pg1.Entry_Research_depName.grid(column=1, row=7, **gridTEntryConfigure)
 
         # ------------------------- Disease Name ------------------------------------------
-        self.pg1.Label_ResearchDisName = ttk.Label(self.pg1, text='Name:', **labelConfigure)
-        self.pg1.Label_ResearchDisName.grid(column=2, row=6, **gridConfigure)
+        self.pg1.Label_Research_disName = ttk.Label(self.pg1, text='Name:', **labelConfigure)
+        self.pg1.Label_Research_disName.grid(column=2, row=6, **gridConfigure)
 
-        self.pg1.textVariable_ResearchDisName = tk.StringVar()
-        self.pg1.Entry_ResearchDisName = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_ResearchDisDep, **entryConfigure)
-        self.pg1.Entry_ResearchDisName['values'] = ('Oncology', 'Neurological', 'Vascular')
-        self.pg1.Entry_ResearchDisName.grid(column=2, row=7, **gridTEntryConfigure)
+        self.pg1.textVariable_Research_disName = tk.StringVar()
+        self.pg1.Entry_Research_disName = ttk.Combobox(self.pg1, textvariable=self.pg1.textVariable_Research_disName,
+                                                       **entryConfigure)
+        if diseasesTable is not None:
+            self.pg1.Entry_Research_disName['values'] = tuple(diseasesTable['disName'].unique())
+        self.pg1.Entry_Research_disName.grid(column=2, row=7, **gridTEntryConfigure)
+
+        def buttonDisUpdate():
+            if diseasesTable is None:
+                return
+            txt = self.pg1.Entry_Research_depName.get()
+            if not txt:
+                self.pg1.Entry_Research_disName['values'] = tuple(diseasesTable['disName'].unique())
+                return
+            self.pg1.Entry_Research_disName['values'] = tuple(diseasesTable.loc[diseasesTable['depName'] == txt, 'disName'].unique())
+
+        def buttonDepUpdate():
+            if diseasesTable is None:
+                return
+            txt = self.pg1.Entry_Research_disName.get()
+            if not txt:
+                self.pg1.Entry_Research_depName['values'] = tuple(diseasesTable['depName'].unique())
+                return
+            self.pg1.Entry_Research_depName['values'] = tuple(diseasesTable.loc[diseasesTable['disName'] == txt, 'depName'].unique())
+
+        self.pg1.Entry_Research_depName.bind("<FocusOut>", lambda e: buttonDisUpdate())
+        self.pg1.Entry_Research_disName.bind("<FocusOut>", lambda e: buttonDepUpdate())
 
         # ------------------------- Symptoms ------------------------------------------
         self.pg1.Label_ResearchSymptoms = ttk.Label(self.pg1, text='Symptoms:', **labelConfigure)
         self.pg1.Label_ResearchSymptoms.grid(column=1, row=9, columnspan=2, sticky=tk.W + tk.N, pady=10, padx=10)
 
         self.pg1.Entry_ResearchSymptoms = ttk.Entry(self.pg1, textvariable=tk.StringVar(), width=40,
-                                                   **entryConfigure)
+                                                    **entryConfigure)
         self.pg1.Entry_ResearchSymptoms.grid(column=1, row=10, columnspan=2, rowspan=2, sticky=tk.W + tk.N + tk.E)
 
         self.pg1.Listbox_ResearchSymptoms = tk.Listbox(self.pg1, selectmode=tk.EXTENDED, font=("Helvetica", 18),
-                                                      bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
-                                                      relief='flat', width=40)
+                                                       bg='white', highlightcolor='LightSkyBlue4', highlightthickness=1,
+                                                       relief='flat', width=40)
         self.pg1.Listbox_ResearchSymptoms.grid(column=1, row=11, columnspan=2, rowspan=3, sticky=tk.W + tk.E, padx=10)
 
         self.pg1.Button_select = RoundedButton(master=self.pg1, text="Select", radius=10,
@@ -1368,15 +1429,16 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg1.Label_ResearchSelectSymptoms = ttk.Label(self.pg1, text='Selected Symptoms:', **labelConfigure)
         self.pg1.Label_ResearchSelectSymptoms.grid(column=4, row=9, columnspan=3, sticky=tk.W + tk.N, padx=10, pady=10)
 
-        self.pg1.Table_ResearchSelectSymptoms = ttk.Treeview(self.pg1, style='Custom.Treeview')
-        self.pg1.Table_ResearchSelectSymptoms['columns'] = ['Symptoms']
-        self.pg1.Table_ResearchSelectSymptoms.column("#0", width=0, stretch=tk.NO)
-        self.pg1.Table_ResearchSelectSymptoms.column('Symptoms', anchor=tk.W, width=400)
+        self.pg1.Entry_Research_symptoms = ttk.Treeview(self.pg1, style='Custom.Treeview')
+        self.pg1.Entry_Research_symptoms['columns'] = ['Symptoms']
+        self.pg1.Entry_Research_symptoms.column("#0", width=0, stretch=tk.NO)
+        self.pg1.Entry_Research_symptoms.column('Symptoms', anchor=tk.W, width=400)
 
-        self.pg1.Table_ResearchSelectSymptoms.tag_configure('odd', background='snow2')
-        self.pg1.Table_ResearchSelectSymptoms.tag_configure('even', background='white')
+        self.pg1.Entry_Research_symptoms.tag_configure('odd', background='snow2')
+        self.pg1.Entry_Research_symptoms.tag_configure('even', background='white')
 
-        self.pg1.Table_ResearchSelectSymptoms.grid(column=4, row=10, columnspan=3, rowspan=4, sticky=tk.W + tk.E, padx=10)
+        self.pg1.Entry_Research_symptoms.grid(column=4, row=10, columnspan=3, rowspan=4, sticky=tk.W + tk.E,
+                                              padx=10)
 
         self.pg1.Button_deleteSelect = RoundedButton(master=self.pg1, text="Delete Selected", radius=10,
                                                      btnbackground="LightSkyBlue4",
@@ -1387,14 +1449,14 @@ class ResearcherMainPanel(ttk.Frame):
         if temp:
             self.AutoComplete = AUTO_complete(temp, self.pg1.Entry_ResearchSymptoms,
                                               self.pg1.Listbox_ResearchSymptoms,
-                                              treeview=self.pg1.Table_ResearchSelectSymptoms,
+                                              treeview=self.pg1.Entry_Research_symptoms,
                                               select=self.pg1.Button_select, deleteSelect=self.pg1.Button_deleteSelect)
 
         # ------------------------- Create New Research ------------------------------------------
         self.pg1.Button_createResearch = RoundedButton(master=self.pg1, text="Create Research", radius=10,
-                                                     btnbackground="LightSkyBlue4",
-                                                     btnforeground="white", width=80, height=60, highlightthickness=0,
-                                                     font=("Helvetica", 18, "bold"), masterBackground='white')
+                                                       btnbackground="LightSkyBlue4",
+                                                       btnforeground="white", width=80, height=60, highlightthickness=0,
+                                                       font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg1.Button_createResearch.grid(column=6, row=14, sticky=tk.W + tk.E)
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         self.pg1.Button_createResearch.bind("<Button-1>", lambda e: app_insert2DB.pushNewResearch())
@@ -1529,9 +1591,9 @@ class ResearcherMainPanel(ttk.Frame):
                                               select=self.pg3.Button_select, deleteSelect=self.pg3.Button_deleteSelect)
         self.pg3.Button_deleteSelect.grid(column=5, row=11, sticky=tk.W + tk.E)
         self.pg3.Button_AddDisease = RoundedButton(master=self.pg3, text="Add New Disease", radius=10,
-                                               btnbackground="LightSkyBlue4",
-                                               btnforeground="white", width=80, height=60, highlightthickness=0,
-                                               font=("Helvetica", 18, "bold"), masterBackground='white')
+                                                   btnbackground="LightSkyBlue4",
+                                                   btnforeground="white", width=80, height=60, highlightthickness=0,
+                                                   font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg3.Button_AddDisease.grid(column=7, row=13, sticky=tk.E + tk.S + tk.W)
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         self.pg3.Button_AddDisease.bind("<Button-1>", lambda e: app_insert2DB.pushNewDiseases())
@@ -1563,9 +1625,9 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg4.Entry_DiseaseDisName.grid(column=2, row=3, **gridTEntryConfigure)
 
         self.pg4.Button_show = RoundedButton(master=self.pg4, text="Show Existing Symptoms", radius=10,
-                                               btnbackground="LightSkyBlue4",
-                                               btnforeground="white", width=80, height=60, highlightthickness=0,
-                                               font=("Helvetica", 18, "bold"), masterBackground='white')
+                                             btnbackground="LightSkyBlue4",
+                                             btnforeground="white", width=80, height=60, highlightthickness=0,
+                                             font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg4.Button_show.grid(column=3, row=3, sticky=tk.W)
 
         # -------------------------Existing Symptoms ------------------------------------------
@@ -1581,7 +1643,8 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg4.Table_DiseaseExistingSymptoms.tag_configure('odd', background='snow2')
         self.pg4.Table_DiseaseExistingSymptoms.tag_configure('even', background='white')
 
-        self.pg4.Table_DiseaseExistingSymptoms.grid(column=2, row=7, columnspan=3, rowspan=4, sticky=tk.W + tk.E, padx=10)
+        self.pg4.Table_DiseaseExistingSymptoms.grid(column=2, row=7, columnspan=3, rowspan=4, sticky=tk.W + tk.E,
+                                                    padx=10)
 
         temp = self.master.__dict__.get('symptomsTrie')
         # -------------------------New Symptom Name ------------------------------------------
@@ -1592,9 +1655,9 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg4.Entry_DiseaseSymptom.grid(column=5, row=3, **gridTEntryConfigure)
 
         self.pg4.Button_AddSymptom = RoundedButton(master=self.pg4, text="Add New Symptom", radius=10,
-                                               btnbackground="LightSkyBlue4",
-                                               btnforeground="white", width=80, height=60, highlightthickness=0,
-                                               font=("Helvetica", 18, "bold"), masterBackground='white')
+                                                   btnbackground="LightSkyBlue4",
+                                                   btnforeground="white", width=80, height=60, highlightthickness=0,
+                                                   font=("Helvetica", 18, "bold"), masterBackground='white')
         self.pg4.Button_AddSymptom.grid(column=6, row=3, sticky=tk.W)
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         self.pg4.Button_AddSymptom.bind("<Button-1>", lambda e: app_insert2DB.pushNewSymptoms())

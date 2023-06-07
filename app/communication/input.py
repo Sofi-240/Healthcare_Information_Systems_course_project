@@ -185,37 +185,48 @@ class Insert2DB:
         return
 
     def pushNewResearch(self):
-        columnsPatient = getTableCarry('patient').get('headers')
-        columnsDisease = getTableCarry('diseases').get('headers')
-        NewResearchPatientValues = {}
-        NewResearchDiseaseValues= {}
-        for col in columnsPatient:
-            if col != ['ID', 'name', 'phone']:
-                colName = col[0].upper() + col[1:]
-                insertVal = self.panel.frame.pg1.__dict__.get(f'Entry_Research{colName}').get()
-                if colName == 'Area':
-                    insertVal = insertVal[0]
-                if colName == 'Gender':
-                    insertVal = insertVal[0]
-                if colName == 'Support' and insertVal.lower() == 'yes':
-                    insertVal = 1
-                elif colName == 'Support' and insertVal.lower() == 'no':
-                    insertVal = 0
-                if colName == 'Height':
-                    insertVal = float(insertVal)
-                    if insertVal > 3:
-                        insertVal /= 100
-                if colName == 'Weight':
-                    insertVal = float(insertVal)
-                print(f'column {col}: {insertVal}')
-                NewResearchPatientValues[col] = insertVal
-        for col in columnsDisease:
-            if col in ['disName', 'depName']:
-                colName = col[0].upper() + col[1:]
-                insertVal = self.panel.frame.pg1.__dict__.get(f'Entry_Research{colName}').get()
-                print(f'column {col}: {insertVal}')
-                NewResearchDiseaseValues[col] = insertVal
-            self.panel.app_queries.insertResearch(**NewResearchDiseaseValues)
+        NewResearch = {}
+        for val, item in self.panel.frame.pg1.__dict__.items():
+            temp = val.split('_')
+            if temp[0] == 'Entry' and temp[1] == 'Research':
+                colName = temp[-1]
+                if type(item) is list and item:
+                    insertVal = []
+                    for x in item:
+                        txt = x.get()
+                        if txt == '':
+                            insertVal.append(None)
+                        else:
+                            try:
+                                digit = int(txt)
+                            except ValueError:
+                                digit = txt
+                            insertVal.append(digit)
+                elif colName == 'symptoms':
+                    insertVal = []
+                    for each in item.get_children():
+                        insertVal.append(item.item(each)['values'][0])
+                elif colName in ['disName', 'depName']:
+                    insertVal = item.get()
+                else:
+                    try:
+                        insertValTemp = item.optionList
+                    except AttributeError:
+                        continue
+                    insertVal = []
+                    for widg, opt in insertValTemp:
+                        if widg.get() == 0:
+                            continue
+                        if colName == 'support' and opt.lower() == 'no':
+                            insertVal.append(0)
+                        elif colName == 'support' and opt.lower() == 'yes':
+                            insertVal.append(1)
+                        else:
+                            insertVal.append(opt)
+                print(f'column {colName}: {insertVal}')
+                NewResearch[colName] = insertVal
+        print(NewResearch)
+        self.panel.app_queries.insertResearch('active', **NewResearch)
         return
 
     def pushNewDiseases(self):

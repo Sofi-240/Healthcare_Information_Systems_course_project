@@ -1,3 +1,5 @@
+import json
+
 from app.initialization.serverInitiation import *
 import pandas as pd
 import datetime
@@ -101,6 +103,7 @@ class DataQueries:
             UserIndices['availablePatients'] = self.queryAvailableResearchValues('r', ID=userID)
             print(f'Researcher Entry, ID: {userID}. Name {userName}')
             frameName = 'ResearcherMainPanel'
+            self.addItem('diseases', self.get_table('diseases'))
         if not frameName:
             return False
         self.UserIndices = UserIndices
@@ -121,6 +124,10 @@ class DataQueries:
             return self.UserIndices.get('availableResearch')
         if call == 'ResearcherMainPg0':
             return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
+        if call == 'ResearcherMainPg1':
+            if self.__dict__.get('diseases') is None:
+                return self.addItem('diseases', self.get_table('diseases'))
+            return self.__dict__.get('diseases')
         if call == 'ResearcherMainPg2':
             return self.UserIndices.get('availablePatients')
         if call == 'ResearcherMainPg4':
@@ -214,14 +221,6 @@ class DataQueries:
             - age: The patient's age (calc. from DOB)
             - symptom: The patient's symptom
             - diseases: The patient's disease
-            - conf: The confidence level associated with the patient's disease diagnosis
-
-            The values of the search criteria can be:
-            - including strings (=)
-            - integers (=)
-            - list (>=, <=) or [iter]
-            - tuple (>, <) or [iter]
-            - set [iter]
 
         Returns:
             table (pd.DataFrame): patient table. .
@@ -230,7 +229,7 @@ class DataQueries:
         join = []
         colsName = getTableCarry('patient').get('headers')
         for key, val in kwargs.items():
-            if key in ['ID', 'gender', 'support', 'phone', 'area', 'city', 'HMO', 'COB']:
+            if key in ['ID', 'gender', 'support', 'phone', 'area', 'HMO', 'COB']:
                 if type(val) == set or type(val) == tuple or type(val) == list:
                     temp = f" {key} IN {val} "
                 else:
@@ -240,27 +239,15 @@ class DataQueries:
                 tempKey = key
                 if key == 'age':
                     tempKey = 'TIMESTAMPDIFF(YEAR, DOB, CURDATE())'
-                if type(val) == list:
-                    eq = ('>=', '<=')
-                elif type(val) == tuple:
-                    eq = ('>', '<')
+                eq = ('>=', '<=')
+                if val[0] is not None and val[1] is not None:
+                    temp = f" {tempKey} {eq[0]} {val[0]} AND {tempKey} {eq[1]} {val[1]} "
+                elif val[0] is None:
+                    temp = f" {tempKey} {eq[1]} {val[1]} "
                 else:
-                    if val < 0:
-                        eq = '<>'
-                        val = abs(val)
-                    else:
-                        eq = '='
-                if type(eq) == tuple:
-                    if val[0] is not None and val[1] is not None:
-                        temp = f" {tempKey} {eq[0]} {val[0]} AND {tempKey} {eq[1]} {val[1]} "
-                    elif val[0] is None:
-                        temp = f" {tempKey} {eq[1]} {val[1]} "
-                    else:
-                        temp = f" {tempKey} {eq[0]} {val[0]} "
-                else:
-                    temp = f" {tempKey} {eq} {val} "
+                    temp = f" {tempKey} {eq[0]} {val[0]} "
                 where_limits[key] = temp
-            if key == 'symptom':
+            if key == 'symptoms':
                 colName = ['symptom']
                 joinCol = f"t1.Symptom AS symptom, "
                 joinStr = f"INNER JOIN (SELECT d1.Symptom, d1.ID FROM symptomspatient as d1 "
@@ -275,7 +262,7 @@ class DataQueries:
                 joinStr += f"AS t1 " \
                            f"ON t.ID = t1.ID "
                 join.append([colName, joinCol, joinStr])
-            if key == 'diseases':
+            if key == 'disName':
                 colName = ['disName', 'conf']
                 joinCol = f"t2.disName AS disName, t2.conf AS conf, "
                 joinStr = f"INNER JOIN (SELECT d1.disName, d2.ID, " \
@@ -292,28 +279,6 @@ class DataQueries:
                 joinStr += f"AS t2 " \
                            f"ON t.ID = t2.ID "
                 join.append([colName, joinCol, joinStr])
-                if kwargs.get('conf'):
-                    conf = kwargs.get('conf')
-                    if type(conf) == list:
-                        eq = ('>=', '<=')
-                    elif type(conf) == tuple:
-                        eq = ('>', '<')
-                    else:
-                        if conf < 0:
-                            eq = '<>'
-                            conf = abs(conf)
-                        else:
-                            eq = '='
-                    if type(eq) == tuple:
-                        if conf[0] is not None and conf[1] is not None:
-                            temp = f" conf {eq[0]} {conf[0]} AND conf {eq[1]} {conf[1]} "
-                        elif val[0] is None:
-                            temp = f" conf {eq[1]} {conf[1]} "
-                        else:
-                            temp = f" conf {eq[0]} {conf[0]} "
-                    else:
-                        temp = f" conf {eq} {conf} "
-                    where_limits['conf'] = temp
 
         queryStr = f"SELECT "
         ret_cols = []
@@ -377,26 +342,43 @@ class DataQueries:
         symptoms = list(executedQuery(queryStr))
         return symptoms
 
-    def insertResearch(self, researcherID, disease, *patientID):
-        queryStr = f'SELECT MAX(ID) FROM activeresearch'
-        newID = executedQuery(queryStr) + 1
-        if type(disease) == str:
-            queryStr = f'SELECT disID FROM diseases WHERE disName = {disease}'
-            disID = executedQuery(queryStr)
-        else:
-            disID = disease
-        if not patientID:
-            insert2Table('activeresearch', [newID, disID, researcherID, None])
+    def insertResearch(self, researcherID, **researchHash):
+        if researcherID == 'active' and self.UserIndices:
+            researcherID = self.UserIndices['Indices'].iloc[0, :]['ID']
+        if researcherID == 'active':
             return
-        while patientID:
-            insert2Table('activeresearch', [newID, disID, researcherID, patientID.pop()])
+        disName = researchHash.get('disName')
+        newID = int(executedQuery(f'SELECT MAX(ID) FROM activeresearch;')[0][0]) + 1
+        if not disName:
+            disID = None
+        else:
+            queryStr = f'SELECT d.disID FROM diseases AS d WHERE d.disName = `{disName}`;'
+            print(queryStr)
+            disID, newID = executedQuery(queryStr)[0]
+        fileDict = json.loads(
+            open(
+                'searchHashFile.txt', 'r'
+            ).read()
+        )
+        fileDict[str(newID)] = researchHash
+
+        open(
+            'searchHashFile.txt', 'w'
+        ).write(
+            json.dumps(fileDict)
+        )
+        insert2Table('activeresearch', [newID, disID, researcherID, None])
         return
 
     def insertPatientToResearch(self, researchID, *patientID):
         queryStr = f'SELECT disID, rID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
         disID, rID = executedQuery(queryStr)
         while patientID:
-            insert2Table('activeresearch', [researchID, disID, rID, patientID.pop()])
+            insert2Table(
+                'activeresearch', [
+                    researchID, disID, rID, patientID.pop()
+                ]
+            )
         return
 
     def insertNewSymptom(self, symptomPath, **kwargs):
