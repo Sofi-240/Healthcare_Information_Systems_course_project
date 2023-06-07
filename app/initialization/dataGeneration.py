@@ -253,7 +253,7 @@ def researcher_table(IDlist):
 
 
 def initActiveR(diseases_data, researcher_data):
-    data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID', 'indicesHash'])
+    data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
 
     data['ID'] = random_rnf_uni(1001, 9999, 10).tolist()[:2]
     data['disID'] = random.choices(list(diseases_data['disID']), k=2)
