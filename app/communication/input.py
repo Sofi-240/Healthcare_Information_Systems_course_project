@@ -1,5 +1,6 @@
 from app.initialization.serverInitiation import getTableCarry
 import datetime
+from tkinter import messagebox
 
 
 class Insert2DB:
@@ -229,6 +230,7 @@ class Insert2DB:
                 NewResearch[colName] = insertVal
         print(NewResearch)
         self.panel.app_queries.insertResearch('active', **NewResearch)
+        messagebox.showinfo("", "The research inserted into the db")
         return
 
     def pushNewDiseases(self):

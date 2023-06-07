@@ -308,7 +308,6 @@ class DataQueries:
             queryStr += stack.pop() + val
         queryStr = queryStr[:-1]
         queryStr += ";"
-        print(queryStr)
         return pd.DataFrame(executedQuery(queryStr), columns=colsName)
 
     def queryAvailableResearchValues(self, userPath, **kwargs):
