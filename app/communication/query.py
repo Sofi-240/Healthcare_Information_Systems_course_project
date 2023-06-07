@@ -1,5 +1,5 @@
 import json
-
+import os
 from app.initialization.serverInitiation import *
 import pandas as pd
 import datetime
@@ -230,10 +230,13 @@ class DataQueries:
         colsName = getTableCarry('patient').get('headers')
         for key, val in kwargs.items():
             if key in ['ID', 'gender', 'support', 'phone', 'area', 'HMO', 'COB']:
-                if type(val) == set or type(val) == tuple or type(val) == list:
-                    temp = f" {key} IN {val} "
+                if (type(val) == set or type(val) == tuple or type(val) == list) and len(val) > 1:
+                    temp = f" {key} IN {tuple(val)} "
                 else:
-                    temp = f" {key} = '{val}' "
+                    if type(val) == set or type(val) == tuple or type(val) == list:
+                        temp = f" {key} = '{val[0]}' "
+                    else:
+                        temp = f" {key} = '{val}' "
                 where_limits[key] = temp
             if key in ['height', 'weight', 'age']:
                 tempKey = key
@@ -242,11 +245,14 @@ class DataQueries:
                 eq = ('>=', '<=')
                 if val[0] is not None and val[1] is not None:
                     temp = f" {tempKey} {eq[0]} {val[0]} AND {tempKey} {eq[1]} {val[1]} "
-                elif val[0] is None:
+                elif val[0] is not None:
+                    temp = f" {tempKey} {eq[0]} {val[0]} "
+                elif val[1] is not None:
                     temp = f" {tempKey} {eq[1]} {val[1]} "
                 else:
-                    temp = f" {tempKey} {eq[0]} {val[0]} "
-                where_limits[key] = temp
+                    temp = None
+                if temp is not None:
+                    where_limits[key] = temp
             if key == 'symptoms':
                 colName = ['symptom']
                 joinCol = f"t1.Symptom AS symptom, "
@@ -303,8 +309,7 @@ class DataQueries:
         queryStr = queryStr[:-1]
         queryStr += ";"
         print(queryStr)
-        table = pd.DataFrame(executedQuery(queryStr), columns=colsName)
-        return self.addItem('patientIndices', table)
+        return pd.DataFrame(executedQuery(queryStr), columns=colsName)
 
     def queryAvailableResearchValues(self, userPath, **kwargs):
         ID = kwargs.get('ID')
@@ -312,12 +317,39 @@ class DataQueries:
             print("Missing ID column")
             return
         if userPath == 'r' or userPath == 'researcher':
-            queryStr = f"SELECT a.ID, p.ID, p.name, p.phone FROM patient AS p" \
-                       f" INNER JOIN activeresearch AS a ON a.rID = '{ID}' WHERE " \
-                       f"a.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = p.ID) OR " \
-                       f"a.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = p.ID);"
-            researchers = list(executedQuery(queryStr))
-            availablePatients = pd.DataFrame(researchers, columns=['researchID', 'patientID', 'patientName', 'patientPhone'])
+            if kwargs.get('researchers'):
+                researchers = kwargs.get('researchers')
+            else:
+                queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
+                           f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{ID}';"
+                researchers = pd.DataFrame(list(executedQuery(queryStr)),
+                                           columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID'])
+            if researchers.empty:
+                return pd.DataFrame(columns=['patientID', 'patientName', 'patientPhone', 'researchID'])
+            path = os.path.join(
+                os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+            )
+            fileDict = json.loads(
+                open(
+                    path, 'r'
+                ).read()
+            )
+            availablePatients = []
+            for i in list(researchers['ResearchID'].unique()):
+                researchHash = fileDict.get(str(i))
+                if not researchHash:
+                    continue
+                avlPatient = self.queryPatientIndices(**researchHash)
+                if avlPatient.empty:
+                    continue
+                avlPatient = avlPatient.loc[:, ['ID', 'name', 'phone']]
+                avlPatient['researchID'] = i
+                availablePatients.append(avlPatient)
+
+            if not availablePatients:
+                return pd.DataFrame(columns=['patientID', 'patientName', 'patientPhone', 'researchID'])
+            availablePatients = pd.concat(availablePatients, axis=0)
+            availablePatients.columns = ['patientID', 'patientName', 'patientPhone', 'researchID']
             return availablePatients
         elif userPath == 'p' or userPath == 'patient':
             queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
@@ -352,18 +384,21 @@ class DataQueries:
         if not disName:
             disID = None
         else:
-            queryStr = f'SELECT d.disID FROM diseases AS d WHERE d.disName = `{disName}`;'
+            queryStr = f"SELECT disID FROM diseases WHERE disName = '{disName}';"
             print(queryStr)
-            disID, newID = executedQuery(queryStr)[0]
+            disID = executedQuery(queryStr)[0][0]
+        path = os.path.join(
+            os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+        )
         fileDict = json.loads(
             open(
-                'searchHashFile.txt', 'r'
+                path, 'r'
             ).read()
         )
         fileDict[str(newID)] = researchHash
 
         open(
-            'searchHashFile.txt', 'w'
+            path, 'w'
         ).write(
             json.dumps(fileDict)
         )
