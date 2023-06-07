@@ -221,6 +221,8 @@ class Insert2DB:
                             insertVal.append(0)
                         elif colName == 'support' and opt.lower() == 'yes':
                             insertVal.append(1)
+                        elif colName == 'area' or colName == 'gender':
+                            insertVal.append(opt[0])
                         else:
                             insertVal.append(opt)
                 print(f'column {colName}: {insertVal}')

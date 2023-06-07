@@ -1222,21 +1222,6 @@ class ResearcherMainPanel(ttk.Frame):
         self.pg0.Table_Researchers.tag_configure('odd', background='snow2')
         self.pg0.Table_Researchers.tag_configure('even', background='white')
         self.pg0.Table_Researchers.grid(column=5, row=3, columnspan=5, rowspan=9, sticky=tk.N + tk.W + tk.E, pady=5)
-
-        self.pg0.Button_AddResearch = RoundedButton(master=self.pg0, text="Add Research", radius=10,
-                                                    btnbackground="LightSkyBlue4",
-                                                    btnforeground="white", width=150, height=60, highlightthickness=0,
-                                                    font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.pg0.Button_AddResearch.grid(column=5, row=10, padx=5, pady=5, sticky=tk.W + tk.E)
-        self.pg0.Button_AddResearch.bind('<Button-1>', lambda e: self.buttonUpDate())
-
-        self.pg0.Button_AvailablePatient = RoundedButton(master=self.pg0, text="Available Patient", radius=10,
-                                                         btnbackground="LightSkyBlue4",
-                                                         btnforeground="white", width=150, height=60,
-                                                         highlightthickness=0,
-                                                         font=("Helvetica", 18, "bold"), masterBackground='white')
-        self.pg0.Button_AvailablePatient.grid(column=9, row=10, padx=5, pady=5, sticky=tk.W + tk.E)
-        self.pg0.Button_AvailablePatient.bind('<Button-1>', lambda e: self.buttonUpDate())
         return
 
     def _initResearcherMainPg1(self, MasterPanel, *args, **kwargs):
