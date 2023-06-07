@@ -38,15 +38,21 @@ class DataQueries:
         Returns:
             datetime.timedelta
         """
-        return datetime.datetime.now() - datetime.datetime.strptime(getTableCarry('trigger'), '%m/%d/%Y %H:%M')
+        return datetime.datetime.now() - datetime.datetime.strptime(
+            getTableCarry('trigger'), '%m/%d/%Y %H:%M'
+        )
 
     @staticmethod
     def get_table(tableName):
-        table = pd.DataFrame(executedQuery(f"SELECT * FROM {tableName.lower()};"))
-        table.columns = getTableCarry(tableName.lower()).get('headers')
+        table = pd.DataFrame(
+            executedQuery(f"SELECT * FROM {tableName.lower()};")
+        )
+        table.columns = getTableCarry(
+            tableName.lower()
+        ).get('headers')
         return table
 
-    def addItem(self, key, itm):
+    def _addItem(self, key, itm):
         """
         Args:
             key (str): The key to use when adding the item to the dictionary.
@@ -73,18 +79,26 @@ class DataQueries:
             temp = executedQuery(f"SELECT * FROM patient WHERE ID = '{userID}';")
             if not temp:
                 return 'ID'
-            UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('patient').get('headers'))
+            UserIndices['Indices'] = pd.DataFrame(
+                temp, columns=getTableCarry('patient').get('headers')
+            )
             if userName.lower() != UserIndices['Indices'].iloc[0, :]['name'].lower():
                 return 'name'
-            symptoms = list(executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{userID}';"))
+            symptoms = list(
+                executedQuery(f"SELECT Symptom FROM symptomspatient WHERE ID = '{userID}';")
+            )
             UserIndices['symptoms'] = []
             for symp in symptoms:
                 UserIndices['symptoms'].append(symp[0])
             UserIndices['availableResearch'] = self.queryAvailableResearchValues('p', ID=userID)
-            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+
+            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail " \
+                       f"FROM activeresearch AS d" \
                        f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{userID}';"
-            researchers = pd.DataFrame(list(executedQuery(queryStr)), columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone',
-                                                'Mail'])
+            researchers = pd.DataFrame(
+                list(executedQuery(queryStr)),
+                columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail']
+            )
             UserIndices['researchers'] = researchers
             print(f'Patient Entry, ID: {userID}. Name {userName}')
             frameName = 'PatientMainPanel'
@@ -92,18 +106,24 @@ class DataQueries:
             temp = executedQuery(f"SELECT * FROM researcher WHERE ID = '{userID}';")
             if not temp:
                 return 'ID'
-            UserIndices['Indices'] = pd.DataFrame(temp, columns=getTableCarry('researcher').get('headers'))
+            UserIndices['Indices'] = pd.DataFrame(
+                temp, columns=getTableCarry('researcher').get('headers')
+            )
             if userName.lower() != UserIndices['Indices'].iloc[0, :]['Fname'].lower():
                 return 'Fname'
-            queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
+
+            queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID " \
+                       f"FROM activeresearch AS ar" \
                        f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{userID}';"
-            researchers = pd.DataFrame(list(executedQuery(queryStr)),
-                                       columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID'])
+
+            researchers = pd.DataFrame(
+                list(executedQuery(queryStr)),
+                columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID']
+            )
             UserIndices['researchers'] = researchers
             UserIndices['availablePatients'] = self.queryAvailableResearchValues('r', ID=userID)
             print(f'Researcher Entry, ID: {userID}. Name {userName}')
             frameName = 'ResearcherMainPanel'
-            self.addItem('diseases', self.get_table('diseases'))
         if not frameName:
             return False
         self.UserIndices = UserIndices
@@ -117,17 +137,25 @@ class DataQueries:
         if not self.UserIndices:
             return
         if call == 'PatientMainPg0':
-            return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
+            return {
+                'Indices': dict(
+                    self.UserIndices['Indices'].iloc[0, :]
+                ),
+                'researchers': self.UserIndices['researchers']
+            }
         if call == 'PatientMainPg1':
             return self.UserIndices.get('symptoms')
         if call == 'PatientMainPg2':
             return self.UserIndices.get('availableResearch')
         if call == 'ResearcherMainPg0':
-            return {'Indices': dict(self.UserIndices['Indices'].iloc[0, :]), 'researchers': self.UserIndices['researchers']}
+            return {
+                'Indices': dict(
+                    self.UserIndices['Indices'].iloc[0, :]
+                ),
+                'researchers': self.UserIndices['researchers']
+            }
         if call == 'ResearcherMainPg1':
-            if self.__dict__.get('diseases') is None:
-                return self.addItem('diseases', self.get_table('diseases'))
-            return self.__dict__.get('diseases')
+            return self.get_table('diseases')
         if call == 'ResearcherMainPg2':
             return self.UserIndices.get('availablePatients')
         if call == 'ResearcherMainPg4':
@@ -149,11 +177,17 @@ class DataQueries:
             dataList = pd.DataFrame(dataList, columns=['disID'])
             index = dataList.loc[:, ['disID']].value_counts()
             data = dataList.groupby(['disID'])
-            dec = [data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]]
+            dec = [
+                data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]
+            ]
             if index.shape[0] == 1:
                 # Temporary solution for a bug --- > need to check the fks construction
-                return dec + [data.get_group(index.index[0][0])['disID'].iloc[0], 0]
-            dec += [data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]]
+                return dec + [
+                    data.get_group(index.index[0][0])['disID'].iloc[0], 0
+                ]
+            dec += [
+                data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]
+            ]
             return dec
 
         print('UPDATE Trigger table')
@@ -176,7 +210,9 @@ class DataQueries:
             counter += 1
             if ID != prev_id or counter == len(id_Sym):
                 if counter == len(id_Sym):
-                    stack += self.SymptomsTrie.get_disID(sym.lower().split())
+                    stack += self.SymptomsTrie.get_disID(
+                        sym.lower().split()
+                    )
                 if len(id_Sym) == 1 and not prev_id:
                     prev_id = ID
                 if stack:
@@ -187,7 +223,9 @@ class DataQueries:
                     stack = []
                 prev_id = ID
             if prev_id == ID:
-                stack += self.SymptomsTrie.get_disID(sym.lower().split())
+                stack += self.SymptomsTrie.get_disID(
+                    sym.lower().split()
+                )
         queryStr = queryStr[:-2] + f" AS new(i, f, fc, s, sc) " \
                                    f"ON DUPLICATE KEY UPDATE " \
                                    f"FdisID = f, " \
@@ -267,7 +305,9 @@ class DataQueries:
                 pass
                 joinStr += f"AS t1 " \
                            f"ON t.ID = t1.ID "
-                join.append([colName, joinCol, joinStr])
+                join.append(
+                    [colName, joinCol, joinStr]
+                )
             if key == 'disName':
                 colName = ['disName', 'conf']
                 joinCol = f"t2.disName AS disName, t2.conf AS conf, "
@@ -284,7 +324,9 @@ class DataQueries:
                     joinStr += f"= '{val}') "
                 joinStr += f"AS t2 " \
                            f"ON t.ID = t2.ID "
-                join.append([colName, joinCol, joinStr])
+                join.append(
+                    [colName, joinCol, joinStr]
+                )
 
         queryStr = f"SELECT "
         ret_cols = []
@@ -321,10 +363,14 @@ class DataQueries:
             else:
                 queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
                            f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{ID}';"
-                researchers = pd.DataFrame(list(executedQuery(queryStr)),
-                                           columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID'])
+                researchers = pd.DataFrame(
+                    list(executedQuery(queryStr)),
+                    columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID']
+                )
             if researchers.empty:
-                return pd.DataFrame(columns=['patientID', 'patientName', 'patientPhone', 'researchID'])
+                return pd.DataFrame(
+                    columns=['patientID', 'patientName', 'patientPhone', 'researchID']
+                )
             path = os.path.join(
                 os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
             )
@@ -341,23 +387,37 @@ class DataQueries:
                 avlPatient = self.queryPatientIndices(**researchHash)
                 if avlPatient.empty:
                     continue
-                avlPatient = avlPatient.loc[:, ['ID', 'name', 'phone']]
-                avlPatient['researchID'] = i
-                availablePatients.append(avlPatient)
+                temp = avlPatient.groupby(['ID'], as_index=False)
+                for pID, df in temp:
+                    if pID in list(researchers['PatientID']):
+                        continue
+                    temp_df = pd.DataFrame(
+                        df.loc[:, ['ID', 'name', 'phone']].iloc[0, :]
+                    ).T
+                    temp_df['researchID'] = i
+                    availablePatients.append(temp_df)
 
             if not availablePatients:
-                return pd.DataFrame(columns=['patientID', 'patientName', 'patientPhone', 'researchID'])
-            availablePatients = pd.concat(availablePatients, axis=0)
+                return pd.DataFrame(
+                    columns=['patientID', 'patientName', 'patientPhone', 'researchID']
+                )
+            availablePatients = pd.concat(availablePatients, axis=0).reset_index(drop=True)
             availablePatients.columns = ['patientID', 'patientName', 'patientPhone', 'researchID']
+            availablePatients['patientPhone'] = '0' + availablePatients['patientPhone']
             return availablePatients
         elif userPath == 'p' or userPath == 'patient':
-            queryStr = f"SELECT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
+            queryStr = f"SELECT DISTINCT d.ID, d.rID, r.Fname, r.Lname, r.phone, r.Mail FROM activeresearch AS d" \
                        f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE " \
-                       f"d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
-                       f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}'); "
-            researchers = list(executedQuery(queryStr))
-            availableResearch = pd.DataFrame(researchers,
-                                             columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail'])
+                       f"d.ID NOT IN (SELECT ID FROM activeresearch WHERE pID = '{ID}') AND " \
+                       f"(d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
+                       f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}'));"
+            researchers = list(
+                executedQuery(queryStr)
+            )
+            availableResearch = pd.DataFrame(
+                researchers,
+                columns=['researchID', 'researcherID', 'Fname', 'Lname', 'Phone', 'Mail']
+            )
             return availableResearch
         return
 
@@ -405,12 +465,26 @@ class DataQueries:
         return
 
     def insertPatientToResearch(self, researchID, *patientID):
-        queryStr = f'SELECT disID, rID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
-        disID, rID = executedQuery(queryStr)
-        while patientID:
+        queryStr = f'SELECT disID, rID, pID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
+        disID, rID, pID = executedQuery(queryStr)[0]
+        print(type(pID))
+        if not patientID:
+            return
+        if pID == 'None':
+            queryStr = f"UPDATE activeresearch SET pID = '{patientID[0]}' WHERE ID = '{researchID}' and pID = '{None}';"
+            executedQueryCommit(queryStr)
+            if len(patientID) == 1:
+                return
+            patientID = list(patientID)
+            patientID.pop(0)
+        queryStr = f"SELECT pID FROM activeresearch WHERE ID = '{researchID}';"
+        check = [i[0] for i in executedQuery(queryStr)]
+        for pat in patientID[1:]:
+            if pat in check:
+                continue
             insert2Table(
                 'activeresearch', [
-                    researchID, disID, rID, patientID.pop()
+                    researchID, disID, rID, pat
                 ]
             )
         return
@@ -505,11 +579,17 @@ class DataQueries:
             values.append(val)
         insert2Table(tableName, values)
         if tableName == 'patient' and kwargs.get('symptoms'):
-            self.insertNewSymptom('p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms'))
+            self.insertNewSymptom(
+                'p', ID=kwargs.get('ID'), symptom=kwargs.get('symptoms')
+            )
         if tableName == 'patient' and kwargs.get('ExLogIn'):
-            return self.activateLogIn(userPath, kwargs.get('ID'), kwargs.get('name'))
+            return self.activateLogIn(
+                userPath, kwargs.get('ID'), kwargs.get('name')
+            )
         if tableName == 'researcher' and kwargs.get('ExLogIn'):
-            return self.activateLogIn(userPath, kwargs.get('ID'), kwargs.get('Fname'))
+            return self.activateLogIn(
+                userPath, kwargs.get('ID'), kwargs.get('Fname')
+            )
         return True
 
     def insertNewDisease(self, depName, disName, disSymptoms=None):
@@ -533,10 +613,14 @@ class DataQueries:
         disID = str(int(
             executedQuery(
                 f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]
-            ) + 1)
-        insert2Table('diseases', [disID, disName, depID, depName])
+        ) + 1)
+        insert2Table(
+            'diseases', [disID, disName, depID, depName]
+        )
         for syp in disSymptoms:
-            self.insertNewSymptom('d', disID=disID, symptom=syp)
+            self.insertNewSymptom(
+                'd', disID=disID, symptom=syp
+            )
         return
 
     def deleteUser(self, userPath, ID):
@@ -635,5 +719,3 @@ class DataQueries:
             executedQueryCommit(queryStr)
         self.queryUpdateTrigger(ID)
         return
-
-
