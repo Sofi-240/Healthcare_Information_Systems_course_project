@@ -23,6 +23,7 @@ class UserLogInPanel(ttk.Frame):
         self.logIn_frame.grid(
             column=4, row=2, rowspan=4, padx=50, pady=50, sticky="nsew"
         )
+        print(self.logIn_frame.pack_slaves())
 
     def _logInFrame(self, MasterPanel, *args, **kwargs):
         self.logIn_frame = ttk.Frame(
@@ -1506,12 +1507,15 @@ class ResearcherMainPanel(ttk.Frame):
         tempGroup = researchers.groupby(['ResearchID'], as_index=False)
         row = 0
         for rID, group in tempGroup:
+            parentVals = list(group.loc[group.index[0], list(self.pg0.Table_Researchers['columns'])[1:-1]])
             if row % 2:
                 self.pg0.Table_Researchers.insert(parent='', index='end', iid=str(rID), text='',
-                                                  values=[str(rID), '', '', ''], tags=('even',), open=False)
+                                                  values=[str(rID), f'{parentVals[0]}', f'{parentVals[1]}', ''],
+                                                  tags=('even',), open=False)
             else:
                 self.pg0.Table_Researchers.insert(parent='', index='end', iid=str(rID), text='',
-                                                  values=[str(rID), '', '', ''], tags=('odd',), open=False)
+                                                  values=[str(rID), f'{parentVals[0]}', f'{parentVals[1]}', ''],
+                                                  tags=('odd',), open=False)
             row += 1
             for idx in group.index:
                 vals = list(group.loc[idx, list(self.pg0.Table_Researchers['columns'])])

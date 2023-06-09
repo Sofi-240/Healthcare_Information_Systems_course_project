@@ -114,7 +114,7 @@ class DataQueries:
 
             queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID " \
                        f"FROM activeresearch AS ar" \
-                       f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{userID}';"
+                       f" LEFT JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{userID}';"
 
             researchers = pd.DataFrame(
                 list(executedQuery(queryStr)),
@@ -308,7 +308,7 @@ class DataQueries:
                 join.append(
                     [colName, joinCol, joinStr]
                 )
-            if key == 'disName':
+            if key == 'disName' and val != 'None' and val != None:
                 colName = ['disName', 'conf']
                 joinCol = f"t2.disName AS disName, t2.conf AS conf, "
                 joinStr = f"INNER JOIN (SELECT d1.disName, d2.ID, " \
@@ -350,6 +350,7 @@ class DataQueries:
             queryStr += stack.pop() + val
         queryStr = queryStr[:-1]
         queryStr += ";"
+        print(queryStr)
         return pd.DataFrame(executedQuery(queryStr), columns=colsName)
 
     def queryAvailableResearchValues(self, userPath, **kwargs):
@@ -362,7 +363,7 @@ class DataQueries:
                 researchers = kwargs.get('researchers')
             else:
                 queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
-                           f" INNER JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{ID}';"
+                           f" LEFT JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{ID}';"
                 researchers = pd.DataFrame(
                     list(executedQuery(queryStr)),
                     columns=['ResearchID', 'Type Of Dis', 'DisName', 'PatientID']
@@ -570,11 +571,15 @@ class DataQueries:
                 val = 0
             if col == 'ID':
                 if executedQuery(f"SELECT * FROM {tableName} WHERE ID = '{val}';"):
-                    print(f"The user with {val} ID exists in the system")
+                    print(
+                        f"The user with {val} ID exists in the system"
+                    )
                     return True
             if col == 'USRname':
                 if executedQuery(f"SELECT * FROM {tableName} WHERE USRname = '{val}';"):
-                    print(f"The username {val} exists in the system")
+                    print(
+                        f"The username {val} exists in the system"
+                    )
                     return True
             values.append(val)
         insert2Table(tableName, values)
