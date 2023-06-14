@@ -240,7 +240,9 @@ class Insert2DB:
         self.panel.app_queries.insertResearch(
             'active', **NewResearch
         )
-        messagebox.showinfo("", "The research inserted into the db")
+        messagebox.showinfo(
+            "", "The research inserted into the db"
+        )
         return
 
     def addPatientToResearch(self):
@@ -254,33 +256,42 @@ class Insert2DB:
             'Agreement', f"Did you have {textList[2]} agreement?"
         )
         if res == 'yes':
-            self.panel.app_queries.insertPatientToResearch(textList[0], textList[1])
-            messagebox.showinfo("", f"{textList[2]} now in the research")
+            self.panel.app_queries.insertPatientToResearch(
+                textList[0], textList[1]
+            )
+            messagebox.showinfo(
+                "", f"{textList[2]} now in the research"
+            )
         return
 
     def pushNewDiseases(self):
-        if str(self.panel.frame)[2:].lower() == 'ResearcherMainPanel'.lower():
-            columns = getTableCarry('diseases').get('headers')
-            NewDiseasesValues = {}
-            for col in columns:
-                if col in ['disName', 'depName']:
-                    colName = col[0].upper() + col[1:]
-                    insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
-                    print(f'column {col}: {insertVal}')
-                    NewDiseasesValues[col] = insertVal
-            NewDiseasesValues['disSymptoms'] = []
-            for each in self.panel.frame.pg3.Table_DiseaseSelectSymptoms.get_children():
-                NewDiseasesValues['disSymptoms'].append([self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0]])
-            self.panel.app_queries.insertNewDisease(**NewDiseasesValues)
-            print(NewDiseasesValues)
-
+        columns = getTableCarry('diseases').get('headers')
+        NewDiseasesValues = {}
+        for col in columns:
+            if col in ['disName', 'depName']:
+                colName = col[0].upper() + col[1:]
+                insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
+                print(f'column {col}: {insertVal}')
+                NewDiseasesValues[col] = insertVal
+        NewDiseasesValues['disSymptoms'] = []
+        for each in self.panel.frame.pg3.Table_DiseaseSelectSymptoms.get_children():
+            NewDiseasesValues['disSymptoms'].append(
+                [self.panel.frame.pg3.Table_DiseaseSelectSymptoms.item(each)['values'][0]]
+            )
+        self.panel.app_queries.insertNewDisease(
+            **NewDiseasesValues
+        )
         return
 
     def pushNewSymptoms(self):
-        NewSymptomValues = {}
-        NewSymptomValues['disName'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseDisName').get()]
-        NewSymptomValues['symptom'] = [self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseSymptom').get()]
-        self.panel.app_queries.insertNewSymptom('d', **NewSymptomValues)
+        NewSymptomValues = {'disName': [
+            self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseDisName').get()
+        ], 'symptom': [
+            self.panel.frame.pg4.__dict__.get(f'Entry_DiseaseSymptom').get()
+        ]}
+        self.panel.app_queries.insertNewSymptom(
+            'd', **NewSymptomValues
+        )
         return
 
     def exLogIn(self):
@@ -293,7 +304,9 @@ class Insert2DB:
         if not self.handelFiled('Name', userName):
             self.panel.frame.raiseError('name')
             return
-        retBool = self.panel.app_queries.activateLogIn(path, userID, userName)
+        retBool = self.panel.app_queries.activateLogIn(
+            path, userID, userName
+        )
         if type(retBool) is bool and retBool:
             return
         if type(retBool) is str:
