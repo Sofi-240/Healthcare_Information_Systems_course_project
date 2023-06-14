@@ -92,52 +92,53 @@ class Insert2DB:
             index = self.panel.frame.Page_Frames.index(
                 self.panel.frame.Page_Frames.select()
             )
-            errCache = False
-            for val, item in self.panel.frame.pg0.__dict__.items():
-                if len(val) > 10 and val[:10] == 'Entry_User':
-                    if val[10:] != 'DOB':
-                        txt = item.get()
-                    else:
-                        txt = item.get_date()
-                    if not self.handelFiled(val[10:], txt):
+            if index == 0:
+                columns = getTableCarry('patient').get('headers')
+                errCache = False
+                for col in columns:
+                    colName = col[0].upper() + col[1:]
+                    txt = self.panel.frame.getEntry(colName)
+                    if not self.handelFiled(colName, txt):
                         self.panel.frame.raiseError(
-                            0, labelName=val[10:]
+                            labelName=colName
                         )
                         errCache = True
                     else:
                         self.panel.frame.deleteError(
-                            0, labelName=val[10:]
+                            labelName=colName
                         )
-            if errCache:
-                return
-            if index == 0:
+                if errCache:
+                    return
                 self.panel.frame.Page_Frames.tab(
                     1, state="normal"
                 )
-            self.panel.frame.Page_Frames.select(1)
+                self.panel.frame.Page_Frames.select(1)
             if index == 1:
-                var = self.panel.frame.pg1.__dict__.get('Var_conifer')
-                if var.get() == 0:
-                    return self.panel.frame.raiseError(1)
+                var = self.panel.frame.getEntry('Conifer')
+                if var == 0:
+                    return self.panel.frame.raiseError('Conifer')
                 return self.pushNewUser()
             return
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
             errCache = False
-            for val, item in self.panel.frame.pg0.__dict__.items():
-                if len(val) > 10 and val[:10] == 'Entry_User':
-                    txt = item.get()
-                    if not self.handelFiled(val[10:], txt):
-                        self.panel.frame.raiseError(
-                            0, labelName=val[10:]
-                        )
-                        errCache = True
-                    else:
-                        self.panel.frame.deleteError(
-                            0, labelName=val[10:]
-                        )
+            columns = getTableCarry('researcher').get('headers')
+            for col in columns:
+                colName = col[0].upper() + col[1:]
+                txt = self.panel.frame.getEntry(colName)
+                if not self.handelFiled(colName, txt):
+                    self.panel.frame.raiseError(
+                        labelName=colName
+                    )
+                    errCache = True
+                else:
+                    self.panel.frame.deleteError(
+                        labelName=colName
+                    )
             if errCache:
-                print(errCache)
                 return
+            var = self.panel.frame.getEntry('Conifer')
+            if var == 0:
+                return self.panel.frame.raiseError('Conifer')
             return self.pushNewUser()
         return
 
@@ -147,11 +148,7 @@ class Insert2DB:
             NewPatientValues = {}
             for col in columns:
                 colName = col[0].upper() + col[1:]
-                if col != 'DOB':
-                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
-                else:
-                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get_date()
-                insertVal = val
+                insertVal = self.panel.frame.getEntry(colName)
                 if colName == 'Area':
                     insertVal = insertVal[0]
                 if colName == 'Gender':
@@ -169,22 +166,21 @@ class Insert2DB:
                 print(f'column {col}: {insertVal}')
                 NewPatientValues[col] = insertVal
             NewPatientValues['symptoms'] = []
-            for each in self.panel.frame.pg1.Table_UserSelectSymptoms.get_children():
+            tableSymptoms = self.panel.frame.getEntry('Symptoms')
+            for each in tableSymptoms.get_children():
                 NewPatientValues['symptoms'].append(
-                    self.panel.frame.pg1.Table_UserSelectSymptoms.item(each)['values'][0]
+                    tableSymptoms.item(each)['values'][0]
                 )
             NewPatientValues['ExLogIn'] = True
-            self.panel.app_queries.insertNewUser('p', **NewPatientValues)
+            self.panel.app_queries.insertNewUser(
+                'p', **NewPatientValues
+            )
         elif str(self.panel.frame)[2:].lower() == 'ResearcherSignInPanel'.lower():
             columns = getTableCarry('researcher').get('headers')
             NewResearcherValues = {}
             for col in columns:
                 colName = col[0].upper() + col[1:]
-                if col != 'DOB':
-                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
-                else:
-                    val = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get_date()
-                insertVal = val
+                insertVal = self.panel.frame.getEntry(colName)
                 if colName == 'Gender':
                     insertVal = insertVal[0]
                 print(f'column {col}: {insertVal}')
@@ -289,11 +285,10 @@ class Insert2DB:
 
     def exLogIn(self):
         path = self.panel.frame.getEntry('user')
-        userID = self.panel.frame.getEntry('id')
+        userID = self.panel.frame.getEntry('ID')
         userName = self.panel.frame.getEntry('name')
-        print(path, userID, userName)
         if not self.handelFiled('ID', userID):
-            self.panel.frame.raiseError('id')
+            self.panel.frame.raiseError('ID')
             return
         if not self.handelFiled('Name', userName):
             self.panel.frame.raiseError('name')
@@ -312,7 +307,6 @@ class Insert2DB:
             index = self.panel.frame.Page_Frames.index(
                 self.panel.frame.Page_Frames.select()
             )
-            print(index)
             if index == 0:
                 updateVals = {}
                 errCache = False
@@ -320,15 +314,13 @@ class Insert2DB:
                     colName = val[0].upper() + val[1:]
                     if val in ['ID', 'name', 'gender', 'DOB', 'COB']:
                         continue
-                    insertVal = self.panel.frame.pg0.__dict__.get(f'Entry_User{colName}').get()
+                    insertVal = self.panel.frame.pg0.__dict__.get(f'Entry_{colName}').get()
                     if not self.handelFiled(colName, insertVal):
-                        self.panel.frame.raiseError(0)
+                        self.panel.frame.raiseError(0, colName)
                         errCache = True
                         continue
-                    self.panel.frame.deleteError(0)
+                    self.panel.frame.deleteError(0, colName)
                     if colName == 'Area':
-                        insertVal = insertVal[0]
-                    if colName == 'Gender':
                         insertVal = insertVal[0]
                     if colName == 'Phone':
                         insertVal = insertVal
@@ -374,7 +366,27 @@ class Insert2DB:
                     self.panel.app_queries.insertNewSymptom('active', symptom=symptomsNew)
                 return True
         elif str(self.panel.frame)[2:].lower() == 'ResearcherMainPanel'.lower():
-            return
+            index = self.panel.frame.Page_Frames.index(
+                self.panel.frame.Page_Frames.select()
+            )
+            if index == 0:
+                updateVals = {}
+                errCache = False
+                for val, item in dict(self.panel.app_queries.UserIndices['Indices'].iloc[0, :]).items():
+                    colName = val[0].upper() + val[1:]
+                    if val in ['ID', 'Fname', 'gender', 'Lname']:
+                        continue
+                    insertVal = self.panel.frame.pg0.__dict__.get(f'Entry_{colName}').get()
+                    if not self.handelFiled(colName, insertVal):
+                        self.panel.frame.raiseError(0, colName)
+                        errCache = True
+                        continue
+                    self.panel.frame.deleteError(0, colName)
+                    print(f'column {val}: {insertVal}')
+                    updateVals[val] = insertVal
+                if errCache:
+                    return False
+                return self.panel.app_queries.updateUserIndices('active', None, **updateVals)
         return False
 
     def exSignOut(self):
