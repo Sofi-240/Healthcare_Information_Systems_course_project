@@ -145,7 +145,6 @@ class AUTO_complete:
         return self.root.root.items
 
     def keyRelease(self, txt):
-        print(txt)
         if not txt:
             self._walkBack()
             return self.root.root.items

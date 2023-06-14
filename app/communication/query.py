@@ -21,10 +21,10 @@ class DataQueries:
         """
             Builds and enqueues a tree of symptoms and diseases.
         """
-        queryStr = f"SELECT * FROM symptomsDiseases ORDER BY Symptom;"
+        queryStr = f"SELECT disID, Symptom FROM diseases WHERE Symptom != 'None' ORDER BY Symptom;"
         diss_symptoms = executedQuery(queryStr)
         self.SymptomsTrie.build_trie(diss_symptoms)
-        checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")[0][1]
+        checkNan = executedQuery(f"SELECT * FROM patientdiagnosis LIMIT 1;")
         if self.LastUpdate.days >= 1 or not checkNan:
             self.queryUpdateTrigger()
         return
@@ -37,7 +37,7 @@ class DataQueries:
             datetime.timedelta
         """
         return datetime.datetime.now() - datetime.datetime.strptime(
-            getTableCarry('trigger'), '%m/%d/%Y %H:%M'
+            getTableCarry('trigger'), "%m/%d/%Y, %H:%M:%S"
         )
 
     @staticmethod
@@ -123,7 +123,7 @@ class DataQueries:
             )
             if userName.lower() != UserIndices['Indices'].iloc[0, :]['Fname'].lower():
                 return 'Fname'
-            queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID " \
+            queryStr = f"SELECT DISTINCT ar.ID, d.depName, d.disName, ar.pID " \
                        f"FROM activeresearch AS ar" \
                        f" LEFT JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{userID}';"
             researchers = pd.DataFrame(
@@ -192,16 +192,13 @@ class DataQueries:
                 data.get_group(index.index[0][0])['disID'].iloc[0], index.iloc[0]
             ]
             if index.shape[0] == 1:
-                # Temporary solution for a bug --- > need to check the fks construction
                 return dec + [
-                    data.get_group(index.index[0][0])['disID'].iloc[0], 0
+                    'None', 0
                 ]
             dec += [
                 data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]
             ]
             return dec
-
-        print('UPDATE Trigger table')
         queryStr = f"SELECT * FROM symptomspatient"
         if IDs:
             if len(IDs) == 1:
@@ -209,7 +206,6 @@ class DataQueries:
             else:
                 queryStr += f" WHERE ID IN {IDs}"
         queryStr += " ORDER BY ID;"
-        print(queryStr)
         id_Sym = executedQuery(queryStr)
         if not id_Sym[0]:
             return
@@ -243,11 +239,10 @@ class DataQueries:
                                    f"Fconf = fc, " \
                                    f"SdisID = s, " \
                                    f"Sconf = sc;"
-        print(queryStr)
         executedQueryCommit(queryStr)
         updateTable('patientdiagnosis')
         if not IDs:
-            updateTableCarry('trigger', datetime.datetime.now().strftime('%m/%d/%Y %H:%M'))
+            updateTableCarry('trigger', datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
         return
 
     def queryPatientIndices(self, **kwargs):
@@ -338,7 +333,7 @@ class DataQueries:
                 join.append(
                     [colName, joinCol, joinStr]
                 )
-        queryStr = f"SELECT "
+        queryStr = f"SELECT DISTINCT "
         ret_cols = []
         while colsName:
             col = colsName.pop(0)
@@ -348,6 +343,8 @@ class DataQueries:
                 queryStr += "TIMESTAMPDIFF(YEAR, DOB, CURDATE()) AS age, "
                 ret_cols.append('age')
         for curr_join in join:
+            if curr_join[0][0] == 'symptom':
+                continue
             for col in curr_join[0]:
                 ret_cols.append(col)
             queryStr += curr_join[1]
@@ -360,7 +357,6 @@ class DataQueries:
             queryStr += stack.pop() + val
         queryStr = queryStr[:-1]
         queryStr += ";"
-        print(queryStr)
         return pd.DataFrame(executedQuery(queryStr), columns=colsName)
 
     def queryAvailableResearchValues(self, userPath, **kwargs):
@@ -374,13 +370,12 @@ class DataQueries:
             ).read()
         )
         if not ID:
-            print("Missing ID column")
             return
         if userPath == 'r' or userPath == 'researcher':
             if kwargs.get('researchers'):
                 researchers = kwargs.get('researchers')
             else:
-                queryStr = f"SELECT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
+                queryStr = f"SELECT DISTINCT ar.ID, d.depName, d.disName, ar.pID FROM activeresearch AS ar" \
                            f" LEFT JOIN diseases AS d ON ar.disID = d.disID WHERE ar.rID = '{ID}';"
                 researchers = pd.DataFrame(
                     list(executedQuery(queryStr)),
@@ -423,7 +418,6 @@ class DataQueries:
                        f"(d.disID = (SELECT FdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
                        f"d.disID = (SELECT SdisID FROM patientdiagnosis WHERE ID = '{ID}') OR " \
                        f"d.disID = 'None');"
-            print(queryStr)
             researchers = list(
                 executedQuery(queryStr)
             )
@@ -464,12 +458,9 @@ class DataQueries:
     def querySymptomsDiseases(self, disName):
         disName = disName
         if not disName:
-            print("Missing disName column")
             return
-        queryStr = f"SELECT s.Symptom FROM symptomsdiseases AS s" \
-                   f" INNER JOIN diseases AS d ON s.disID = d.disID" \
-                   f" WHERE d.disName = '{disName}';"
-
+        queryStr = f"SELECT Symptom FROM diseases" \
+                   f" WHERE disName = '{disName}' AND Symptom != 'None';"
         symptoms = list(
             executedQuery(
                 queryStr
@@ -483,12 +474,15 @@ class DataQueries:
         if researcherID == 'active':
             return
         disName = researchHash.get('disName')
-        newID = int(executedQuery(f'SELECT MAX(ID) FROM activeresearch;')[0][0]) + 1
+        temp = executedQuery(f'SELECT MAX(ID) FROM activeresearch;')
+        if temp[0][0] == 'None' or not temp[0][0]:
+            newID = 1000
+        else:
+            newID = int(temp[0][0]) + 1
         if not disName:
             disID = None
         else:
             queryStr = f"SELECT disID FROM diseases WHERE disName = '{disName}';"
-            print(queryStr)
             disID = executedQuery(queryStr)[0][0]
         path = os.path.join(
             os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
@@ -515,7 +509,6 @@ class DataQueries:
     def insertPatientToResearch(self, researchID, *patientID):
         queryStr = f'SELECT disID, rID, pID FROM activeresearch WHERE ID = {researchID} LIMIT 1;'
         disID, rID, pID = executedQuery(queryStr)[0]
-        print(type(pID))
         if not patientID:
             return
         if pID == 'None':
@@ -537,7 +530,7 @@ class DataQueries:
             )
         return
 
-    def insertNewSymptom(self, symptomPath, **kwargs):
+    def insertNewSymptom(self, symptomPath, update=True, **kwargs):
         """
         Inserts a new symptom into the database.
 
@@ -548,6 +541,7 @@ class DataQueries:
             **kwargs:
         Returns:
             None.
+            :param update:
         """
         if symptomPath == 'active' and self.UserIndices:
             symptomPath = self.activeUser
@@ -557,10 +551,8 @@ class DataQueries:
         if symptomPath == 'patient' or symptomPath == 'p':
             ID, symptoms = kwargs.get('ID'), kwargs.get('symptom')
             if not ID:
-                print("Missing ID column")
                 return
             if not symptoms:
-                print("No symptoms where given")
                 return
             for syp in symptoms:
                 insert2Table('symptomsPatient', [ID, syp])
@@ -568,22 +560,24 @@ class DataQueries:
             return
         if symptomPath == 'diseases' or symptomPath == 'd':
             disID, symptoms, disName = kwargs.get('disID'), kwargs.get('symptom'), kwargs.get('disName')
-            print(f'The {disID} disease {symptoms} is ')
             if symptoms is None:
-                print("No symptoms where given")
                 return
             if disID is None:
                 if not disName:
-                    print('No disease ID entered')
                     return
                 disName = disName[0]
-                disID = str(int(executedQuery(f"SELECT disID FROM diseases WHERE disName = '{disName}';")[-1][0]))
-                if not disID:
-                    print(f'The {disName} disease is not registered in the database')
-                    return
+                disRow = executedQuery(f"SELECT * FROM diseases WHERE disName = '{disName}';")[-1]
+            else:
+                disRow = executedQuery(f"SELECT * FROM diseases WHERE disID = '{disID}';")[-1]
+            if not disRow:
+                return
+            if not symptoms:
+                return
             for syp in symptoms:
-                insert2Table('symptomsdiseases', [disID, syp])
-        self._enqueueSymptomsTrie()
+                insert2Table('diseases', list(disRow[:-1]) + syp)
+            self._enqueueSymptomsTrie()
+            if update:
+                self.queryUpdateTrigger()
         return
 
     def insertNewUser(self, userPath, **kwargs):
@@ -648,7 +642,7 @@ class DataQueries:
                 None.
             """
         if disSymptoms is None:
-            disSymptoms = []
+            disSymptoms = ['None']
         depID = str(
             int(
                 executedQuery(f"SELECT depID FROM diseases WHERE depName = '{depName}';")[-1][0]
@@ -659,11 +653,11 @@ class DataQueries:
                 f"SELECT disID FROM diseases WHERE depName = '{depName}' ORDER BY disID;")[-1][0]
         ) + 1)
         insert2Table(
-            'diseases', [disID, disName, depID, depName]
+            'diseases', [disID, disName, depID, depName, disSymptoms[0][0]]
         )
-        for syp in disSymptoms:
+        if disSymptoms[1:]:
             self.insertNewSymptom(
-                'd', disID=disID, symptom=syp
+                'd', disID=disID, symptom=disSymptoms[1:]
             )
         return
 
@@ -713,11 +707,9 @@ class DataQueries:
             )
 
         else:
-            print(f"User Path {userPath} is not valid")
             return
         for t, v in tables:
             queryStr = f"DELETE FROM {t} WHERE {v} = '{ID}';"
-            print(queryStr)
             executedQueryCommit(queryStr)
         return
 
@@ -734,7 +726,6 @@ class DataQueries:
             cols = getTableCarry('researcher').get('headers')
             tableName = 'researcher'
         else:
-            print(f"User Path {userPath} is not valid")
             return False
         queryStr = f"UPDATE {tableName} SET"
         newSet = False
@@ -746,7 +737,6 @@ class DataQueries:
             return True
         queryStr = queryStr[:-1]
         queryStr += f' WHERE ID = {ID};'
-        print(queryStr)
         executedQueryCommit(queryStr)
         return True
 
@@ -759,7 +749,6 @@ class DataQueries:
             return
         for symp in symptoms:
             queryStr = f"DELETE FROM symptomsPatient WHERE ID = '{ID}' AND Symptom LIKE '%{symp}%';"
-            print(queryStr)
             executedQueryCommit(queryStr)
         self.queryUpdateTrigger(ID)
         return

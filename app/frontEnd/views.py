@@ -56,7 +56,6 @@ class UserLogInPanel(ttk.Frame):
 
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not Insert2DB instance')
             return
 
         def entryFocusOut(entryName):
@@ -247,12 +246,10 @@ class PatientSignInPanel(ttk.Frame):
 
         app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not Insert2DB instance')
             return
 
         app_queries = MasterPanel.__dict__.get('app_queries')
         if not app_queries:
-            print('Master have not queries instance')
             return
 
         def back():
@@ -751,13 +748,11 @@ class PatientMainPanel(ttk.Frame):
         )
         app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not Insert2DB instance')
             return
         self.app_insert2DB = app_insert2DB
 
         app_queries = MasterPanel.__dict__.get('app_queries')
         if not app_queries:
-            print('Master have not queries instance')
             return
         self.app_queries = app_queries
 
@@ -1427,12 +1422,10 @@ class ResearcherSignInPanel(ttk.Frame):
 
         app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not Insert2DB instance')
             return
 
         app_queries = MasterPanel.__dict__.get('app_queries')
         if not app_queries:
-            print('Master have not queries instance')
             return
 
         Label_title = ttk.Label(
@@ -1676,13 +1669,11 @@ class ResearcherMainPanel(ttk.Frame):
         )
         app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
         if not app_insert2DB:
-            print('Master have not Insert2DB instance')
             return
         self.app_insert2DB = app_insert2DB
 
         app_queries = MasterPanel.__dict__.get('app_queries')
         if not app_queries:
-            print('Master have not queries instance')
             return
         self.app_queries = app_queries
 
@@ -2769,7 +2760,7 @@ class ResearcherMainPanel(ttk.Frame):
 
     def buttonShowSymptoms(self, entry, treeView):
         disName = entry.get()
-        symptoms = self.master.__dict__.get('app_queries').querySymptomsDiseases(disName)
+        symptoms = self.app_queries.querySymptomsDiseases(disName)
         for i, row in enumerate(symptoms):
             if i % 2:
                 treeView.insert(

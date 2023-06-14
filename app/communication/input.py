@@ -163,7 +163,6 @@ class Insert2DB:
                         insertVal /= 100
                 if colName == 'Weight':
                     insertVal = float(insertVal)
-                print(f'column {col}: {insertVal}')
                 NewPatientValues[col] = insertVal
             NewPatientValues['symptoms'] = []
             tableSymptoms = self.panel.frame.getEntry('Symptoms')
@@ -183,13 +182,11 @@ class Insert2DB:
                 insertVal = self.panel.frame.getEntry(colName)
                 if colName == 'Gender':
                     insertVal = insertVal[0]
-                print(f'column {col}: {insertVal}')
                 NewResearcherValues[col] = insertVal
             NewResearcherValues['ExLogIn'] = True
             self.panel.app_queries.insertNewUser(
                 'r', **NewResearcherValues
             )
-            print(NewResearcherValues)
         return
 
     def pushNewResearch(self):
@@ -235,7 +232,6 @@ class Insert2DB:
                             insertVal.append(opt[0])
                         else:
                             insertVal.append(opt)
-                print(f'column {colName}: {insertVal}')
                 NewResearch[colName] = insertVal
         self.panel.app_queries.insertResearch(
             'active', **NewResearch
@@ -271,7 +267,6 @@ class Insert2DB:
             if col in ['disName', 'depName']:
                 colName = col[0].upper() + col[1:]
                 insertVal = self.panel.frame.pg3.__dict__.get(f'Entry_Disease{colName}').get()
-                print(f'column {col}: {insertVal}')
                 NewDiseasesValues[col] = insertVal
         NewDiseasesValues['disSymptoms'] = []
         for each in self.panel.frame.pg3.Table_DiseaseSelectSymptoms.get_children():
@@ -349,7 +344,6 @@ class Insert2DB:
                         insertVal = float(insertVal)
                     if str(insertVal) == item:
                         continue
-                    print(f'column {val}: {insertVal}')
                     updateVals[val] = insertVal
                 if errCache:
                     return False
@@ -395,7 +389,6 @@ class Insert2DB:
                         errCache = True
                         continue
                     self.panel.frame.deleteError(0, colName)
-                    print(f'column {val}: {insertVal}')
                     updateVals[val] = insertVal
                 if errCache:
                     return False
