@@ -18,9 +18,6 @@ class DataQueries:
         self.activeUserName = None
 
     def _enqueueSymptomsTrie(self):
-        """
-            Builds and enqueues a tree of symptoms and diseases.
-        """
         queryStr = f"SELECT disID, Symptom FROM diseases WHERE Symptom != 'None' ORDER BY Symptom;"
         diss_symptoms = executedQuery(queryStr)
         self.SymptomsTrie.build_trie(diss_symptoms)
@@ -31,11 +28,6 @@ class DataQueries:
 
     @property
     def LastUpdate(self):
-        """
-        Calc. the difference between the current time and the last update of the patient diagnosis table.
-        Returns:
-            datetime.timedelta
-        """
         return datetime.datetime.now() - datetime.datetime.strptime(
             getTableCarry('trigger'), "%m/%d/%Y, %H:%M:%S"
         )
@@ -53,14 +45,6 @@ class DataQueries:
         return table
 
     def _addItem(self, key, itm):
-        """
-        Args:
-            key (str): The key to use when adding the item to the dictionary.
-            itm (Any): The item to add to the dictionary.
-
-        Returns:
-            Any: The added item.
-        """
         self.__dict__[key] = itm
         return itm
 
@@ -173,16 +157,6 @@ class DataQueries:
             return self.UserIndices.get('symptomsDiseases')
 
     def queryUpdateTrigger(self, *IDs):
-        """
-        update the patient-diagnosis table based on symptom data.
-        If given any IDs as arguments, only update rows with those IDs.
-        Otherwise, update all rows.
-        Args:
-            *IDs (str): Patients IDs.
-
-        Returns:
-            None
-        """
 
         def DiagnosisDecision(dataList):
             dataList = pd.DataFrame(dataList, columns=['disID'])
@@ -246,29 +220,6 @@ class DataQueries:
         return
 
     def queryPatientIndices(self, **kwargs):
-        """
-        Queries the patient table with given conditions and returns the selected columns.
-
-        Args:
-            **kwargs: A variable-length keyword argument list, where each argument corresponds to
-            a search criterion. The following search criteria are supported:
-            - ID: The patient's ID
-            - gender: The patient's gender
-            - support: The patient's support status
-            - phone: The patient's phone number
-            - area: The patient's area
-            - city: The patient's city
-            - HMO: The patient's HMO
-            - COB: The patient's country of birth
-            - height: The patient's height
-            - weight: The patient's weight
-            - age: The patient's age (calc. from DOB)
-            - symptom: The patient's symptom
-            - diseases: The patient's disease
-
-        Returns:
-            table (pd.DataFrame): patient table. .
-        """
         where_limits = {}
         join = []
         colsName = getTableCarry('patient').get('headers')
@@ -531,18 +482,6 @@ class DataQueries:
         return
 
     def insertNewSymptom(self, symptomPath, update=True, **kwargs):
-        """
-        Inserts a new symptom into the database.
-
-        Args:
-            symptomPath (str): A string indicating the path where the symptom should be inserted.
-                Valid values are 'patient' or 'p' to insert symptom to the symptoms-patient table.,
-                and 'diseases' or 'd' to insert symptom to the diseases-symptoms table.
-            **kwargs:
-        Returns:
-            None.
-            :param update:
-        """
         if symptomPath == 'active' and self.UserIndices:
             symptomPath = self.activeUser
             kwargs['ID'] = self.UserIndices['Indices'].iloc[0, :]['ID']
@@ -581,18 +520,6 @@ class DataQueries:
         return
 
     def insertNewUser(self, userPath, **kwargs):
-        """
-        Inserts a new user into the database.
-
-        Args:
-            userPath (str): The type of user to add.
-                    Valid values are 'patient' or 'p' for patient,
-                    and 'researcher' or 'r' for researchers.
-            **kwargs: A dictionary containing the column names and values for the new user record.
-
-        Returns:
-            None.
-        """
         if userPath == 'patient' or userPath == 'p':
             cols = getTableCarry('patient').get('headers')
             tableName = 'patient'
@@ -631,16 +558,6 @@ class DataQueries:
         return True
 
     def insertNewDisease(self, depName, disName, disSymptoms=None):
-        """
-            Inserts a new diseases into the database.
-
-            Args:
-                depName (str): The diseases department name.
-                disName (str): The diseases name.
-                disSymptoms (optional[list]): The diseases symptom list.
-            Returns:
-                None.
-            """
         if disSymptoms is None:
             disSymptoms = ['None']
         depID = str(
@@ -662,18 +579,6 @@ class DataQueries:
         return
 
     def deleteUser(self, userPath, ID):
-        """
-        Delete a new from the database.
-
-        Args:
-            userPath (str): The type of user.
-                    Valid values are 'patient' or 'p' for patient,
-                    and 'researcher' or 'r' for researchers.
-            ID (str): User ID.
-
-        Returns:
-            None.
-        """
         if userPath == 'active' and self.UserIndices:
             userPath = self.activeUser
             ID = self.UserIndices['Indices'].iloc[0, :]['ID']
