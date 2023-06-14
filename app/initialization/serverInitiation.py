@@ -183,8 +183,12 @@ def createFullTable(table, dbname=db):
     if dbname != db:
         connect2serverDB(dbname)
     cursor.execute(f"use {db}")
-    dropRefFKs(table.tableName.lower())
-    cursor.execute(f"drop table if exists {table.tableName.lower()}")
+    dropRefFKs(
+        table.tableName.lower()
+    )
+    cursor.execute(
+        f"drop table if exists {table.tableName.lower()}"
+    )
     tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
     for k, t in zip(table.headers, table.headers_type):
         tbl_sqlStr += f"{k} {t}, "
@@ -200,7 +204,8 @@ def createFullTable(table, dbname=db):
             if not hasTable(refT):
                 continue
             for i, j in zip(fk, ref):
-                tbl_fkStr += f" CONSTRAINT FK_{i + table.tableName.lower() + '_' + j + refT} FOREIGN KEY(" \
+                tbl_fkStr += f" CONSTRAINT FK_{i + table.tableName.lower() + '_' + j + refT}" \
+                             f" FOREIGN KEY(" \
                              f"{i}) REFERENCES {refT}(" \
                              f"{j}) ON DELETE NO ACTION ON UPDATE NO ACTION,"
         if tbl_fkStr:
