@@ -83,8 +83,7 @@ class Insert2DB:
         return True
 
     def exSignIN(self):
-        path = self.panel.frame.logIn_frame.Entry_UserPath.get()
-        if path == 0:
+        if self.panel.frame.getEntry('user') == 'r':
             return self.panel.show_frame('ResearcherSignInPanel')
         return self.panel.show_frame('PatientSignInPanel')
 
@@ -289,20 +288,16 @@ class Insert2DB:
         return
 
     def exLogIn(self):
-        path = self.panel.frame.logIn_frame.Entry_UserPath.get()
-        if path == 0:
-            path = 'r'
-        else:
-            path = 'p'
-        userID = self.panel.frame.logIn_frame.Entry_UserID.get()
-        userName = self.panel.frame.logIn_frame.Entry_UserName.get()
+        path = self.panel.frame.getEntry('user')
+        userID = self.panel.frame.getEntry('id')
+        userName = self.panel.frame.getEntry('name')
+        print(path, userID, userName)
         if not self.handelFiled('ID', userID):
-            self.panel.frame.raiseError('ID')
+            self.panel.frame.raiseError('id')
             return
         if not self.handelFiled('Name', userName):
-            self.panel.frame.raiseError('Name')
+            self.panel.frame.raiseError('name')
             return
-
         retBool = self.panel.app_queries.activateLogIn(path, userID, userName)
         if type(retBool) is bool and retBool:
             return

@@ -11,7 +11,7 @@ class UserLogInPanel(ttk.Frame):
         ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
         self.width = 0.5 * MasterPanel.width
         self.height = 0.5 * MasterPanel.height
-        self.columnconfigure(list(range(1, 8)), weight=1)
+        self.columnconfigure(list(range(1, 10)), weight=1)
         self.rowconfigure(list(range(1, 8)), weight=1)
         self.style = ttk.Style(self)
         self.style.configure(
@@ -21,15 +21,16 @@ class UserLogInPanel(ttk.Frame):
             self, style='Frame1.TFrame'
         )
         self.logIn_frame.grid(
-            column=4, row=2, rowspan=4, padx=50, pady=50, sticky="nsew"
+            column=5, row=2, rowspan=4, padx=50, pady=50, sticky="nsew"
         )
 
     def _logInFrame(self, MasterPanel, *args, **kwargs):
+        cols = 3
         self.logIn_frame = ttk.Frame(
             master=MasterPanel, *args, **kwargs
         )
         self.logIn_frame.columnconfigure(
-            list(range(1, 6)), weight=1
+            list(range(1, cols)), weight=1
         )
         self.logIn_frame.rowconfigure(
             list(range(1, 9)), weight=1
@@ -37,22 +38,19 @@ class UserLogInPanel(ttk.Frame):
 
         self.logIn_frame.style = ttk.Style(self.logIn_frame)
         self.logIn_frame.style.configure(
-            'TRadiobutton', font=("Helvetica", 18, "bold"), background="LightSkyBlue4", foreground='black', weight=40
-        )
-        self.logIn_frame.style.configure(
-            'TEntry', weight=100
+            'TRadiobutton', font=("Helvetica", 25, "bold"), background="LightSkyBlue4", foreground='black'
         )
         labelConfigure = {
-            'font': ("Helvetica", 18, "bold"), 'background': 'LightSkyBlue4'
+            'font': ("Helvetica", 30, "bold"), 'background': 'LightSkyBlue4'
         }
         entryConfigure = {
-            'font': ("Helvetica", 16, "bold"), 'background': 'white'
+            'font': ("Helvetica", 25, "bold"), 'background': 'white'
         }
         gridTEntryConfigure = {
-            'padx': 10, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0
+            'padx': 0, 'pady': 0, 'sticky': tk.W, 'ipady': 0, 'ipadx': 0
         }
         gridConfigure = {
-            'padx': 5, 'pady': 0, 'sticky': tk.W
+            'padx': 0, 'pady': 0, 'ipady': 0, 'ipadx': 0, 'sticky': tk.W
         }
 
         app_insert2DB = self.master.__dict__.get('app_insert2DB')
@@ -61,7 +59,7 @@ class UserLogInPanel(ttk.Frame):
             return
 
         def entryFocusOut(entryName):
-            entry = self.logIn_frame.__dict__.get(f'Entry_User{entryName}')
+            entry = self.__dict__.get(f'Entry_{entryName}')
             if not entry:
                 return
             if not entry.get():
@@ -69,122 +67,125 @@ class UserLogInPanel(ttk.Frame):
             return
 
         def entryButton1(entryName):
-            entry = self.logIn_frame.__dict__.get(f'Entry_User{entryName}')
+            entry = self.__dict__.get(f'Entry_{entryName}')
             if not entry:
                 return
             if entry.get() == entryName:
                 entry.delete(0, "end")
             return
 
-        Label_title = ttk.Label(
-            self.logIn_frame, text='Log In', font=("Helvetica", 60, "bold", 'underline'),
+        self.Label_title = ttk.Label(
+            self.logIn_frame, text='Log In', font=("Helvetica", 80, "bold", 'underline'),
             background="LightSkyBlue4", foreground='white'
         )
-        Label_title.grid(
-            column=2, row=1, sticky="nsew"
+        self.Label_title.grid(
+            column=1, row=1, columnspan=cols, sticky="nsew"
         )
+        self.Label_title.configure(anchor='center')
 
-        ttk.Separator(
+        self.separator = ttk.Separator(
             self.logIn_frame, orient=HORIZONTAL
-        ).grid(
-            row=2, column=0, columnspan=6, ipadx=150,
+        )
+        self.separator.grid(
+            row=2, column=1, columnspan=cols, ipadx=150,
             sticky=tk.W + tk.E
         )
-
         # User Path researcher or patient
-        self.logIn_frame.Label_UserPath = ttk.Label(
+        self.Label_User = ttk.Label(
             self.logIn_frame, text='User', **labelConfigure
         )
-        self.logIn_frame.Label_UserPath.grid(
-            column=1, row=3, **gridConfigure
+        self.Label_User.grid(
+            column=1, row=3, padx=5, pady=0, sticky=tk.W
         )
-        self.logIn_frame.Entry_UserPath = tk.IntVar()
-        self.logIn_frame.Entry_UserPath.set(1)
-        self.logIn_frame.RB_UserPath_Patient = ttk.Radiobutton(
+        self.Entry_User = tk.IntVar()
+        self.Entry_User.set(1)
+        self.RB_UserPath_Patient = ttk.Radiobutton(
             self.logIn_frame, text='Patient',
-            variable=self.logIn_frame.Entry_UserPath, value=1
+            variable=self.Entry_User, value=1
         )
-        self.logIn_frame.RB_UserPath_Patient.grid(column=2, row=3, **gridConfigure)
+        self.RB_UserPath_Patient.grid(
+            column=2, row=3, **gridConfigure
+        )
 
-        self.logIn_frame.RB_UserPath_Researcher = ttk.Radiobutton(
+        self.RB_UserPath_Researcher = ttk.Radiobutton(
             self.logIn_frame, text='Researcher',
-            variable=self.logIn_frame.Entry_UserPath, value=0
+            variable=self.Entry_User, value=0
         )
-        self.logIn_frame.RB_UserPath_Researcher.grid(
+        self.RB_UserPath_Researcher.grid(
             column=2, row=4, **gridConfigure
         )
 
         # User, researcher or patient Insert ID
-        self.logIn_frame.Label_UserID = ttk.Label(
+        self.Label_Id = ttk.Label(
             self.logIn_frame, text='User ID:', **labelConfigure
         )
-        self.logIn_frame.Label_UserID.grid(
-            column=1, row=5, **gridConfigure
+        self.Label_Id.grid(
+            column=1, row=5, padx=5, pady=0, sticky=tk.W
         )
-        self.logIn_frame.Entry_UserID = ttk.Entry(
+        self.Entry_Id = ttk.Entry(
             self.logIn_frame, **entryConfigure
         )
-        self.logIn_frame.Entry_UserID.insert(
-            0, "ID"
+        self.Entry_Id.insert(
+            0, "Id"
         )
-        self.logIn_frame.Entry_UserID.grid(
+        self.Entry_Id.grid(
             column=2, row=5, **gridTEntryConfigure
         )
-        self.logIn_frame.Entry_UserID.bind(
-            "<FocusOut>", lambda e: entryFocusOut('ID')
+        self.Entry_Id.bind(
+            "<FocusOut>", lambda e: entryFocusOut('Id')
         )
-        self.logIn_frame.Entry_UserID.bind(
-            "<Button-1>", lambda e: entryButton1('ID')
+        self.Entry_Id.bind(
+            "<Button-1>", lambda e: entryButton1('Id')
         )
 
         # User researcher or patient Insert Name
-        self.logIn_frame.Label_UserName = ttk.Label(
+        self.Label_Name = ttk.Label(
             self.logIn_frame, text='User Name:', **labelConfigure
         )
-        self.logIn_frame.Label_UserName.grid(
-            column=1, row=6, **gridConfigure
+        self.Label_Name.grid(
+            column=1, row=6, padx=5, pady=0, sticky=tk.W
         )
-        self.logIn_frame.Entry_UserName = ttk.Entry(
+        self.Entry_Name = ttk.Entry(
             self.logIn_frame, **entryConfigure
         )
-        self.logIn_frame.Entry_UserName.insert(0, "Name")
-        self.logIn_frame.Entry_UserName.grid(
+        self.Entry_Name.insert(0, "Name")
+        self.Entry_Name.grid(
             column=2, row=6, **gridTEntryConfigure
         )
-        self.logIn_frame.Entry_UserName.bind(
+        self.Entry_Name.bind(
             "<FocusOut>", lambda e: entryFocusOut('Name')
         )
-        self.logIn_frame.Entry_UserName.bind(
+        self.Entry_Name.bind(
             "<Button-1>", lambda e: entryButton1('Name')
         )
 
         # LOGIN button
-        self.logIn_frame.Button_LogIn = RoundedButton(
+        self.Button_LogIn = RoundedButton(
             master=self.logIn_frame, text="Log In", radius=25, btnbackground="DarkGoldenrod3", btnforeground="black",
-            width=250, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4'
+            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"), masterBackground='LightSkyBlue4'
         )
-        self.logIn_frame.Button_LogIn.grid(
-            column=2, row=7, **gridConfigure
+        self.Button_LogIn.grid(
+            column=1, row=7, columnspan=cols
         )
-        self.logIn_frame.Button_LogIn.bind(
+        self.Button_LogIn.bind(
             "<Button-1>", lambda e: app_insert2DB.exLogIn()
         )
 
         # SingIN button
-        self.logIn_frame.Button_SignIN = RoundedButton(
+        self.Button_SignIN = RoundedButton(
             master=self.logIn_frame, text="Sign IN", radius=25, btnbackground="DarkGoldenrod3", btnforeground="black",
-            width=250, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"), masterBackground='LightSkyBlue4'
+            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"), masterBackground='LightSkyBlue4'
         )
-        self.logIn_frame.Button_SignIN.grid(
-            column=2, row=8, **gridConfigure
+        self.Button_SignIN.grid(
+            column=1, row=8, columnspan=cols
         )
-        self.logIn_frame.Button_SignIN.bind(
+        self.Button_SignIN.bind(
             "<Button-1>", lambda e: app_insert2DB.exSignIN()
         )
         return
 
     def raiseError(self, labelName):
-        label = self.logIn_frame.__dict__.get(f'Label_User{labelName}')
+        label = self.__dict__.get(f'Label_{labelName[0].upper()}{labelName[1:]}')
         if not label:
             return
         label.config(
@@ -193,12 +194,26 @@ class UserLogInPanel(ttk.Frame):
         return
 
     def deleteError(self, labelName):
-        label = self.logIn_frame.__dict__.get(f'Label_User{labelName}')
+        label = self.__dict__.get(f'Label_{labelName[0].upper()}{labelName[1:]}')
         if not label:
             return
         label.config(
             foreground="black"
         )
+        return
+
+    def getEntry(self, key):
+        entry = self.__dict__.get(f'Entry_{key[0].upper()}{key[1:]}')
+        if not entry:
+            return
+        if key == 'user':
+            if entry.get() == 0:
+                path = 'r'
+            else:
+                path = 'p'
+            return path
+        if isinstance(entry, tk.ttk.Entry):
+            return entry.get()
         return
 
 
@@ -261,7 +276,8 @@ class PatientSignInPanel(ttk.Frame):
         # Back button
         self.Button_Back = RoundedButton(
             master=self, text="Back", radius=10, btnbackground="LightSkyBlue4", btnforeground="white",
-            width=150, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"), masterBackground='DarkGoldenrod2'
+            width=150, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"),
+            masterBackground='DarkGoldenrod2'
         )
         self.Button_Back.grid(
             column=2, row=1, padx=5, pady=5, sticky=tk.W
@@ -583,7 +599,7 @@ class PatientSignInPanel(ttk.Frame):
         # ------------------------- Separator ------------------------------------------
         ttk.Separator(
             self.pg1, orient=VERTICAL).grid(row=2, column=3, rowspan=7, ipady=150, sticky=tk.N + tk.S
-        )
+                                            )
         # ------------------------- Selected Symptoms ------------------------------------------
         self.pg1.Label_UserSelectSymptoms = ttk.Label(
             self.pg1, text='Selected Symptoms:', **labelConfigure
@@ -749,7 +765,7 @@ class PatientMainPanel(ttk.Frame):
             row=1, column=0, columnspan=11, ipadx=150, sticky=tk.W + tk.E + tk.N
         )
         self.Button_SignOut = RoundedButton(
-            master=self, text="Sign Out", radius=10, btnbackground="LightSkyBlue4",  btnforeground="white",
+            master=self, text="Sign Out", radius=10, btnbackground="LightSkyBlue4", btnforeground="white",
             width=150, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"),
             masterBackground='DarkGoldenrod2'
         )
@@ -759,8 +775,8 @@ class PatientMainPanel(ttk.Frame):
         self.Button_SignOut.bind(
             "<Button-1>", lambda e: app_insert2DB.exSignOut()
         )
-        self.Button_Refresh = RoundedButton\
-            (master=self, text="Refresh", radius=10, btnbackground="LightSkyBlue4",  btnforeground="white",
+        self.Button_Refresh = RoundedButton \
+            (master=self, text="Refresh", radius=10, btnbackground="LightSkyBlue4", btnforeground="white",
              width=150, height=60, highlightthickness=0, font=("Helvetica", 18, "bold"),
              masterBackground='DarkGoldenrod2'
              )
@@ -1506,12 +1522,15 @@ class ResearcherMainPanel(ttk.Frame):
         tempGroup = researchers.groupby(['ResearchID'], as_index=False)
         row = 0
         for rID, group in tempGroup:
+            parentVals = list(group.loc[group.index[0], list(self.pg0.Table_Researchers['columns'])[1:-1]])
             if row % 2:
                 self.pg0.Table_Researchers.insert(parent='', index='end', iid=str(rID), text='',
-                                                  values=[str(rID), '', '', ''], tags=('even',), open=False)
+                                                  values=[str(rID), f'{parentVals[0]}', f'{parentVals[1]}', ''],
+                                                  tags=('even',), open=False)
             else:
                 self.pg0.Table_Researchers.insert(parent='', index='end', iid=str(rID), text='',
-                                                  values=[str(rID), '', '', ''], tags=('odd',), open=False)
+                                                  values=[str(rID), f'{parentVals[0]}', f'{parentVals[1]}', ''],
+                                                  tags=('odd',), open=False)
             row += 1
             for idx in group.index:
                 vals = list(group.loc[idx, list(self.pg0.Table_Researchers['columns'])])
