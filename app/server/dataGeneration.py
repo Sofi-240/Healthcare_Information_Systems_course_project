@@ -4,11 +4,11 @@ import random
 import datetime
 import json
 import os
-from app.initialization.tableObj import Table
+from app.server.tableObj import Table
 
 random_dict = json.loads(
-    open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'random_dict.txt', 'r').read())
-symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'symptoms.txt',
+    open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'random_dict.txt', 'r').read())
+symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'symptoms.txt',
                     'r').readlines()
 
 
@@ -285,15 +285,15 @@ def main():
           data=patient,
           pks=['ID']).save()
 
+    Table('diseases',
+          data=diseases.merge(diseases_symptoms, how='inner', on='disID')).save()
+
     Table('patientdiagnosis',
           data=PatientDiagnosis,
           pks=['ID'],
           fks=[['ID']],
           refs=[['ID']],
           ref_tables=['patient']).save()
-
-    Table('diseases',
-          data=diseases.merge(diseases_symptoms, how='inner', on='disID')).save()
 
     Table('symptomsPatient',
           data=patient_symptoms,
@@ -311,14 +311,14 @@ def main():
           refs=[['ID']],
           ref_tables=['researcher']).save()
 
-    file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'random_dict.txt', 'w')
+    file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'searchHashFile.txt', 'w')
     file.write(json.dumps({}))
-    return
+
 
 
 if __name__ == "__main__":
     random_dict = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'random_dict.txt', 'r').read())
-    symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'symptoms.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'random_dict.txt', 'r').read())
+    symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'symptoms.txt',
                         'r').readlines()
     main()

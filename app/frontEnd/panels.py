@@ -4,7 +4,7 @@ import tkcalendar
 from app.frontEnd.widgets import RoundedButton
 
 
-class SignIn(ttk.Frame):
+class SignInPanel(ttk.Frame):
 
     def __init__(self, MasterPanel):
         ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)

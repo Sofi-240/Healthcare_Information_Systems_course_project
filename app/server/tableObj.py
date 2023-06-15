@@ -9,9 +9,9 @@ class Table:
         self.headers = []
         self.headers_type = []
         if not kwargs.get('csvFileName'):
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + tableName + '.csv'
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + tableName + '.csv'
         else:
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + kwargs.get(
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + kwargs.get(
                 'csvFileName') + '.csv'
         self.tableName = tableName
         self.pks = kwargs.get('pks')
@@ -53,10 +53,8 @@ class Table:
             else:
                 newData = True
         except FileNotFoundError:
-            print("Error: Incorrect File Name")
             self.data = pd.DataFrame()
         except:
-            print("Error: Table Importing Went Wrong")
             self.data = pd.DataFrame()
         finally:
             if newData:
@@ -76,7 +74,7 @@ class Table:
                     self.headers_type = ['VARCHAR(255)'] * len(self.headers)
             else:
                 temp_carry = json.loads(
-                    open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+                    open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
                          'r').read())
                 if temp_carry.get(self.tableName.lower()):
                     for key, val in temp_carry[self.tableName.lower()].items():
@@ -106,9 +104,8 @@ class Table:
         if os.path.exists(self.csvFileName):
             os.remove(self.csvFileName)
         self.data.to_csv(self.csvFileName, index=False)
-        print('Save Data in: ', self.csvFileName)
         temp_carry = json.loads(
-            open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+            open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
                  'r').read())
         if not temp_carry.get(self.tableName.lower()):
             temp_carry[self.tableName.lower()] = {}
@@ -116,7 +113,7 @@ class Table:
             if key == 'data' or key == 'csvFileName' or key == 'tableName':
                 continue
             temp_carry[self.tableName.lower()][key] = itm
-        param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+        param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt', 'w')
         param_file.write(json.dumps(temp_carry))
         param_file.close()
         return self

@@ -1,4 +1,4 @@
-from app.initialization.serverInitiation import getTableCarry
+from app.server.serverInitiation import getTableCarry
 import datetime
 from tkinter import messagebox
 

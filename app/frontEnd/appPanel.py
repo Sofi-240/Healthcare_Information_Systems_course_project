@@ -1,11 +1,12 @@
 from screeninfo import get_monitors
 from tkinter import messagebox
+import tkinter as tk
 from app.frontEnd.views import *
 from app.communication.query import DataQueries
 from app.communication.input import Insert2DB
 
 
-class Panel(tk.Tk):
+class AppPanel(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('App Panel')
@@ -84,7 +85,7 @@ class Panel(tk.Tk):
 
 
 if __name__ == '__main__':
-    app_panel = Panel()
+    app_panel = AppPanel()
     app_panel.mainloop()
 
 

@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 import mysql.connector
-from app.initialization.tableObj import Table
-from app.initialization.dataGeneration import main as dataGeneration_main
+from app.server.tableObj import Table
+from app.server.dataGeneration import main as dataGeneration_main
 import os
 import datetime
 import pandas as pd
@@ -34,11 +34,8 @@ def showDBs():
 def initDB(dbname):
     global db, cursor
     db = dbname
-    print(db)
-    print(f"drop database if exists {db.lower()}")
     cursor.execute(f"drop database if exists {db.lower()}")
     cursor.execute(f"CREATE DATABASE {db.upper()}")
-    showDBs()
     return
 
 
@@ -261,17 +258,17 @@ def insert2Table(tableName, values, columns=None, dbname=db):
 
 def getTableCarry(tableName):
     temp_carry = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
              'r').read())
     return temp_carry.get(tableName)
 
 
 def updateTableCarry(tableName, val):
     temp_carry = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
              'r').read())
     temp_carry[tableName] = val
-    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt', 'w')
     param_file.write(json.dumps(temp_carry))
     param_file.close()
     return
@@ -296,7 +293,6 @@ def main():
     for tbl in tablesNames:
         createFullTable(Table(tbl))
     updateTableCarry('trigger', datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
-    return
 
 
 if __name__ == "__main__":

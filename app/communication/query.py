@@ -1,6 +1,6 @@
 import json
 import os
-from app.initialization.serverInitiation import *
+from app.server.serverInitiation import *
 import pandas as pd
 import datetime
 from app.communication.trieStruct import Trie
@@ -173,6 +173,7 @@ class DataQueries:
                 data.get_group(index.index[1][0])['disID'].iloc[0], index.iloc[1]
             ]
             return dec
+
         queryStr = f"SELECT * FROM symptomspatient"
         if IDs:
             if len(IDs) == 1:
@@ -284,6 +285,7 @@ class DataQueries:
                 join.append(
                     [colName, joinCol, joinStr]
                 )
+
         queryStr = f"SELECT DISTINCT "
         ret_cols = []
         while colsName:
@@ -313,7 +315,7 @@ class DataQueries:
     def queryAvailableResearchValues(self, userPath, **kwargs):
         ID = kwargs.get('ID')
         path = os.path.join(
-            os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+            os.path.split(os.path.dirname(__file__))[0], 'server', 'searchHashFile.txt'
         )
         fileDict = json.loads(
             open(
@@ -436,7 +438,7 @@ class DataQueries:
             queryStr = f"SELECT disID FROM diseases WHERE disName = '{disName}';"
             disID = executedQuery(queryStr)[0][0]
         path = os.path.join(
-            os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+            os.path.split(os.path.dirname(__file__))[0], 'server', 'searchHashFile.txt'
         )
         fileDict = json.loads(
             open(
@@ -595,7 +597,7 @@ class DataQueries:
             queryStr = f"SELECT ID FROM activeresearch WHERE rID = {ID}"
             researchers = list(executedQuery(queryStr))
             path = os.path.join(
-                os.path.split(os.path.dirname(__file__))[0], 'initialization', 'searchHashFile.txt'
+                os.path.split(os.path.dirname(__file__))[0], 'server', 'searchHashFile.txt'
             )
             fileDict = json.loads(
                 open(

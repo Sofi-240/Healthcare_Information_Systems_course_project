@@ -3,7 +3,7 @@ from tkinter import ttk, HORIZONTAL, VERTICAL
 import tkcalendar
 from tkcalendar import DateEntry
 from app.frontEnd.widgets import AUTO_complete, RoundedButton
-from app.frontEnd.panels import MainPanel, SignIn
+from app.frontEnd.panels import MainPanel, SignInPanel
 
 
 class UserLogInPanel(ttk.Frame):
@@ -217,7 +217,7 @@ class UserLogInPanel(ttk.Frame):
         return
 
 
-class PatientSignInPanel(SignIn):
+class PatientSignInPanel(SignInPanel):
 
     def __init__(self, MasterPanel):
         super().__init__(MasterPanel)
@@ -1198,7 +1198,7 @@ class PatientMainPanel(MainPanel):
         return
 
 
-class ResearcherSignInPanel(SignIn):
+class ResearcherSignInPanel(SignInPanel):
     def __init__(self, MasterPanel):
         super().__init__(MasterPanel)
         self._create_sub_frames(MasterPanel)
