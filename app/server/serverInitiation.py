@@ -26,9 +26,11 @@ def showDBs():
     global cursor
     cursor.execute("SHOW DATABASES")
     print("Databases in SERV:")
+    dbs = []
     for x in cursor:
         print(x)
-    return
+        dbs.append(x[0])
+    return dbs
 
 
 def initDB(dbname):
@@ -52,9 +54,11 @@ def showTables():
     global cursor
     cursor.execute("show tables")
     print(f"Tables in DB:")
+    tabels = []
     for i in cursor:
         print(i)
-    return
+        tabels.append(i[0])
+    return tabels
 
 
 def hasTable(name):
