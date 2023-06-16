@@ -9,9 +9,11 @@ class Table:
         self.headers = []
         self.headers_type = []
         if not kwargs.get('csvFileName'):
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + tableName + '.csv'
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0]\
+                               + '\\server\\' + tableName + '.csv'
         else:
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + kwargs.get(
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] \
+                               + '\\server\\' + kwargs.get(
                 'csvFileName') + '.csv'
         self.tableName = tableName
         self.pks = kwargs.get('pks')

@@ -79,7 +79,6 @@ class DataQueries:
             for symp in symptoms:
                 UserIndices['symptoms'].append(symp[0])
             UserIndices['availableResearch'] = self.queryAvailableResearchValues('p', ID=userID)
-
             queryStr = f"SELECT d.ID, r.Fname, r.Lname, r.phone, r.Mail " \
                        f"FROM activeresearch AS d" \
                        f" INNER JOIN researcher AS r ON r.ID = d.rID WHERE d.pID = '{userID}';"
@@ -260,7 +259,6 @@ class DataQueries:
                     joinStr = joinStr[:-1] + ") "
                 else:
                     joinStr += f"WHERE d1.Symptom LIKE '%{val}%') "
-                pass
                 joinStr += f"AS t1 " \
                            f"ON t.ID = t1.ID "
                 join.append(
@@ -362,7 +360,7 @@ class DataQueries:
                 )
             availablePatients = pd.concat(availablePatients, axis=0).reset_index(drop=True)
             availablePatients.columns = ['patientID', 'patientName', 'patientPhone', 'researchID']
-            availablePatients['patientPhone'] = '0' + availablePatients['patientPhone']
+            availablePatients['patientPhone'] = availablePatients['patientPhone']
             return availablePatients
         elif userPath == 'p' or userPath == 'patient':
             queryStr = f"SELECT DISTINCT d.ID, r.Fname, r.Lname, r.phone, r.Mail, d.disID FROM activeresearch AS d" \
@@ -515,7 +513,7 @@ class DataQueries:
             if not symptoms:
                 return
             for syp in symptoms:
-                insert2Table('diseases', list(disRow[:-1]) + syp)
+                insert2Table('diseases', list(disRow[:-1]) + [syp])
             self._enqueueSymptomsTrie()
             if update:
                 self.queryUpdateTrigger()
@@ -529,20 +527,17 @@ class DataQueries:
             cols = getTableCarry('researcher').get('headers')
             tableName = 'researcher'
         else:
-            return False
+            return
         values = []
         for col in cols:
             val = kwargs.get(col)
             if val is None and val != 'support':
-                return False
+                return
             if col == 'support' and val is None:
                 val = 0
             if col == 'ID':
                 if executedQuery(f"SELECT * FROM {tableName} WHERE ID = '{val}';"):
-                    return True
-            if col == 'USRname':
-                if executedQuery(f"SELECT * FROM {tableName} WHERE USRname = '{val}';"):
-                    return True
+                    return
             values.append(val)
         insert2Table(tableName, values)
         if tableName == 'patient' and kwargs.get('symptoms'):
@@ -557,7 +552,7 @@ class DataQueries:
             return self.activateLogIn(
                 userPath, kwargs.get('ID'), kwargs.get('Fname')
             )
-        return True
+        return
 
     def insertNewDisease(self, depName, disName, disSymptoms=None):
         if disSymptoms is None:

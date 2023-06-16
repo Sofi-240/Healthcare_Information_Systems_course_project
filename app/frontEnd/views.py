@@ -54,8 +54,8 @@ class UserLogInPanel(ttk.Frame):
             'padx': 0, 'pady': 0, 'ipady': 0, 'ipadx': 0, 'sticky': tk.W
         }
 
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
+        app_inputs = self.master.__dict__.get('app_inputs')
+        if not app_inputs:
             return
 
         def entryFocusOut(entryName):
@@ -161,28 +161,31 @@ class UserLogInPanel(ttk.Frame):
 
         # LOGIN button
         self.Button_LogIn = RoundedButton(
-            master=self.logIn_frame, text="Log In", radius=25, btnbackground="DarkGoldenrod3", btnforeground="black",
-            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"), masterBackground='LightSkyBlue4'
+            master=self.logIn_frame, text="Log In", radius=25,
+            btnbackground="DarkGoldenrod3", btnforeground="black",
+            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"),
+            masterBackground='LightSkyBlue4'
         )
         self.Button_LogIn.grid(
             column=1, row=7, columnspan=cols
         )
         self.Button_LogIn.bind(
-            "<Button-1>", lambda e: app_insert2DB.exLogIn()
+            "<Button-1>", lambda e: app_inputs.exLogIn()
         )
 
         # SingIN button
         self.Button_SignIN = RoundedButton(
-            master=self.logIn_frame, text="Sign IN", radius=25, btnbackground="DarkGoldenrod3", btnforeground="black",
-            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"), masterBackground='LightSkyBlue4'
+            master=self.logIn_frame, text="Sign IN", radius=25,
+            btnbackground="DarkGoldenrod3", btnforeground="black",
+            width=250, height=80, highlightthickness=0, font=("Helvetica", 25, "bold"),
+            masterBackground='LightSkyBlue4'
         )
         self.Button_SignIN.grid(
             column=1, row=8, columnspan=cols
         )
         self.Button_SignIN.bind(
-            "<Button-1>", lambda e: app_insert2DB.exSignIN()
+            "<Button-1>", lambda e: app_inputs.exSignIN()
         )
-        return
 
     def raiseError(self, labelName):
         label = self.__dict__.get(f'Label_{labelName[0].upper()}{labelName[1:]}')
@@ -253,7 +256,7 @@ class PatientSignInPanel(SignInPanel):
             column=4, row=1, padx=5, pady=5, sticky=tk.E
         )
         self.Button_Next.bind(
-            "<Button-1>", lambda e: self.app_insert2DB.validUserSignIn()
+            "<Button-1>", lambda e: self.app_inputs.validUserSignIn()
         )
         self.Page_Frames = ttk.Notebook(
             self, width=700, height=600
@@ -616,7 +619,7 @@ class PatientSignInPanel(SignInPanel):
             column=6, row=8, sticky=tk.E + tk.S + tk.W
         )
         self.Button_SignIN.bind(
-            "<Button-1>", lambda e: self.app_insert2DB.validUserSignIn()
+            "<Button-1>", lambda e: self.app_inputs.validUserSignIn()
         )
         self.Entry_Conifer = tk.IntVar()
         self.Check_conifer = tk.Checkbutton(
@@ -1339,9 +1342,8 @@ class ResearcherSignInPanel(SignInPanel):
         self.Button_SignIN.grid(
             column=3, row=6, sticky=tk.E + tk.S + tk.W
         )
-        app_insert2DB = self.master.__dict__.get('app_insert2DB')
         self.Button_SignIN.bind(
-            "<Button-1>", lambda e: app_insert2DB.validUserSignIn()
+            "<Button-1>", lambda e: self.app_inputs.validUserSignIn()
         )
         self.Entry_Conifer = tk.IntVar()
         self.Check_conifer = tk.Checkbutton(
@@ -2015,7 +2017,7 @@ class ResearcherMainPanel(MainPanel):
             column=10, row=14, sticky=tk.W + tk.E
         )
         self.pg1.Button_createResearch.bind(
-            "<Button-1>", lambda e: self.app_insert2DB.pushNewResearch()
+            "<Button-1>", lambda e: self.app_inputs.pushNewResearch()
         )
         return
 
@@ -2117,7 +2119,7 @@ class ResearcherMainPanel(MainPanel):
             column=4, row=5, sticky=tk.W + tk.E
         )
         self.pg2.Button_addPatient.bind(
-            '<Button-1>', lambda e: self.app_insert2DB.addPatientToResearch()
+            '<Button-1>', lambda e: self.app_inputs.addPatientToResearch()
         )
         return
 
@@ -2293,7 +2295,7 @@ class ResearcherMainPanel(MainPanel):
             column=7, row=11, sticky=tk.E + tk.S + tk.W
         )
         self.pg3.Button_AddDisease.bind(
-            "<Button-1>", lambda e: self.app_insert2DB.pushNewDiseases()
+            "<Button-1>", lambda e: self.app_inputs.pushNewDiseases()
         )
         return
 
@@ -2401,7 +2403,7 @@ class ResearcherMainPanel(MainPanel):
             column=6, row=3, sticky=tk.W
         )
         self.pg4.Button_AddSymptom.bind(
-            "<Button-1>", lambda e: self.app_insert2DB.pushNewSymptoms()
+            "<Button-1>", lambda e: self.app_inputs.pushNewSymptoms()
         )
         return
 

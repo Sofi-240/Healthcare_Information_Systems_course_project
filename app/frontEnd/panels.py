@@ -7,7 +7,10 @@ from app.frontEnd.widgets import RoundedButton
 class SignInPanel(ttk.Frame):
 
     def __init__(self, MasterPanel):
-        ttk.Frame.__init__(self, master=MasterPanel, relief=tk.RAISED, borderwidth=2)
+        ttk.Frame.__init__(
+            self, master=MasterPanel,
+            relief=tk.RAISED, borderwidth=2
+        )
         self.width = 0.5 * MasterPanel.width
         self.height = 0.5 * MasterPanel.height
         self.columnconfigure(
@@ -19,6 +22,16 @@ class SignInPanel(ttk.Frame):
         self._init(MasterPanel)
 
     def _init(self, MasterPanel):
+        app_inputs = MasterPanel.__dict__.get('app_inputs')
+        if not app_inputs:
+            return
+        self.app_inputs = app_inputs
+
+        app_queries = MasterPanel.__dict__.get('app_queries')
+        if not app_queries:
+            return
+        self.app_queries = app_queries
+
         self.style = ttk.Style(self)
         self.style.configure(
             'TFrame', background='white', borderwidth=10, relief='RAISED'
@@ -30,16 +43,6 @@ class SignInPanel(ttk.Frame):
             'TNotebook.Tab', background="tomato3", compound=tk.LEFT, font=("Helvetica", 18, "bold"),
             weight=50, padding=[50, 20]
         )
-
-        app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
-            return
-        self.app_insert2DB = app_insert2DB
-
-        app_queries = MasterPanel.__dict__.get('app_queries')
-        if not app_queries:
-            return
-        self.app_queries = app_queries
 
         Label_title = ttk.Label(
             self, text='                                            Sign In',
@@ -62,7 +65,7 @@ class SignInPanel(ttk.Frame):
             column=2, row=10, padx=5, pady=5, sticky=tk.W
         )
         self.Button_Return.bind(
-            "<Button-1>", lambda e: app_insert2DB.exSignOut()
+            "<Button-1>", lambda e: app_inputs.exSignOut()
         )
         return
 
@@ -133,10 +136,10 @@ class MainPanel(ttk.Frame):
             'TNotebook.Tab', background="tomato3", compound=tk.LEFT, font=("Helvetica", 18, "bold"),
             weight=50, padding=[50, 20]
         )
-        app_insert2DB = MasterPanel.__dict__.get('app_insert2DB')
-        if not app_insert2DB:
+        app_inputs = MasterPanel.__dict__.get('app_inputs')
+        if not app_inputs:
             return
-        self.app_insert2DB = app_insert2DB
+        self.app_inputs = app_inputs
 
         app_queries = MasterPanel.__dict__.get('app_queries')
         if not app_queries:
@@ -161,7 +164,7 @@ class MainPanel(ttk.Frame):
             column=0, row=0, padx=5, pady=5, sticky=tk.W
         )
         self.Button_SignOut.bind(
-            "<Button-1>", lambda e: app_insert2DB.exSignOut()
+            "<Button-1>", lambda e: app_inputs.exSignOut()
         )
         self.Button_Refresh = RoundedButton(
             master=self, text="Refresh", radius=10, btnbackground="LightSkyBlue4", btnforeground="white",
@@ -183,7 +186,7 @@ class MainPanel(ttk.Frame):
             column=5, row=0, padx=5, pady=5, sticky=tk.E
         )
         self.Button_DisConnect.bind(
-            "<Button-1>", lambda e: app_insert2DB.exDisConnect()
+            "<Button-1>", lambda e: app_inputs.exDisConnect()
         )
         return
 
@@ -191,7 +194,7 @@ class MainPanel(ttk.Frame):
         return
 
     def buttonUpDate(self):
-        if self.app_insert2DB.userUpDate():
+        if self.app_inputs.userUpDate():
             return self.buttonRefresh()
         return
 

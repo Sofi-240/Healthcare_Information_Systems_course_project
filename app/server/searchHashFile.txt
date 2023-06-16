@@ -1,1 +1,1 @@
-{}
+{"1000": {"gender": ["F"], "support": [1, 0], "HMO": ["Clalit", "Maccabi", "Meuhedet", "Leumit"], "area": ["N", "C", "S"], "age": [null, null], "height": [null, null], "weight": [null, null], "depName": "Neurological", "disName": "Depression", "symptoms": ["sad", "loss of appetite", "changes in mood", "difficulty with changes", "difficulty with communication"]}}

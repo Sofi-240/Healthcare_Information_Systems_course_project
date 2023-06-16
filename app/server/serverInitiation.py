@@ -195,16 +195,19 @@ def createFullTable(table, dbname=db):
         for pk in table.pks:
             tbl_sqlStr += f"{pk},"
         tbl_sqlStr = tbl_sqlStr[:-1] + f")"
+
     tbl_fkStr = ""
     if table.fks:
         for fk, ref, refT in zip(table.fks, table.refs, table.ref_tables):
             if not hasTable(refT):
                 continue
             for i, j in zip(fk, ref):
-                tbl_fkStr += f" CONSTRAINT FK_{i + table.tableName.lower() + '_' + j + refT}" \
+                tbl_fkStr += f" CONSTRAINT FK" \
+                             f"_{i + table.tableName.lower() + '_' + j + refT}" \
                              f" FOREIGN KEY(" \
                              f"{i}) REFERENCES {refT}(" \
-                             f"{j}) ON DELETE NO ACTION ON UPDATE NO ACTION,"
+                             f"{j}) ON DELETE NO ACTION" \
+                             f" ON UPDATE NO ACTION,"
         if tbl_fkStr:
             tbl_fkStr = "," + tbl_fkStr[:-1]
     tbl_sqlStr += tbl_fkStr + f")"
@@ -289,10 +292,18 @@ def main():
     connect2server()
     initDB('his_project')
     connect2serverDB(database='his_project')
-    tablesNames = ['diseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch', 'patientdiagnosis']
-    for tbl in tablesNames:
-        createFullTable(Table(tbl))
-    updateTableCarry('trigger', datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+    tablesNames = [
+        'diseases', 'patient', 'symptomsPatient',
+        'researcher', 'activeresearch', 'patientdiagnosis'
+    ]
+    for tblName in tablesNames:
+        createFullTable(
+            Table(tblName)
+        )
+    updateTableCarry(
+        'trigger',
+        datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    )
 
 
 if __name__ == "__main__":

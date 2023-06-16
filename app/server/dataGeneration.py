@@ -315,7 +315,6 @@ def main():
     file.write(json.dumps({}))
 
 
-
 if __name__ == "__main__":
     random_dict = json.loads(
         open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'random_dict.txt', 'r').read())

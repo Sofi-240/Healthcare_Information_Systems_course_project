@@ -3,7 +3,7 @@ import datetime
 from tkinter import messagebox
 
 
-class Insert2DB:
+class DataInputs:
     def __init__(self, panel):
         self.panel = panel
 
@@ -396,6 +396,7 @@ class Insert2DB:
         return False
 
     def exSignOut(self):
+
         self.panel.destroy_frame('active')
         self.panel.app_queries.activeUser = None
         self.panel.app_queries.activeUserName = None
