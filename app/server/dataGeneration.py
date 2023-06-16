@@ -4,7 +4,12 @@ import random
 import datetime
 import json
 import os
-from app.initialization.tableObj import Table
+from app.server.tableObj import Table
+
+random_dict = json.loads(
+    open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'random_dict.txt', 'r').read())
+symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'symptoms.txt',
+                    'r').readlines()
 
 
 def random_binary(n, p_true=0.5):
@@ -247,27 +252,18 @@ def researcher_table(IDlist):
     data.loc[:, 'Lname'] = random_item(N, *random_dict['LNames'])
     data['phone'] = random_item(N, '050', '054', '052')
     data['phone'] += random_rnf_uni(1000001, 9999999, N).astype(str)
-    data.loc[:, 'Mail'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname'] + pd.Series(random_rnf_uni(1000, 9999, N)).astype(str)
+    data.loc[:, 'Mail'] = data.loc[:, 'Fname'] + '_' + data.loc[:, 'Lname'] + pd.Series(
+        random_rnf_uni(1000, 9999, N)).astype(str)
     data.loc[:, 'Mail'] += '@LUKA.com'
     return data
 
 
-def initActiveR(diseases_data, researcher_data):
-    data = pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
-
-    data['ID'] = random_rnf_uni(1001, 9999, 10).tolist()[:2]
-    data['disID'] = random.choices(list(diseases_data['disID']), k=2)
-    data['rID'] = random.choices(list(researcher_data['ID']), k=2)
-    return data
+def initActiveR():
+    return pd.DataFrame(columns=['ID', 'disID', 'rID', 'pID'])
 
 
 def Trigger_table(patient_data):
-    data = pd.DataFrame(patient_data['ID'], columns=['ID'])
-    data['FdisID'] = None
-    data['Fconf'] = 0
-    data['SdisID'] = None
-    data['Sconf'] = 0
-    return data
+    return pd.DataFrame(columns=['ID', 'FdisID', 'Fconf', 'SdisID', 'Sconf'])
 
 
 def main():
@@ -281,7 +277,7 @@ def main():
     patient_symptoms = patient_symptoms_table(diseases_symptoms, patient, department)
     diseases_symptoms.drop(columns='disName', inplace=True)
     researcher = researcher_table(ids_uni[1000:])
-    ActiveResearch = initActiveR(diseases, researcher)
+    ActiveResearch = initActiveR()
     patient['DOB'] = patient['DOB'].astype(str)
     PatientDiagnosis = Trigger_table(patient)
 
@@ -289,22 +285,15 @@ def main():
           data=patient,
           pks=['ID']).save()
 
+    Table('diseases',
+          data=diseases.merge(diseases_symptoms, how='inner', on='disID')).save()
+
     Table('patientdiagnosis',
           data=PatientDiagnosis,
           pks=['ID'],
-          fks=[['ID'], ['FdisID'], ['SdisID']],
-          refs=[['ID'], ['disID'], ['disID']],
-          ref_tables=['patient', 'diseases', 'diseases']).save()
-
-    Table('diseases',
-          data=diseases,
-          pks=['disID', 'disName']).save()
-
-    Table('symptomsDiseases',
-          data=diseases_symptoms,
-          fks=[['disID']],
-          refs=[['disID']],
-          ref_tables=['diseases']).save()
+          fks=[['ID']],
+          refs=[['ID']],
+          ref_tables=['patient']).save()
 
     Table('symptomsPatient',
           data=patient_symptoms,
@@ -321,13 +310,14 @@ def main():
           fks=[['rID']],
           refs=[['ID']],
           ref_tables=['researcher']).save()
-    return
+
+    file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'searchHashFile.txt', 'w')
+    file.write(json.dumps({}))
 
 
 if __name__ == "__main__":
     random_dict = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'random_dict.txt', 'r').read())
-    symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'symptoms.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'random_dict.txt', 'r').read())
+    symptoms_txt = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'symptoms.txt',
                         'r').readlines()
     main()
-

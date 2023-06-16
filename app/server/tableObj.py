@@ -9,9 +9,11 @@ class Table:
         self.headers = []
         self.headers_type = []
         if not kwargs.get('csvFileName'):
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + tableName + '.csv'
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0]\
+                               + '\\server\\' + tableName + '.csv'
         else:
-            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + kwargs.get(
+            self.csvFileName = os.path.split(os.path.dirname(__file__))[0] \
+                               + '\\server\\' + kwargs.get(
                 'csvFileName') + '.csv'
         self.tableName = tableName
         self.pks = kwargs.get('pks')
@@ -48,39 +50,41 @@ class Table:
     def load_self(self):
         newData = False
         try:
-            if self.data.empty:
+            if self.data.empty and not list(self.data.columns):
                 self.data = pd.read_csv(self.csvFileName)
             else:
                 newData = True
         except FileNotFoundError:
-            print("Error: Incorrect File Name")
             self.data = pd.DataFrame()
         except:
-            print("Error: Table Importing Went Wrong")
             self.data = pd.DataFrame()
         finally:
             if newData:
                 self.headers = list(self.data.columns.values)
-                for h in self.headers:
-                    catch = type(self.data[h].iloc[0])
-                    if catch == str:
-                        catch = self.catch_data(self.data[h].iloc[0])
-                    else:
-                        catch = 'VARCHAR(255)'
-                    if catch != 'VARCHAR(255)':
-                        self.transform_datetime(h, catch)
-                    self.headers_type.append(catch)
-                self.data = self.data.where(pd.notnull(self.data), None)
+                if not self.data.empty:
+                    for h in self.headers:
+                        catch = type(self.data[h].iloc[0])
+                        if catch == str:
+                            catch = self.catch_data(self.data[h].iloc[0])
+                        else:
+                            catch = 'VARCHAR(255)'
+                        if catch != 'VARCHAR(255)':
+                            self.transform_datetime(h, catch)
+                        self.headers_type.append(catch)
+                    self.data = self.data.where(pd.notnull(self.data), None)
+                else:
+                    self.headers_type = ['VARCHAR(255)'] * len(self.headers)
             else:
                 temp_carry = json.loads(
-                    open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+                    open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
                          'r').read())
-                for key, val in temp_carry[self.tableName.lower()].items():
-                    self.__dict__[key] = val
+                if temp_carry.get(self.tableName.lower()):
+                    for key, val in temp_carry[self.tableName.lower()].items():
+                        self.__dict__[key] = val
 
-                for col, typ in zip(self.headers, self.headers_type):
-                    if typ in ['Timestamp', 'DateTime', 'Date']:
-                        self.transform_datetime(col, typ)
+                    for col, typ in zip(self.headers, self.headers_type):
+                        if typ in ['Timestamp', 'DateTime', 'Date']:
+                            self.transform_datetime(col, typ)
 
         return
 
@@ -102,13 +106,16 @@ class Table:
         if os.path.exists(self.csvFileName):
             os.remove(self.csvFileName)
         self.data.to_csv(self.csvFileName, index=False)
-        print('Save Data in: ', self.csvFileName)
         temp_carry = json.loads(
-            open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+            open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
                  'r').read())
-        for key in temp_carry[self.tableName.lower()].keys():
-            temp_carry[self.tableName.lower()][key] = self.__dict__.get(key)
-        param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+        if not temp_carry.get(self.tableName.lower()):
+            temp_carry[self.tableName.lower()] = {}
+        for key, itm in self.__dict__.items():
+            if key == 'data' or key == 'csvFileName' or key == 'tableName':
+                continue
+            temp_carry[self.tableName.lower()][key] = itm
+        param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt', 'w')
         param_file.write(json.dumps(temp_carry))
         param_file.close()
         return self

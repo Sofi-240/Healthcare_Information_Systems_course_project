@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 import mysql.connector
-from app.initialization.tableObj import Table
+from app.server.tableObj import Table
+from app.server.dataGeneration import main as dataGeneration_main
 import os
+import datetime
 import pandas as pd
 import json
 
@@ -32,11 +34,8 @@ def showDBs():
 def initDB(dbname):
     global db, cursor
     db = dbname
-    print(db)
-    print(f"drop database if exists {db.lower()}")
     cursor.execute(f"drop database if exists {db.lower()}")
     cursor.execute(f"CREATE DATABASE {db.upper()}")
-    showDBs()
     return
 
 
@@ -73,7 +72,6 @@ def createNewTable(table, headers=[], dbname=db):
         connect2serverDB(dbname)
     if len(headers) == 0:
         headers = table.headers
-    print(table.tableName.lower())
     cursor.execute(f"use {db}")
     dropRefFKs(table)
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
@@ -82,7 +80,6 @@ def createNewTable(table, headers=[], dbname=db):
         tbl_sqlStr += f"{k} {t}, "
     tbl_sqlStr = tbl_sqlStr[:-2]
     tbl_sqlStr += f")"
-    print(tbl_sqlStr)
     cursor.execute(tbl_sqlStr)
     return
 
@@ -98,7 +95,6 @@ def dropTable(table, dbname=db):
     global db, cursor
     if dbname != db:
         connect2serverDB(dbname)
-    print(table.tableName.lower())
     dropRefFKs(table.tableName.lower())
     cursor.execute(f"use {db}")
     cursor.execute(f"drop table if exists {table.tableName.lower()}")
@@ -112,14 +108,12 @@ def addPKs(table):
     if len(lst) == 1:
         alter_table_com = f"ALTER TABLE {table.tableName.lower()} " \
                           f"ADD PRIMARY KEY ({lst[0]})"
-        print(alter_table_com)
         cursor.execute(alter_table_com)
     elif len(lst) > 1:
         alter_table_com = f"ALTER TABLE {table.tableName.lower()} ADD PRIMARY KEY ("
         for j in lst[:-1]:
             alter_table_com += f"{j},"
         alter_table_com += f"{lst[-1]})"
-        print(alter_table_com)
         cursor.execute(alter_table_com)
     return
 
@@ -132,7 +126,6 @@ def addFKs(table):
             alter_table_com = f"ALTER TABLE {table.tableName.lower()} " \
                               f"ADD FOREIGN KEY ({table.fks[i][0]}) " \
                               f"REFERENCES {t}({table.refs[i][0]})"
-            print(alter_table_com)
             cursor.execute(alter_table_com)
         elif len(table.fks[i]) > 1:
             alter_table_com = f"ALTER TABLE {table.tableName.lower()} " \
@@ -143,7 +136,6 @@ def addFKs(table):
             for j in range(len(table.refs[i]) - 1):
                 alter_table_com += f"{table.refs[i][j]}, "
             alter_table_com += f"{table.refs[i][-1]})"
-            print(alter_table_com)
             cursor.execute(alter_table_com)
     return
 
@@ -168,7 +160,6 @@ def dropRefFKs(tableName, dbname=db):
     dep = hasFKs(tableName, dbname=dbname)
     if not dep:
         return
-    print(dep)
     for t, c in dep:
         dropFk(t, c, dbname=dbname)
     return
@@ -181,7 +172,6 @@ def dropFk(tableName, fpk, dbname=db):
     alter_table_com = f"ALTER TABLE {tableName} " \
                       f"DROP FOREIGN KEY {fpk};"
     cursor.execute(alter_table_com)
-    print(alter_table_com)
     return
 
 
@@ -189,10 +179,13 @@ def createFullTable(table, dbname=db):
     global db, cursor
     if dbname != db:
         connect2serverDB(dbname)
-    print(table.tableName.lower())
     cursor.execute(f"use {db}")
-    dropRefFKs(table.tableName.lower())
-    cursor.execute(f"drop table if exists {table.tableName.lower()}")
+    dropRefFKs(
+        table.tableName.lower()
+    )
+    cursor.execute(
+        f"drop table if exists {table.tableName.lower()}"
+    )
     tbl_sqlStr = f"CREATE TABLE {table.tableName.lower()} ("
     for k, t in zip(table.headers, table.headers_type):
         tbl_sqlStr += f"{k} {t}, "
@@ -202,19 +195,22 @@ def createFullTable(table, dbname=db):
         for pk in table.pks:
             tbl_sqlStr += f"{pk},"
         tbl_sqlStr = tbl_sqlStr[:-1] + f")"
+
     tbl_fkStr = ""
     if table.fks:
         for fk, ref, refT in zip(table.fks, table.refs, table.ref_tables):
             if not hasTable(refT):
                 continue
             for i, j in zip(fk, ref):
-                tbl_fkStr += f" CONSTRAINT FK_{i + table.tableName.lower() + '_' + j + refT} FOREIGN KEY(" \
+                tbl_fkStr += f" CONSTRAINT FK" \
+                             f"_{i + table.tableName.lower() + '_' + j + refT}" \
+                             f" FOREIGN KEY(" \
                              f"{i}) REFERENCES {refT}(" \
-                             f"{j}) ON DELETE NO ACTION ON UPDATE NO ACTION,"
+                             f"{j}) ON DELETE NO ACTION" \
+                             f" ON UPDATE NO ACTION,"
         if tbl_fkStr:
             tbl_fkStr = "," + tbl_fkStr[:-1]
     tbl_sqlStr += tbl_fkStr + f")"
-    print(tbl_sqlStr)
     cursor.execute(tbl_sqlStr)
     if table.shape[0] != 0:
         insertData2Table(table)
@@ -243,12 +239,10 @@ def insert2Table(tableName, values, columns=None, dbname=db):
     if db != dbname:
         connect2serverDB(database=dbname)
     if not hasTable(tableName.lower()):
-        print('Table not EXIST!')
         return
     if not columns:
         columns = getTableCarry(tableName.lower())['headers']
     if len(columns) != len(values):
-        print('Values number != Columns number')
         return
     queryStr = f"INSERT INTO {tableName.lower()} "
     if columns:
@@ -260,7 +254,6 @@ def insert2Table(tableName, values, columns=None, dbname=db):
     for val in values:
         queryStr += f"'{val}', "
     queryStr = queryStr[:-2] + f");"
-    print(queryStr)
     cursor.execute(queryStr)
     con.commit()
     return
@@ -268,17 +261,17 @@ def insert2Table(tableName, values, columns=None, dbname=db):
 
 def getTableCarry(tableName):
     temp_carry = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
              'r').read())
     return temp_carry.get(tableName)
 
 
 def updateTableCarry(tableName, val):
     temp_carry = json.loads(
-        open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt',
+        open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt',
              'r').read())
     temp_carry[tableName] = val
-    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\initialization\\' + 'tables_carry.txt', 'w')
+    param_file = open(os.path.split(os.path.dirname(__file__))[0] + '\\server\\' + 'tables_carry.txt', 'w')
     param_file.write(json.dumps(temp_carry))
     param_file.close()
     return
@@ -287,7 +280,6 @@ def updateTableCarry(tableName, val):
 def updateTable(tableName):
     queryStr = f"SELECT * FROM {tableName.lower()};"
     res = executedQuery(queryStr)
-    print('updateTable:\n', queryStr)
     table = Table(tableName.lower())
     colsName = table.headers
     table.data = pd.DataFrame(res, columns=colsName)
@@ -296,14 +288,22 @@ def updateTable(tableName):
 
 
 def main():
+    dataGeneration_main()
     connect2server()
     initDB('his_project')
     connect2serverDB(database='his_project')
-    tablesNames = ['diseases', 'symptomsDiseases', 'patient', 'symptomsPatient', 'researcher', 'activeresearch',
-                   'patientdiagnosis']
-    for tbl in tablesNames:
-        createFullTable(Table(tbl))
-    return
+    tablesNames = [
+        'diseases', 'patient', 'symptomsPatient',
+        'researcher', 'activeresearch', 'patientdiagnosis'
+    ]
+    for tblName in tablesNames:
+        createFullTable(
+            Table(tblName)
+        )
+    updateTableCarry(
+        'trigger',
+        datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    )
 
 
 if __name__ == "__main__":

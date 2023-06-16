@@ -1,0 +1,374 @@
+disID,disName,depID,depName,Symptom
+545270,Breast cancer,10,Oncology,lump in the breast
+545270,Breast cancer,10,Oncology,thickening in the breast
+545270,Breast cancer,10,Oncology,lump in the underarm area
+545270,Breast cancer,10,Oncology,thickening in the underarm area
+545270,Breast cancer,10,Oncology,changes in breast size
+545270,Breast cancer,10,Oncology,changes in breast shape
+545270,Breast cancer,10,Oncology,nipple discharge
+545270,Breast cancer,10,Oncology,nipple inversion
+545270,Breast cancer,10,Oncology,skin changes on the breast
+545270,Breast cancer,10,Oncology,skin changes on the nipple
+545270,Breast cancer,10,Oncology,pain in the breast
+781928,Lung cancer,10,Oncology,persistent cough
+781928,Lung cancer,10,Oncology,pain in the chest
+781928,Lung cancer,10,Oncology,shortness of breath
+781928,Lung cancer,10,Oncology,fatigue
+781928,Lung cancer,10,Oncology,unexplained weight loss
+117661,Prostate cancer,10,Oncology,difficulty urinating
+117661,Prostate cancer,10,Oncology,weak or interrupted urine flow
+117661,Prostate cancer,10,Oncology,blood in the urine
+117661,Prostate cancer,10,Oncology,blood in the semen
+117661,Prostate cancer,10,Oncology,erectile dysfunction
+117661,Prostate cancer,10,Oncology,pain or discomfort in the pelvic area
+132701,Colorectal cancer,10,Oncology,blood in the stool
+132701,Colorectal cancer,10,Oncology,rectal bleeding
+132701,Colorectal cancer,10,Oncology,changes in bowel habits
+132701,Colorectal cancer,10,Oncology,abdominal pain or cramping
+132701,Colorectal cancer,10,Oncology,weakness or fatigue
+132701,Colorectal cancer,10,Oncology,unexplained weight loss
+747433,Skin cancer,10,Oncology,changes in the size of a mole
+747433,Skin cancer,10,Oncology,changes in the size of a skin lesion
+747433,Skin cancer,10,Oncology,changes in the shape of a mole
+747433,Skin cancer,10,Oncology,changes in the shape of a skin lesion
+747433,Skin cancer,10,Oncology,changes in the color of a mole
+747433,Skin cancer,10,Oncology,changes in the color of a skin lesion
+747433,Skin cancer,10,Oncology,a sore that does not heal
+747433,Skin cancer,10,Oncology,redness around a skin lesion
+747433,Skin cancer,10,Oncology,swelling around a skin lesion
+747433,Skin cancer,10,Oncology,itching in the affected area
+747433,Skin cancer,10,Oncology,tenderness in the affected area
+747433,Skin cancer,10,Oncology,pain in the affected area
+747433,Skin cancer,10,Oncology,changes in sensation such as tingling or numbness
+957818,Bladder cancer,10,Oncology,blood in urine
+957818,Bladder cancer,10,Oncology,painful urination
+957818,Bladder cancer,10,Oncology,frequent urination
+957818,Bladder cancer,10,Oncology,lower back pain
+957818,Bladder cancer,10,Oncology,fatigue
+108233,Kidney cancer,10,Oncology,blood in urine
+108233,Kidney cancer,10,Oncology,pain in the flank
+108233,Kidney cancer,10,Oncology,abdominal mass or swelling
+108233,Kidney cancer,10,Oncology,fatigue
+108233,Kidney cancer,10,Oncology,unexplained weight loss
+795335,Pancreatic cancer,10,Oncology,abdominal pain or discomfort
+795335,Pancreatic cancer,10,Oncology,jaundice
+795335,Pancreatic cancer,10,Oncology,unexplained weight loss
+795335,Pancreatic cancer,10,Oncology,fatigue
+795335,Pancreatic cancer,10,Oncology,loss of appetite
+517568,Ovarian cancer,10,Oncology,abdominal bloating
+517568,Ovarian cancer,10,Oncology,abdominal swelling
+517568,Ovarian cancer,10,Oncology,pain in the pelvic
+517568,Ovarian cancer,10,Oncology,pelvic pressure
+517568,Ovarian cancer,10,Oncology,feeling full quickly
+517568,Ovarian cancer,10,Oncology,difficulty eating
+517568,Ovarian cancer,10,Oncology,changes in bowel habits
+517568,Ovarian cancer,10,Oncology,urinary frequency
+517568,Ovarian cancer,10,Oncology,urinary urgency
+567975,Leukemia,10,Oncology,fatigue
+567975,Leukemia,10,Oncology,weakness
+567975,Leukemia,10,Oncology,pale skin
+567975,Leukemia,10,Oncology,frequent infections
+567975,Leukemia,10,Oncology,unexplained weight loss
+567975,Leukemia,10,Oncology,easy bruising
+567975,Leukemia,10,Oncology,easy bleeding
+227178,Lymphoma,10,Oncology,swollen lymph nodes in the neck
+227178,Lymphoma,10,Oncology,swollen lymph nodes in the armpit
+227178,Lymphoma,10,Oncology,swollen lymph nodes in the groin
+227178,Lymphoma,10,Oncology,fatigue
+227178,Lymphoma,10,Oncology,weakness
+227178,Lymphoma,10,Oncology,weight loss
+227178,Lymphoma,10,Oncology,night sweats
+227178,Lymphoma,10,Oncology,itching
+987855,Liver cancer,10,Oncology,pain in the abdominal
+987855,Liver cancer,10,Oncology,abdominal discomfort
+987855,Liver cancer,10,Oncology,jaundice
+987855,Liver cancer,10,Oncology,weight loss
+987855,Liver cancer,10,Oncology,fatigue
+987855,Liver cancer,10,Oncology,loss of appetite
+456120,Bone cancer,10,Oncology,pain in the bone
+456120,Bone cancer,10,Oncology,bone tenderness
+456120,Bone cancer,10,Oncology,swelling in the affected area
+456120,Bone cancer,10,Oncology,lump in the affected area
+456120,Bone cancer,10,Oncology,fractures
+456120,Bone cancer,10,Oncology,fatigue
+456120,Bone cancer,10,Oncology,weight loss
+646092,Thyroid cancer,10,Oncology,lump in the neck
+646092,Thyroid cancer,10,Oncology,swelling in the neck
+646092,Thyroid cancer,10,Oncology,hoarseness
+646092,Thyroid cancer,10,Oncology,difficulty speaking
+646092,Thyroid cancer,10,Oncology,pain in the neck
+646092,Thyroid cancer,10,Oncology,discomfort in the neck
+646092,Thyroid cancer,10,Oncology,difficulty swallowing
+646092,Thyroid cancer,10,Oncology,changes in voice
+646092,Thyroid cancer,10,Oncology,changes in breathing
+672684,Esophageal cancer,10,Oncology,difficulty swallowing
+672684,Esophageal cancer,10,Oncology,pain in the chest
+672684,Esophageal cancer,10,Oncology,discomfort in the chest
+672684,Esophageal cancer,10,Oncology,acid reflux
+672684,Esophageal cancer,10,Oncology,heartburn
+672684,Esophageal cancer,10,Oncology,weight loss
+672684,Esophageal cancer,10,Oncology,hoarseness
+672684,Esophageal cancer,10,Oncology,coughing
+638522,Stomach cancer,10,Oncology,pain in the abdominal
+638522,Stomach cancer,10,Oncology,nausea and vomiting
+638522,Stomach cancer,10,Oncology,loss of appetite
+638522,Stomach cancer,10,Oncology,feeling full quickly
+638522,Stomach cancer,10,Oncology,weight loss
+638522,Stomach cancer,10,Oncology,fatigue
+164120,Cervical cancer,10,Oncology,abnormal vaginal bleeding
+164120,Cervical cancer,10,Oncology,pain during sex
+164120,Cervical cancer,10,Oncology,unusual vaginal discharge
+164120,Cervical cancer,10,Oncology,pain in the pelvic
+164120,Cervical cancer,10,Oncology,pelvic discomfort
+164120,Cervical cancer,10,Oncology,fatigue
+613120,Alzheimer,20,Neurological,memory loss of recent events
+613120,Alzheimer,20,Neurological,difficulty with problem-solving
+613120,Alzheimer,20,Neurological,difficulty with reasoning
+613120,Alzheimer,20,Neurological,difficulty with language
+613120,Alzheimer,20,Neurological,difficulty with communication
+613120,Alzheimer,20,Neurological,confusion
+613120,Alzheimer,20,Neurological,disorientation
+613120,Alzheimer,20,Neurological,mood changes
+966053,Parkinson,20,Neurological,tremors in the hands
+966053,Parkinson,20,Neurological,tremors in the arms
+966053,Parkinson,20,Neurological,shaking in the hands
+966053,Parkinson,20,Neurological,shaking in the arms
+966053,Parkinson,20,Neurological,muscle stiffness
+966053,Parkinson,20,Neurological,muscle rigidity
+966053,Parkinson,20,Neurological,difficulty with balance
+966053,Parkinson,20,Neurological,difficulty with coordination
+966053,Parkinson,20,Neurological,slow movement
+966053,Parkinson,20,Neurological,difficulty with initiating movement
+161521,Dementia,20,Neurological,memory loss
+161521,Dementia,20,Neurological,forgetting recent events
+161521,Dementia,20,Neurological,forgetting important dates
+161521,Dementia,20,Neurological,forgetting information that was once well-known
+161521,Dementia,20,Neurological,difficulty with language
+161521,Dementia,20,Neurological,struggling to find the right words
+161521,Dementia,20,Neurological,repeating oneself
+161521,Dementia,20,Neurological,having trouble following a conversation
+161521,Dementia,20,Neurological,impaired judgement
+161521,Dementia,20,Neurological,impaired decision-making
+161521,Dementia,20,Neurological,losing the ability to reason
+161521,Dementia,20,Neurological,losing the ability problem-solve
+161521,Dementia,20,Neurological,showing a lack of judgement
+161521,Dementia,20,Neurological,confusion
+161521,Dementia,20,Neurological,disorientation
+161521,Dementia,20,Neurological,changes in mood
+161521,Dementia,20,Neurological,changes in behavior
+436897,Multiple sclerosis,20,Neurological,numbness in the limbs
+436897,Multiple sclerosis,20,Neurological,tingling in the limbs
+436897,Multiple sclerosis,20,Neurological,muscle weakness
+436897,Multiple sclerosis,20,Neurological,muscle spasms
+436897,Multiple sclerosis,20,Neurological,vision problems
+436897,Multiple sclerosis,20,Neurological,fatigue
+436897,Multiple sclerosis,20,Neurological,difficulty with balance
+436897,Multiple sclerosis,20,Neurological,difficulty with coordination
+396845,Epilepsy,20,Neurological,seizures
+396845,Epilepsy,20,Neurological,confusion
+396845,Epilepsy,20,Neurological,loss of consciousness
+396845,Epilepsy,20,Neurological,unexplained staring
+396845,Epilepsy,20,Neurological,muscle twitching
+396845,Epilepsy,20,Neurological,jerking
+396845,Epilepsy,20,Neurological,nausea
+396845,Epilepsy,20,Neurological,bvomiting
+608704,Migraines,20,Neurological,intense headache pain
+608704,Migraines,20,Neurological,pain on one side of the head
+608704,Migraines,20,Neurological,sensitivity to light
+608704,Migraines,20,Neurological,sensitivity to sound
+608704,Migraines,20,Neurological,sensitivity to smells
+608704,Migraines,20,Neurological,nausea
+608704,Migraines,20,Neurological,vomiting
+608704,Migraines,20,Neurological,visual disturbances
+608704,Migraines,20,Neurological,flashing lights
+608704,Migraines,20,Neurological,blind spots
+608704,Migraines,20,Neurological,tingling
+608704,Migraines,20,Neurological,numbness in the face
+608704,Migraines,20,Neurological,numbness in the limbs
+224517,ALS,20,Neurological,muscle weakness
+224517,ALS,20,Neurological,atrophy
+224517,ALS,20,Neurological,difficulty with speech
+224517,ALS,20,Neurological,difficulty with swallowing
+224517,ALS,20,Neurological,muscle cramps
+224517,ALS,20,Neurological,twitching
+224517,ALS,20,Neurological,fatigue
+224517,ALS,20,Neurological,difficulty with motor tasks
+631559,Huntington disease,20,Neurological,involuntary movements
+631559,Huntington disease,20,Neurological,difficulty with balance
+631559,Huntington disease,20,Neurological,difficulty with balance coordination
+631559,Huntington disease,20,Neurological,cognitive decline
+631559,Huntington disease,20,Neurological,memory loss
+631559,Huntington disease,20,Neurological,difficulty with decision making
+631559,Huntington disease,20,Neurological,mood changes
+631559,Huntington disease,20,Neurological,speech difficulties
+331054,Cerebral palsy,20,Neurological,muscle stiffness
+331054,Cerebral palsy,20,Neurological,muscle spasticity
+331054,Cerebral palsy,20,Neurological,difficulty with coordination
+331054,Cerebral palsy,20,Neurological,difficulty with balance
+331054,Cerebral palsy,20,Neurological,difficulty with fine motor tasks
+331054,Cerebral palsy,20,Neurological,speech difficulties
+331054,Cerebral palsy,20,Neurological,intellectual disability
+929588,Tourette syndrome,20,Neurological,involuntary movements
+929588,Tourette syndrome,20,Neurological,vocalizations
+929588,Tourette syndrome,20,Neurological,repetitive behaviors
+929588,Tourette syndrome,20,Neurological,difficulty with impulse control
+929588,Tourette syndrome,20,Neurological,difficulty with social interactions
+390166,Autism spectrum disorder,20,Neurological,difficulty with social interactions
+390166,Autism spectrum disorder,20,Neurological,difficulty with communication
+390166,Autism spectrum disorder,20,Neurological,repetitive behaviors
+390166,Autism spectrum disorder,20,Neurological,repetitive routines
+390166,Autism spectrum disorder,20,Neurological,sensory sensitivities
+390166,Autism spectrum disorder,20,Neurological,difficulty with changes
+390166,Autism spectrum disorder,20,Neurological,difficulty with imaginative play
+390166,Autism spectrum disorder,20,Neurological,difficulty with creativity
+720892,Schizophrenia,20,Neurological,hallucinations
+720892,Schizophrenia,20,Neurological,delusions
+720892,Schizophrenia,20,Neurological,disorganized speech
+720892,Schizophrenia,20,Neurological,disorganized behavior
+720892,Schizophrenia,20,Neurological,reduced emotional expression
+720892,Schizophrenia,20,Neurological,reduced of motivation
+720892,Schizophrenia,20,Neurological,social withdrawal
+720892,Schizophrenia,20,Neurological,difficulty with concentration
+720892,Schizophrenia,20,Neurological,difficulty with memory
+177250,CTE,20,Neurological,memory loss
+177250,CTE,20,Neurological,difficulty with impulse control
+177250,CTE,20,Neurological,difficulty with decision making
+177250,CTE,20,Neurological,mood changes
+177250,CTE,20,Neurological,difficulty with balance
+177250,CTE,20,Neurological,difficulty with coordination
+177250,CTE,20,Neurological,cognitive decline
+647330,Neuropathy,20,Neurological,tingling in the limbs
+647330,Neuropathy,20,Neurological,numbness in the limbs
+647330,Neuropathy,20,Neurological,muscle weakness
+647330,Neuropathy,20,Neurological,atrophy
+647330,Neuropathy,20,Neurological,pain in the affected area
+647330,Neuropathy,20,Neurological,burning sensations in the affected area
+647330,Neuropathy,20,Neurological,difficulty with balance
+647330,Neuropathy,20,Neurological,difficulty with coordination
+647330,Neuropathy,20,Neurological,digestive issues
+647815,Atherosclerosis,30,Vascular,pain in the chest
+647815,Atherosclerosis,30,Vascular,angina
+647815,Atherosclerosis,30,Vascular,shortness of breath
+647815,Atherosclerosis,30,Vascular,weakness in limbs
+647815,Atherosclerosis,30,Vascular,numbness in limbs
+647815,Atherosclerosis,30,Vascular,erectile dysfunction
+647815,Atherosclerosis,30,Vascular,coldness in extremities
+647815,Atherosclerosis,30,Vascular,numbness in extremities
+479085,Coronary artery disease,30,Vascular,pain in the chest
+479085,Coronary artery disease,30,Vascular,angina
+479085,Coronary artery disease,30,Vascular,shortness of breath
+479085,Coronary artery disease,30,Vascular,weakness in limbs
+479085,Coronary artery disease,30,Vascular,numbness in limbs
+479085,Coronary artery disease,30,Vascular,nausea
+479085,Coronary artery disease,30,Vascular,vomiting
+781547,Peripheral artery disease,30,Vascular,pain in legs
+781547,Peripheral artery disease,30,Vascular,pain in arms
+781547,Peripheral artery disease,30,Vascular,cramping in legs
+781547,Peripheral artery disease,30,Vascular,cramping in arms
+781547,Peripheral artery disease,30,Vascular,numbness in legs
+781547,Peripheral artery disease,30,Vascular,numbness in arms
+781547,Peripheral artery disease,30,Vascular,weakness in limbs
+781547,Peripheral artery disease,30,Vascular,sores that wont heal
+781547,Peripheral artery disease,30,Vascular,wounds that wont heal
+781547,Peripheral artery disease,30,Vascular,coldness in extremities
+781547,Peripheral artery disease,30,Vascular,numbness in extremities
+781547,Peripheral artery disease,30,Vascular,change in skin color
+224969,Stroke,30,Vascular,sudden weakness
+224969,Stroke,30,Vascular,numbness in the face
+224969,Stroke,30,Vascular,numbness in the arm
+224969,Stroke,30,Vascular,numbness in the leg
+224969,Stroke,30,Vascular,difficulty to speak
+224969,Stroke,30,Vascular,difficulty to understanding speech
+224969,Stroke,30,Vascular,trouble seeing
+224969,Stroke,30,Vascular,severe headache
+224969,Stroke,30,Vascular,dizziness
+224969,Stroke,30,Vascular,loss of balance
+224969,Stroke,30,Vascular,loss of coordination
+696369,Aortic aneurysm,30,Vascular,constant pain in the abdomen
+696369,Aortic aneurysm,30,Vascular,constant pain in the chest
+696369,Aortic aneurysm,30,Vascular,constant pain in the back
+696369,Aortic aneurysm,30,Vascular,constant pain in the pelvis
+696369,Aortic aneurysm,30,Vascular,shortness of breath
+696369,Aortic aneurysm,30,Vascular,hoarseness
+696369,Aortic aneurysm,30,Vascular,cough
+696369,Aortic aneurysm,30,Vascular,swelling in legs
+696369,Aortic aneurysm,30,Vascular,swelling in arms
+409421,Raynaud disease,30,Vascular,numbness in the fingers
+409421,Raynaud disease,30,Vascular,numbness in the toes
+409421,Raynaud disease,30,Vascular,tingling in the fingers
+409421,Raynaud disease,30,Vascular,tingling in the toes
+409421,Raynaud disease,30,Vascular,coldness in the affected areas
+409421,Raynaud disease,30,Vascular,color changes in the skin
+409421,Raynaud disease,30,Vascular,pain in the affected areas
+409421,Raynaud disease,30,Vascular,throbbing in the affected areas
+409421,Raynaud disease,30,Vascular,difficulty with fine motor tasks in the affected area
+323580,Deep vein thrombosis,30,Vascular,swelling in the affected limb
+323580,Deep vein thrombosis,30,Vascular,pain in the affected limb
+323580,Deep vein thrombosis,30,Vascular,tenderness in the affected limb
+323580,Deep vein thrombosis,30,Vascular,warmth in the affected limb
+323580,Deep vein thrombosis,30,Vascular,redness in the affected limb
+323580,Deep vein thrombosis,30,Vascular,skin discoloration
+323580,Deep vein thrombosis,30,Vascular,skin peeling
+323580,Deep vein thrombosis,30,Vascular,visible veins
+688901,Pulmonary embolism,30,Vascular,shortness of breath
+688901,Pulmonary embolism,30,Vascular,pain in the chest
+688901,Pulmonary embolism,30,Vascular,discomfort with deep breathing
+688901,Pulmonary embolism,30,Vascular,discomfort with coughing
+688901,Pulmonary embolism,30,Vascular,cough
+688901,Pulmonary embolism,30,Vascular,cough with bloody sputum
+688901,Pulmonary embolism,30,Vascular,rapid heartbeat
+688901,Pulmonary embolism,30,Vascular,irregular heartbeat
+688901,Pulmonary embolism,30,Vascular,lightheadedness
+688901,Pulmonary embolism,30,Vascular,fainting
+135894,Varicose veins,30,Vascular,swollen veins
+135894,Varicose veins,30,Vascular,twisted veins
+135894,Varicose veins,30,Vascular,enlarged veins
+135894,Varicose veins,30,Vascular,veins are visible through the skin
+135894,Varicose veins,30,Vascular,heavy feeling in the legs
+135894,Varicose veins,30,Vascular,throbbing in the legs
+135894,Varicose veins,30,Vascular,burning in the legs
+135894,Varicose veins,30,Vascular,cramping in the legs
+135894,Varicose veins,30,Vascular,itching around the affected veins
+135894,Varicose veins,30,Vascular,skin discoloration around the affected veins
+135894,Varicose veins,30,Vascular,dryness around the affected veins
+969959,Arteriovenous malformation,30,Vascular,headache
+969959,Arteriovenous malformation,30,Vascular,seizures
+969959,Arteriovenous malformation,30,Vascular,weakness in the limbs
+969959,Arteriovenous malformation,30,Vascular,numbness in the limbs
+969959,Arteriovenous malformation,30,Vascular,problems with vision
+969959,Arteriovenous malformation,30,Vascular,problems with vision speech
+969959,Arteriovenous malformation,30,Vascular,difficulty with fine motor tasks
+460080,Buerger disease,30,Vascular,pain in the feet
+460080,Buerger disease,30,Vascular,tenderness in the feet
+460080,Buerger disease,30,Vascular,pain in the hands
+460080,Buerger disease,30,Vascular,tenderness in the hands
+460080,Buerger disease,30,Vascular,coldness in the affected areas
+460080,Buerger disease,30,Vascular,sores that won't heal
+460080,Buerger disease,30,Vascular,swelling in the affected areas
+460080,Buerger disease,30,Vascular,changes in skin color in the affected areas
+860317,Hypertensive heart disease,30,Vascular,pain in the chest
+860317,Hypertensive heart disease,30,Vascular,chest discomfort
+860317,Hypertensive heart disease,30,Vascular,shortness of breath
+860317,Hypertensive heart disease,30,Vascular,fatigue
+860317,Hypertensive heart disease,30,Vascular,irregular heartbeat
+860317,Hypertensive heart disease,30,Vascular,swelling in legs
+860317,Hypertensive heart disease,30,Vascular,swelling in ankles
+860317,Hypertensive heart disease,30,Vascular,swelling in feet
+323065,Aortic dissection,30,Vascular,severe pain in the chest
+323065,Aortic dissection,30,Vascular,severe pain in the upper back
+323065,Aortic dissection,30,Vascular,shortness of breath
+323065,Aortic dissection,30,Vascular,sweating
+323065,Aortic dissection,30,Vascular,weakness on one side of the body
+323065,Aortic dissection,30,Vascular,paralysis on one side of the body
+323065,Aortic dissection,30,Vascular,hoarseness
+323065,Aortic dissection,30,Vascular,trouble speaking
+904455,Carotid artery disease,30,Vascular,weakness in the face
+904455,Carotid artery disease,30,Vascular,weakness in the arm on one side of the body
+904455,Carotid artery disease,30,Vascular,weakness in the leg on one side of the body
+904455,Carotid artery disease,30,Vascular,numbness in the face on one side of the body
+904455,Carotid artery disease,30,Vascular,numbness in the arm on one side of the body
+904455,Carotid artery disease,30,Vascular,numbness in the leg on one side of the body
+904455,Carotid artery disease,30,Vascular,difficulty speaking
+904455,Carotid artery disease,30,Vascular,difficulty understanding speech
+904455,Carotid artery disease,30,Vascular,severe headache
+904455,Carotid artery disease,30,Vascular,dizzines
